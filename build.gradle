@@ -114,8 +114,8 @@ project.tasks['check'].dependsOn integration
 
 sonarqube {
   properties {
-    property "sonar.projectName", "API CP :: stg-track-my-case-api-springboot-template"
-    property "sonar.projectKey", "uk.gov.moj.cp:stg-track-my-case-api-springboot-template"
+    property "sonar.projectName", "API CP :: stg-track-my-case-service"
+    property "sonar.projectKey", "uk.gov.moj.cp:stg-track-my-case-service"
   }
 }
 
@@ -199,7 +199,7 @@ application {
 }
 
 bootJar {
-  archiveFileName = "service-stg-track-my-case.jar"
+  archiveFileName = "stg-track-my-case-service.jar"
 
   manifest {
     attributes('Implementation-Version': project.version.toString())

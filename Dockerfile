@@ -5,7 +5,7 @@ ARG BASE_IMAGE
 #FROM ${BASE_IMAGE:-crmdvrepo01.azurecr.io/registry.hub.docker.com/library/openjdk:21-jdk-slim}
 FROM ${BASE_IMAGE:-openjdk:21-jdk-slim}
 
-ENV JAR_FILE_NAME=service-stg-track-my-case.jar
+ENV JAR_FILE_NAME=stg-track-my-case-service.jar
 
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 

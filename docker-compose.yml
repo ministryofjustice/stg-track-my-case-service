@@ -1,6 +1,6 @@
 
 services:
-  service-stg-track-my-case:
+  stg-track-my-case-service:
     build:
       context: .
       dockerfile: Dockerfile

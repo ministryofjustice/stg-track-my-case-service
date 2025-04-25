@@ -23,6 +23,6 @@ public class RootController {
      */
     @GetMapping("/")
     public ResponseEntity<String> welcome() {
-        return ok("Welcome to service-stg-track-my-case");
+        return ok("Welcome to stg-track-my-case-service");
     }
 }
