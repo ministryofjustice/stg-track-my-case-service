@@ -30,7 +30,7 @@ class RootControllerIntegrationTest {
         mockMvc.perform(get("/"))
             .andDo(print())
             .andExpect(status().isOk())
-            .andExpect(content().string(containsString("Welcome to service-stg-track-my-case")));
+            .andExpect(content().string(containsString("Welcome to stg-track-my-case-service")));
     }
 
     @DisplayName("Actuator health status should be UP")
