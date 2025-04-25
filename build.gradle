@@ -199,7 +199,7 @@ application {
 }
 
 bootJar {
-  archiveFileName = "stg-track-my-case-api-springboot-template.jar"
+  archiveFileName = "service-stg-track-my-case.jar"
 
   manifest {
     attributes('Implementation-Version': project.version.toString())
