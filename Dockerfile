@@ -5,7 +5,8 @@ FROM amazoncorretto:21-alpine AS builder
 WORKDIR /app
 
 # Copy all files to the working directory
-ADD . .
+COPY . .
+
 
 # Build the application using Gradle
 RUN ./gradlew assemble -Dorg.gradle.daemon=false
@@ -38,7 +39,8 @@ COPY --from=builder --chown=appuser:appgroup /app/build/libs/stg-track-my-case-s
 USER 2000
 
 # Define the entry point for the container
-ENTRYPOINT ["java", "-XX:+AlwaysActAsServerClassMachine", "-jar", "/app/app.jar"]
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+
 
 # Expose the application port
 EXPOSE 4550
