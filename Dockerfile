@@ -43,4 +43,4 @@ ENTRYPOINT ["java", "-jar", "/app/app.jar"]
 
 
 # Expose the application port
-EXPOSE 4550
+EXPOSE 9999
