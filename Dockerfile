@@ -1,17 +1,21 @@
- # renovate: datasource=github-releases depName=microsoft/ApplicationInsights-Java
-ARG APP_INSIGHTS_AGENT_VERSION=3.7.1
+# Specify java runtime base image
+FROM amazoncorretto:21-alpine
 
-ARG BASE_IMAGE
-#FROM ${BASE_IMAGE:-crmdvrepo01.azurecr.io/registry.hub.docker.com/library/openjdk:21-jdk-slim}
-FROM ${BASE_IMAGE:-openjdk:21-jdk-slim}
+# Set up working directory in the container
+RUN mkdir -p /opt/stg-track-my-case-service/
+WORKDIR /opt/stg-track-my-case-service/
 
-ENV JAR_FILE_NAME=stg-track-my-case-service.jar
+# Copy the JAR file into the container
+COPY build/libs/stg-track-my-case-service.jar app.jar
 
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# Create a group and non-root user
+RUN addgroup -S appgroup && adduser -u 1001 -S appuser -G appgroup
 
-COPY build/libs/$JAR_FILE_NAME /opt/app/
-COPY lib/applicationinsights.json /opt/app/
+# Set the default user
+USER 1001
 
+# Expose the port that the application will run on
 EXPOSE 4550
-RUN chmod 755 /opt/app/$JAR_FILE_NAME
-CMD sh -c "java -jar /opt/app/$JAR_FILE_NAME"
+
+# Run the JAR file
+CMD java -jar app.jar
