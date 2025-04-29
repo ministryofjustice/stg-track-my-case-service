@@ -7,6 +7,7 @@ WORKDIR /app
 # Copy all files to the working directory
 COPY . .
 
+
 # Build the application using Gradle
 RUN ./gradlew assemble -Dorg.gradle.daemon=false
 
@@ -39,6 +40,7 @@ USER 2000
 
 # Define the entry point for the container
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+
 
 # Expose the application port
 EXPOSE 4550
