@@ -1,8 +1,10 @@
 package uk.gov.moj.cp.controllers;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.boot.actuate.health.HealthEndpoint;
 
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -14,6 +16,9 @@ import static org.springframework.http.ResponseEntity.ok;
 @RestController
 public class RootController {
 
+    @Autowired
+    private HealthEndpoint healthEndpoint;
+
     /**
      * Root GET endpoint.
      *
@@ -23,8 +28,14 @@ public class RootController {
      *
      * @return Welcome message from the service.
      */
-    @GetMapping("/")
+
+    @GetMapping({"/healthz", "/"})
     public ResponseEntity<String> welcome() {
         return ok("Welcome to stg-track-my-case-service");
+    }
+
+    @GetMapping({"/?healthz", "/healthz"})
+    public ResponseEntity<?> healthz() {
+        return ok(healthEndpoint.health());
     }
 }
