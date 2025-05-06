@@ -1,9 +1,9 @@
 name: CI/CD dev
 
 on:
-  pull_request:
-    branches-ignore:
-      - dependabot/**
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions: {}
