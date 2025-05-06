@@ -70,7 +70,6 @@ jobs:
 
   deploy-dev:
     needs: build-push-dev
-    if: github.event_name == 'pull_request'
     name: Deploy Helm Chart into Cloud Platform
     runs-on: ubuntu-latest
     permissions:
