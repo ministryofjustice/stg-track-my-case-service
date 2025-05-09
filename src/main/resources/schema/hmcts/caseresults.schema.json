@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://justice.gov.uk/CaseJudiciaryResults.schema.json",
+  "title": "CaseJudiciaryResults",
+  "type": "array",
+  "items": {
+    "title": "CaseJudiciaryResult",
+    "description": "Case-level Judiciary Result",
+    "type": "object",
+    "properties": {
+      "resultText": {
+        "description": "Result",
+        "title": "Judiciary Result",
+        "type": "string",
+        "default": ""
+      }
+    },
+    "required": ["resultText"],
+    "additionalProperties": false
+  }
+}
