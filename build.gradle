@@ -2,6 +2,7 @@ plugins {
   id 'application'
   id 'java'
   id 'jacoco'
+  id("org.jsonschema2pojo") version "1.2.2"
   id 'io.spring.dependency-management' version '1.1.7'
   id 'org.springframework.boot' version '3.4.4'
   id 'com.github.ben-manes.versions' version '0.52.0'
@@ -159,7 +160,7 @@ tasks.named('compileJava') {
 
 
 tasks.withType(Checkstyle).configureEach {
-  def generatedDir = file("${buildDir}/generated/src/main/java").canonicalPath
+  def generatedDir = file("${buildDir}/generated").canonicalPath
   source = source.filter { file ->
     !file.canonicalPath.startsWith(generatedDir)
   }
@@ -183,6 +184,10 @@ dependencies {
 
   implementation 'org.hibernate.validator:hibernate-validator:8.0.2.Final'
 
+  implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+  implementation 'javax.validation:validation-api:2.0.1.Final'
+  implementation("org.json:json:20210307")
+
   testImplementation(platform('org.junit:junit-bom:5.12.2'))
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: springBootVersion, {
@@ -203,6 +208,24 @@ bootJar {
 
   manifest {
     attributes('Implementation-Version': project.version.toString())
+  }
+}
+
+jsonSchema2Pojo {
+  source = files("src/main/resources/schema") // <-- path to your JSON Schema files
+  targetPackage = 'com.moj.generated'     // <-- your desired package name
+  targetDirectory = file("$buildDir/generated-sources/js2p")
+  includeGeneratedAnnotation = true
+  usePrimitives = true
+  includeConstructors = true
+  annotationStyle = "jackson2"
+}
+
+sourceSets {
+  main {
+    java {
+      srcDir "$buildDir/generated-sources/js2p"
+    }
   }
 }
 

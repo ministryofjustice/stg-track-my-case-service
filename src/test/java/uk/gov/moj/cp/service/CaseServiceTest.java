@@ -1,25 +1,42 @@
 package uk.gov.moj.cp.service;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpEntity;
+import uk.gov.moj.cp.client.CrimeCaseClient;
 import uk.gov.moj.cp.dto.CaseJudiciaryResult;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 public class CaseServiceTest {
 
-    private final CaseService caseService = new CaseService();
+    @InjectMocks
+    private CaseService caseService;
+    @Mock
+    private CrimeCaseClient crimeCaseClient;
 
     @Test
-    void testGetCaseById_ReturnsCaseJudiciaryResult() {
+    void testGetCaseById_ValidResponse_ReturnsCaseJudiciaryResultList() {
         Long caseId = 1L;
+        String mockResponse = "[ { \"resultText\": \"Guilty plea accepted by the court.\" }, "
+            + "{ \"resultText\": \"Sentenced to 12 months custody.\" }, "
+            + "{ \"resultText\": \"Fine of £500 imposed.\" } ]";
 
+        HttpEntity<String> mockHttpEntity = new HttpEntity<>(mockResponse);
+        when(crimeCaseClient.getCaseById(caseId)).thenReturn(mockHttpEntity);
         List<CaseJudiciaryResult> result = caseService.getCaseById(caseId);
 
-        assertNotNull(result, "Result should not be null");
-        assertEquals(1, result.size(), "Result list size should be 1");
-        assertEquals("Sample CaseJudiciaryResult", result.get(0).getResult(), "Result content should match");
+        assertEquals(3, result.size());
+        assertEquals("Guilty plea accepted by the court.", result.get(0).resultText(),
+            "Result content should match"
+        );
     }
+
 }
