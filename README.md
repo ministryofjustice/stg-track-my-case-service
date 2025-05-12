@@ -15,10 +15,10 @@ The template is a working application with a minimal setup. It contains:
 * docker setup
 * code quality tools already set up
 * MIT license and contribution information
-* Helm chart using chart-java.
+* ~~Helm chart using chart-java.~~
 
-The application exposes health endpoint (http://localhost:4550/health) and metrics endpoint
-(http://localhost:4550/metrics).
+The application exposes health endpoint (http://localhost:9999/health) and metrics endpoint
+(http://localhost:9999/metrics).
 
 ## Plugins
 
@@ -125,12 +125,12 @@ by executing the following command:
 ```
 
 This will start the API container exposing the application's port
-(set to `4550` in this template app).
+(set to `9999` in this template app).
 
 In order to test if the application is up, you can call its health endpoint:
 
 ```bash
-  curl http://localhost:4550/health
+  curl http://localhost:9999/health
 ```
 
 You should get a response similar to this:
@@ -138,6 +138,8 @@ You should get a response similar to this:
 ```
   {"status":"UP","diskSpace":{"status":"UP","total":249644974080,"free":137188298752,"threshold":10485760}}
 ```
+
+> Note: While the service is hoted on the `data-platform` endpoints are sent to port `9999`
 
 ### Alternative script to run application
 
