@@ -1,109 +1,97 @@
 {
-    "$schema": "https://json-schema.org/draft/2020-12/schema",
-    "$id": "http://justice.gov.uk/courtHouses.schema.json",
-    "title": "courtHouses",
-    "type": "object",
-    "properties": {
-      "courtHouse": {
-        "description": "The court house that owns the court rooms",
-        "type": "object",
-        "properties": {
-          "courtHouseType": {
-            "description": "Specifies the type of court",
-            "type": "string",
-            "enum": [
-              "crown",
-              "magistrate"
-            ]
-          },
-          "courtHouseCode": {
-            "description": "Links to the court that is responsible for the courtrooms",
-            "type": "string"
-          },
-          "courtHouseName": {
-            "description": "Name of the court house",
-            "type": "string"
-          },
-          "courtHouseDescription": {
-            "description": "Description of the court",
-            "type": "string"
-          },
-          "courtRoom": {
-            "type": "array",
-            "items": {
-              "description": "The court room that owns the court rooms",
-              "type": "object",
-              "properties": {
-                "courtRoomNumber": {
-                  "description": "Court room number in court",
-                  "type": "integer"
-                },
-                "courtRoomId": {
-                  "description": "Ref data id (EPIMS or OU Court id)",
-                  "type": "integer"
-                },
-                "courtRoomName": {
-                  "description": "Name for the court room",
-                  "type": "string"
-                },
-                "venueContact": {
-                  "description": "Contact details for the venue",
-                  "$ref": "#/$defs/venueContact"
-                }
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://justice.gov.uk/courtHouses.schema.json",
+  "title": "courtHouses",
+  "type": "object",
+  "properties": {
+    "courtHouse": {
+      "description": "The court house that owns the court rooms",
+      "type": "object",
+      "properties": {
+        "courtHouseType": {
+          "description": "Specifies the type of court",
+          "type": "string",
+          "enum": ["crown", "magistrate"]
+        },
+        "courtHouseCode": {
+          "description": "Links to the court that is responsible for the courtrooms",
+          "type": "string"
+        },
+        "courtHouseName": {
+          "description": "Name of the court house",
+          "type": "string"
+        },
+        "courtHouseDescription": {
+          "description": "Description of the court",
+          "type": "string"
+        },
+        "courtRoom": {
+          "type": "array",
+          "items": {
+            "description": "The court room that owns the court rooms",
+            "type": "object",
+            "properties": {
+              "courtRoomNumber": {
+                "description": "Court room number in court",
+                "type": "integer"
+              },
+              "courtRoomId": {
+                "description": "Ref data id (EPIMS or OU Court id)",
+                "type": "integer"
+              },
+              "courtRoomName": {
+                "description": "Name for the court room",
+                "type": "string"
+              },
+              "venueContact": {
+                "description": "Contact details for the venue",
+                "$ref": "#/$defs/venueContact"
               }
             }
           }
         }
       }
-    },
-    "$defs": {
-      "venueContact": {
-        "title": "Contact Details for a venue",
-        "type": "object",
-        "properties": {
-          "venueTelephone": {
-            "description": "Telephone number for the venue",
-            "title": "Venue Telephone",
-            "type": "string",
-            "default": "",
-            "examples": [
-              "01772 844700"
-            ],
-            "pattern": "^.*$"
-          },
-          "venueEmail": {
-            "description": "Email for the venue",
-            "title": "Venue Email",
-            "type": "string",
-            "default": "",
-            "examples": [
-              "court1@moj.gov.uk"
-            ],
-            "pattern": "^.*$"
-          },
-          "primaryContactName": {
-            "description": "Name for contact of court",
-            "title": "Primary Contact Name",
-            "type": "string",
-            "default": "",
-            "examples": [
-              "Name"
-            ],
-            "pattern": "^.*$"
-          },
-          "venueSupport": {
-            "description": "National contact number for MOJ Courts and Venues",
-            "title": "Venue Support",
-            "type": "string",
-            "default": "",
-            "examples": [
-              "0330 566 5561"
-            ],
-            "pattern": "^.*$"
-          }
+    }
+  },
+  "$defs": {
+    "venueContact": {
+      "title": "Contact Details for a venue",
+      "type": "object",
+      "properties": {
+        "venueTelephone": {
+          "description": "Telephone number for the venue",
+          "title": "Venue Telephone",
+          "type": "string",
+          "default": "",
+          "examples": ["01772 844700"],
+          "pattern": "^.*$"
         },
-        "additionalProperties": false
-      }
+        "venueEmail": {
+          "description": "Email for the venue",
+          "title": "Venue Email",
+          "type": "string",
+          "default": "",
+          "examples": ["court1@moj.gov.uk"],
+          "pattern": "^.*$"
+        },
+        "primaryContactName": {
+          "description": "Name for contact of court",
+          "title": "Primary Contact Name",
+          "type": "string",
+          "default": "",
+          "examples": ["Name"],
+          "pattern": "^.*$"
+        },
+        "venueSupport": {
+          "description": "National contact number for MOJ Courts and Venues",
+          "title": "Venue Support",
+          "type": "string",
+          "default": "",
+          "examples": ["0330 566 5561"],
+          "pattern": "^.*$"
+        }
+      },
+      "additionalProperties": false
     }
   }
-  
+}
