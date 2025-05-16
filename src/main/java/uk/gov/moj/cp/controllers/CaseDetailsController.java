@@ -5,8 +5,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
-import uk.gov.moj.cp.dto.CourtHouseDto;
-import uk.gov.moj.cp.service.CourtHouseService;
+import uk.gov.moj.cp.dto.CaseDetailsDto;
+import uk.gov.moj.cp.service.CaseDetailsService;
 
 import static org.springframework.http.ResponseEntity.ok;
 
@@ -15,7 +15,7 @@ import static org.springframework.http.ResponseEntity.ok;
  * Default endpoints per application.
  */
 @RestController
-public class CourtHouseController {
+public class CaseDetailsController {
 
     /**
      * Judges GET endpoint.
@@ -24,11 +24,11 @@ public class CourtHouseController {
      */
 
     @Autowired
-    private CourtHouseService courtHouseService;
+    private CaseDetailsService caseDetailsService;
 
-    @GetMapping("courthouses/{id}")
-    public ResponseEntity<CourtHouseDto> getCourtHouseById(@PathVariable String id) {
-        return ok(courtHouseService.getCourtHouseById(id));
+    @GetMapping("/case/{case_urn}/casedetails")
+    public ResponseEntity<CaseDetailsDto> getCaseDetailsByCaseUrn(@PathVariable("case_urn") String caseUrn) {
+        return ok(caseDetailsService.getCaseDetailsByCaseUrn(caseUrn));
     }
 
 }
