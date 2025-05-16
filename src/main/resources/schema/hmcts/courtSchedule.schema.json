@@ -18,30 +18,22 @@
                 "hearingId": {
                   "description": "Id of the hearing associated with the scheduling system",
                   "type": "string",
-                  "examples": [
-                    "HRG-123456"
-                  ]
+                  "examples": ["HRG-123456"]
                 },
                 "hearingType": {
                   "description": "Type of hearing being presented",
                   "type": "string",
-                  "examples": [
-                    "Preliminary"
-                  ]
+                  "examples": ["Preliminary"]
                 },
                 "hearingDescription": {
                   "description": "Description associated to the hearing",
                   "type": "string",
-                  "examples": [
-                    "Initial appearance for case 456789"
-                  ]
+                  "examples": ["Initial appearance for case 456789"]
                 },
                 "listNote": {
                   "description": "Will always be required but can be null",
                   "type": "string",
-                  "examples": [
-                    "Judge prefers afternoon start"
-                  ]
+                  "examples": ["Judge prefers afternoon start"]
                 },
                 "courtSittings": {
                   "description": "Details of court sittings",
@@ -53,33 +45,25 @@
                         "description": "Sitting Start Time",
                         "type": "string",
                         "format": "date-time",
-                        "examples": [
-                          "2025-03-25T09:00:00Z"
-                        ]
+                        "examples": ["2025-03-25T09:00:00Z"]
                       },
                       "sittingEnd": {
                         "description": "Sitting End Time",
                         "type": "string",
                         "format": "date-time",
-                        "examples": [
-                          "2025-03-25T12:00:00Z"
-                        ]
+                        "examples": ["2025-03-25T12:00:00Z"]
                       },
                       "judiciaryid": {
                         "description": "Judge ref id",
                         "type": "string",
                         "pattern": "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
-                        "examples": [
-                          "123e4567-e89b-12d3-a456-426614174000"
-                        ]
+                        "examples": ["123e4567-e89b-12d3-a456-426614174000"]
                       },
                       "courtHouse": {
                         "description": "Court house details ref id",
                         "type": "string",
                         "pattern": "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
-                        "examples": [
-                          "223e4567-e89b-12d3-a456-426614174111"
-                        ]
+                        "examples": ["223e4567-e89b-12d3-a456-426614174111"]
                       }
                     }
                   }
