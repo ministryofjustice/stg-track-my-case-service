@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "http://justice.gov.uk/courtHouses.schema.json",
-  "title": "courtHouses",
+  "title": "courthouses",
   "type": "object",
   "properties": {
     "courtHouse": {
@@ -46,6 +46,10 @@
               "venueContact": {
                 "description": "Contact details for the venue",
                 "$ref": "#/$defs/venueContact"
+              },
+              "address": {
+                "description": "Courthouse address",
+                "$ref": "#/$defs/address"
               }
             }
           }
@@ -89,6 +93,38 @@
           "default": "",
           "examples": ["0330 566 5561"],
           "pattern": "^.*$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "address": {
+      "title": "Courthouse address",
+      "type": "object",
+      "properties": {
+        "address1": {
+          "description": "Address Line 1",
+          "type": "string"
+        },
+        "address2": {
+          "description": "Address Line 2",
+          "type": "string"
+        },
+        "address3": {
+          "description": "Address Line 3",
+          "type": "string"
+        },
+        "address4": {
+          "description": "Address Line 4",
+          "type": "string"
+        },
+        "postalCode": {
+          "type": "string",
+          "pattern": "^(([gG][iI][rR] {0,}0[aA]{2})|(([aA][sS][cC][nN]|[sS][tT][hH][lL]|[tT][dD][cC][uU]|[bB][bB][nN][dD]|[bB][iI][qQ][qQ]|[fF][iI][qQ][qQ]|[pP][cC][rR][nN]|[sS][iI][qQ][qQ]|[iT][kK][cC][aA]) {0,}1[zZ]{2})|((([a-pr-uwyzA-PR-UWYZ][a-hk-yxA-HK-XY]?[0-9][0-9]?)|(([a-pr-uwyzA-PR-UWYZ][0-9][a-hjkstuwA-HJKSTUW])|([a-pr-uwyzA-PR-UWYZ][a-hk-yA-HK-Y][0-9][abehmnprv-yABEHMNPRV-Y]))) {0,}[0-9][abd-hjlnp-uw-zABD-HJLNP-UW-Z]{2}))$",
+          "description": "UK postcode"
+        },
+        "country": {
+          "type": "string",
+          "description": "United Kingdom"
         }
       },
       "additionalProperties": false

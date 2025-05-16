@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.moj.generated.hmcts.CourtSchedule;
 import com.moj.generated.hmcts.CourtSitting;
 import com.moj.generated.hmcts.Hearing;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,7 @@ public class CourtScheduleService {
     public List<CourtScheduleDto> getCourtScheduleByCaseUrn(String caseUrn) {
         HttpEntity<String> result = courtScheduleClient.getCourtScheduleByCaseUrn(caseUrn);
 
-        if (result.getBody() == null || result.getBody().isEmpty()) {
+        if (result == null || result.getBody() == null || result.getBody().isEmpty()) {
             throw new RuntimeException("Response body is null or empty");
         }
 
@@ -36,6 +37,7 @@ public class CourtScheduleService {
                 courtSchedule.toString(),
                 CourtSchedule.class
             );
+            JSONObject aa = new JSONObject().put("aa", courtScheduleResultList);
             return convertToCourtScheduleResult(courtScheduleResultList);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
@@ -47,9 +49,6 @@ public class CourtScheduleService {
             new CourtScheduleDto(
                 a.getHearings().stream().map(this::getHearings).collect(Collectors.toUnmodifiableList())
             )).collect(Collectors.toUnmodifiableList());
-//        return new CourtScheduleDto(
-//            courtScheduleResult.getHearings().stream().map(this::getHearings).collect(Collectors.toUnmodifiableList())
-//        );
     }
 
     private CourtScheduleDto.HearingDto getHearings(Hearing hearing) {

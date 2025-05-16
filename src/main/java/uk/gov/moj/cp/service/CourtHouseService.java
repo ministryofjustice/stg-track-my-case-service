@@ -1,10 +1,11 @@
 package uk.gov.moj.cp.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.moj.generated.hmcts.Address;
 import com.moj.generated.hmcts.CourtHouse;
 import com.moj.generated.hmcts.CourtRoom;
 import com.moj.generated.hmcts.VenueContact;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
@@ -12,44 +13,44 @@ import uk.gov.moj.cp.client.CourtHouseClient;
 import uk.gov.moj.cp.dto.CourtHouseDto;
 import uk.gov.moj.cp.util.Utils;
 
-import static uk.gov.moj.cp.util.Utils.getJsonNode;
-
+@Slf4j
 @Service
 public class CourtHouseService {
 
     @Autowired
     private CourtHouseClient courtHouseClient;
 
-    public CourtHouseDto getCourtHouseById(Long id) {
+    public CourtHouseDto getCourtHouseById(String id) {
         HttpEntity<String> result = courtHouseClient.getCourtHouseById(id);
 
-        if (result.getBody() == null || result.getBody().isEmpty()) {
-            throw new RuntimeException("Response body is null or empty");
+        if (result == null || result.getBody() == null || result.getBody().isEmpty()) {
+            log.error("Response body is null or empty");
+            return null;
         }
 
         try {
-            JsonNode courtHouse = getJsonNode(result.getBody(), "courtHouse");
             CourtHouse courtHouseResult = Utils.convertJsonStringToType(
-                courtHouse.toString(),
+                result.getBody(),
                 CourtHouse.class
             );
-            return convertToJudiciaryResult(courtHouseResult);
+            return convertToJudiciaryResult(courtHouseResult, id);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private CourtHouseDto convertToJudiciaryResult(CourtHouse courtHouseResult) {
+    private CourtHouseDto convertToJudiciaryResult(CourtHouse courtHouseResult, String id) {
         return new CourtHouseDto(
-            courtHouseResult.getCourtHouseType() != null ? courtHouseResult.getCourtHouseType().value() : null,
-            courtHouseResult.getCourtHouseCode(),
-            courtHouseResult.getCourtHouseName(),
-            courtHouseResult.getCourtHouseDescription(),
-            courtHouseResult.getCourtRoom() != null
-                ? courtHouseResult.getCourtRoom().stream()
-                .map(this::getCourtRoomDto)
-                .toList()
-                : null
+                id,
+                courtHouseResult.getCourtHouseType() != null ? courtHouseResult.getCourtHouseType().value() : null,
+                courtHouseResult.getCourtHouseCode(),
+                courtHouseResult.getCourtHouseName(),
+                courtHouseResult.getCourtHouseDescription(),
+                courtHouseResult.getCourtRoom() != null
+                        ? courtHouseResult.getCourtRoom().stream()
+                        .map(this::getCourtRoomDto)
+                        .toList()
+                        : null
         );
     }
 
@@ -58,11 +59,23 @@ public class CourtHouseService {
             cr.getCourtRoomNumber(),
             cr.getCourtRoomId(),
             cr.getCourtRoomName(),
-            getVenueContactDto(cr.getVenueContact())
+            getVenueContactDto(cr.getVenueContact()),
+            cr.getAddress() != null ? getAddressDto(cr.getAddress()) : null
         );
     }
 
-    public CourtHouseDto.CourtRoomDto.VenueContactDto getVenueContactDto(VenueContact venueContact) {
+    private CourtHouseDto.CourtRoomDto.AddressDto getAddressDto(Address address) {
+        return new CourtHouseDto.CourtRoomDto.AddressDto(
+            address.getAddress1(),
+            address.getAddress2(),
+            address.getAddress3(),
+            address.getAddress4(),
+            address.getPostalCode(),
+            address.getCountry()
+        );
+    }
+
+    private CourtHouseDto.CourtRoomDto.VenueContactDto getVenueContactDto(VenueContact venueContact) {
         return new CourtHouseDto.CourtRoomDto.VenueContactDto(
             venueContact.getVenueTelephone(),
             venueContact.getVenueEmail(),
