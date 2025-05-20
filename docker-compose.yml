@@ -1,4 +1,3 @@
-
 services:
   stg-track-my-case-service:
     build:
