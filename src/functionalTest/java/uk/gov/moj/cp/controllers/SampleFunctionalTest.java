@@ -18,6 +18,7 @@ class SampleFunctionalTest {
     @Value("${TEST_URL:http://localhost:8080}")
     private String testUrl;
 
+
     @BeforeEach
     public void setUp() {
         RestAssured.baseURI = testUrl;
