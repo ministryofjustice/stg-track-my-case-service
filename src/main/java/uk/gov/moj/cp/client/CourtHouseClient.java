@@ -12,7 +12,7 @@ import org.springframework.web.client.RestTemplate;
 @Slf4j
 @Component
 public class CourtHouseClient {
-    private final String courtHouseurl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-courthouses/0.1.1/courthouses/%s";
+    private final String courtHouseurl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-courthouses/0.4.0/courthouses/%s";
 
     private static final HttpHeaders headers = new HttpHeaders();
     private final RestTemplate restTemplate;
