@@ -10,7 +10,7 @@ import org.springframework.web.client.RestTemplate;
 
 @Component
 public class CourtScheduleClient {
-    private final String courtHouseurl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-schedulingandlisting-courtschedule/0.0.2/case/%s/courtschedule";
+    private final String courtHouseurl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-schedulingandlisting-courtschedule/0.3.3/case/%s/courtschedule";
     private static final HttpHeaders headers = new HttpHeaders();
     private final RestTemplate restTemplate;
 

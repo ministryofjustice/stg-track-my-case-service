@@ -1,10 +1,10 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "http://justice.gov.uk/Judiciary.schema.json",
-  "title": "judges",
-  "type": "object",
-  "properties": {
-    "judiciary": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "http://justice.gov.uk/Judiciary.schema.json",
+    "title": "judges",
+    "type": "object",
+    "properties": {
+       "judiciary": {
       "title": "Judiciary",
       "description": "Can be an array of objects as such will be a collective and use plurals for object arrays (clerks and scribes etc included)",
       "type": "object",
@@ -19,7 +19,9 @@
           "description": "First and Surname of the JOH",
           "title": "JOH Name",
           "type": "string",
-          "examples": ["John Smith"],
+          "examples": [
+            "John Smith"
+          ],
           "default": "",
           "pattern": "^.*$"
         },
@@ -33,12 +35,14 @@
           "description": "Name and salutations, titles to be presented on publications",
           "title": "JOH Known As",
           "type": "string",
-          "examples": ["judge"],
+          "examples": [
+            "judge"
+          ],
           "default": "",
           "pattern": "^.*$"
         }
       },
       "additionalProperties": false
     }
-  }
+}
 }

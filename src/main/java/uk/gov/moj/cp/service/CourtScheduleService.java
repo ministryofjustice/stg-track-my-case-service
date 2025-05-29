@@ -65,7 +65,7 @@ public class CourtScheduleService {
         return new CourtScheduleDto.HearingDto.CourtSittingDto(
             courtSitting.getSittingStart().toString(),
             courtSitting.getSittingEnd().toString(),
-            courtSitting.getJudiciaryid(),
+            courtSitting.getJudiciaryId(),
             courtSitting.getCourtHouse()
         );
     }
