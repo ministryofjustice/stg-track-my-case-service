@@ -50,3 +50,8 @@ spring:
 azure:
   application-insights:
     instrumentation-key: ${rpe.AppInsightsInstrumentationKey:00000000-0000-0000-0000-000000000000}
+
+services:
+  courthearing-courthouses:
+    url: https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-courthouses
+    version: 0.4.0
