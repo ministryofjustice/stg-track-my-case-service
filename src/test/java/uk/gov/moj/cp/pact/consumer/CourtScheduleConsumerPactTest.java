@@ -1,0 +1,74 @@
+package uk.gov.moj.cp.pact.consumer;
+
+import au.com.dius.pact.consumer.MockServer;
+import au.com.dius.pact.consumer.dsl.PactBuilder;
+import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
+import au.com.dius.pact.consumer.junit5.PactTestFor;
+import au.com.dius.pact.core.model.V4Pact;
+import au.com.dius.pact.core.model.annotations.Pact;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.web.client.RestTemplate;
+import uk.gov.moj.cp.pact.helper.PactDslHelper;
+
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@ExtendWith(PactConsumerTestExt.class)
+@PactTestFor(providerName = "CourtScheduleProvider", pactVersion = au.com.dius.pact.core.model.PactSpecVersion.V4)
+public class CourtScheduleConsumerPactTest {
+
+    @Pact(consumer = "CourtScheduleConsumer")
+    public V4Pact definePact(PactBuilder builder) throws IOException {
+
+        JsonNode json = new ObjectMapper()
+            .readTree(Paths.get("src/test/resources/courtSchedule.json").toFile());
+
+        return builder
+            .usingLegacyDsl() // Important: enables DSL compatibility
+            .given("court schedule for case  456789 exists")
+            .uponReceiving("A request to get court schedule for case 456789")
+            .path("/case/456789/courtschedule")
+            .method("GET")
+            .willRespondWith()
+            .status(200)
+            .headers(Map.of("Content-Type", "application/json"))
+            .body(PactDslHelper.fromJson(json))
+            .toPact(V4Pact.class);
+    }
+
+    @Test
+    void testGetCourtSchedule(MockServer mockServer) {
+        String url = mockServer.getUrl() + "/case/456789/courtschedule";
+        RestTemplate restTemplate = new RestTemplate();
+        String response = restTemplate.getForObject(url, String.class);
+
+        assertNotNull(response);
+        assertTrue(response.contains("Initial appearance for case 456789"));
+    }
+}
+
+/* DslPart body = LambdaDsl.newJsonBody(bodyDsl -> {
+    bodyDsl.minArrayLike("courtSchedule", 1, schedule -> {
+        schedule.minArrayLike("hearings", 1, hearing -> {
+            hearing.stringType("hearingId", "HRG-123456");
+            hearing.stringType("hearingType", "Preliminary");
+            hearing.stringType("hearingDescription", "Initial appearance for case 456789");
+            hearing.stringType("listNote", "Judge prefers afternoon start");
+
+            hearing.minArrayLike("courtSittings", 1, sitting -> {
+                sitting.datetime("sittingStart", "yyyy-MM-dd'T'HH:mmX", "2025-03-25T09:00Z");
+                sitting.datetime("sittingEnd", "yyyy-MM-dd'T'HH:mmX", "2025-03-25T12:00Z");
+                sitting.uuid("judiciaryId", "123e4567-e89b-12d3-a456-426614174000");
+                sitting.uuid("courtHouse", "223e4567-e89b-12d3-a456-426614174111");
+            });
+        });
+    });
+}).build();
+            )*/

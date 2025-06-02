@@ -197,6 +197,9 @@ dependencies {
 
   compileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion
   annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
+
+  testImplementation 'au.com.dius.pact.consumer:junit5:4.6.4'
+
 }
 
 application {
