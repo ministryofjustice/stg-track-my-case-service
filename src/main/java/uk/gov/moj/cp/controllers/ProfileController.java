@@ -28,7 +28,7 @@ public class ProfileController {
     @Autowired
     private ProfileService profileService;
 
-    @GetMapping("profile/{id}")
+    @GetMapping("cases/{id}")
     public ResponseEntity<List<ProfileDto>> profile(@PathVariable Long id) {
         return ok(profileService.profile(id));
     }
