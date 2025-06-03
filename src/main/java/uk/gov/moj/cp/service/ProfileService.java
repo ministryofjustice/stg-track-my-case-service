@@ -10,7 +10,7 @@ import java.util.List;
 @Service
 public class ProfileService {
 
-    public List<ProfileDto> profile(Long id) {
+    public List<ProfileDto> profile(String id) {
         String output = "[ { \"crn\": 1234567891011, \"offence\": \"Burglary\" }, "
             + "{ \"crn\":  1110987654321 , \"offence\": \"Assault\" } ]";
 

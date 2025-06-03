@@ -29,7 +29,7 @@ public class ProfileController {
     private ProfileService profileService;
 
     @GetMapping("cases/{id}")
-    public ResponseEntity<List<ProfileDto>> profile(@PathVariable Long id) {
+    public ResponseEntity<List<ProfileDto>> profile(@PathVariable String id) {
         return ok(profileService.profile(id));
     }
 
