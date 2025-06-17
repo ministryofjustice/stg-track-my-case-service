@@ -27,5 +27,8 @@ jobs:
       - name: Grant execute permissions for scripts
         run: chmod +x ./publish-pacts.sh
 
+      - name: Install Pact CLI
+        run: npm install -g @pact-foundation/pact-cli
+
       - name: Run pact publish script
         run: ./publish-pacts.sh
