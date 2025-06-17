@@ -9,7 +9,14 @@ fi
 
 # Dynamically export current Git commit and branch
 export GIT_COMMIT=$(git rev-parse HEAD)
-export GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+if [ -n "$GIT_BRANCH" ]; then
+  BRANCH_NAME="$GIT_BRANCH"
+else
+  BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD)
+fi
+
+export GIT_BRANCH="$BRANCH_NAME"
 
 # Run Gradle tasks: tests and publish pacts
 ./gradlew test pactPublish

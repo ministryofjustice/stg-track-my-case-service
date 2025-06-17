@@ -12,6 +12,8 @@ jobs:
     env:
       PACT_BROKER_URL: https://hmcts-dts.pactflow.io
       PACT_BROKER_TOKEN: ${{ secrets.PACT_BROKER_TOKEN }}
+      GIT_COMMIT: ${{ github.sha }}
+      GIT_BRANCH: ${{ github.ref_name }}
       PACT_ENV: dev/pactTest
 
     steps:
