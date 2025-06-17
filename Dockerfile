@@ -20,7 +20,6 @@ LABEL maintainer="MOJ Strategic Service Transformation Team <STGTransformationTe
 # Update and upgrade the base image
 RUN apt-get update && \
     apt-get -y upgrade && \
-    apt-get install -y curl && \
     rm -rf /var/lib/apt/lists/*
 
 # Create a system user and group for running the application
