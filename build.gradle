@@ -251,8 +251,8 @@ pact {
     pactBrokerUrl = 'https://hmcts-dts.pactflow.io'
     pactBrokerToken = project.findProperty('PACT_BROKER_TOKEN') ?: System.getenv('PACT_BROKER_TOKEN')
     consumerVersion = project.findProperty('GIT_COMMIT') ?: System.getenv('GIT_COMMIT') ?: 'dev'
-    tags = [project.findProperty('GIT_BRANCH') ?: System.getenv('GIT_BRANCH') ?: 'dev']
-    consumerBranch = project.findProperty('GIT_BRANCH') ?: System.getenv('GIT_BRANCH') ?: 'dev'
+    tags = [System.getenv('PACT_ENV') ?: 'dev']
+    consumerBranch = System.getenv('GIT_BRANCH') ?: 'dev'
   }
 }
 
