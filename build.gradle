@@ -65,7 +65,6 @@ configurations {
   integrationTestRuntimeOnly.extendsFrom runtimeOnly
 }
 
-
 tasks.withType(JavaCompile) {
   options.compilerArgs << "-Xlint:unchecked" << "-Werror"
 }
@@ -236,15 +235,6 @@ sourceSets {
 wrapper {
   distributionType = Wrapper.DistributionType.ALL
 }
-
-/*pact {
-  publish {
-    pactBrokerUrl = 'https://hmcts-dts.pactflow.io'
-    pactBrokerToken = System.getenv('PACT_BROKER_TOKEN') // stored as secret
-    consumerVersion = System.getenv('GIT_COMMIT') ?: 'dev'
-    tags = [System.getenv('GIT_BRANCH') ?: 'dev']
-  }
-}*/
 
 pact {
   publish {
