@@ -169,6 +169,12 @@ docker image rm <image-id>
 
 There is no need to remove postgres and java or similar core images.
 
+### Create .env file in root directory to run locally
+SERVER_PORT=9999
+PACT_BROKER_URL=https://hmcts-dts.pactflow.io
+PACT_BROKER_TOKEN=eOmnLAeYytphFMQZIj7hUg
+PACT_ENV=dev/pactTest
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details

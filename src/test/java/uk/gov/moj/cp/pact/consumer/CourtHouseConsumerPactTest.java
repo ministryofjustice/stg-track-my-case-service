@@ -21,10 +21,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(PactConsumerTestExt.class)
-@PactTestFor(providerName = "VPCourtHouseProvider1", pactVersion = au.com.dius.pact.core.model.PactSpecVersion.V4)
+@PactTestFor(providerName = "VPCourtHousePactProvider", pactVersion = au.com.dius.pact.core.model.PactSpecVersion.V4)
 public class CourtHouseConsumerPactTest {
 
-    @Pact(consumer = "VPCourtHouseConsumer1")
+    @Pact(consumer = "VPCourtHousePactConsumer")
     public V4Pact definePact(PactBuilder builder) throws IOException {
 
         JsonNode json = new ObjectMapper()
