@@ -21,10 +21,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(PactConsumerTestExt.class)
-@PactTestFor(providerName = "CourtScheduleProvider", pactVersion = au.com.dius.pact.core.model.PactSpecVersion.V4)
+@PactTestFor(providerName = "VPCourtScheduleProvider1", pactVersion = au.com.dius.pact.core.model.PactSpecVersion.V4)
 public class CourtScheduleConsumerPactTest {
 
-    @Pact(consumer = "CourtScheduleConsumer")
+    @Pact(consumer = "VPCourtScheduleConsumer1")
     public V4Pact definePact(PactBuilder builder) throws IOException {
 
         JsonNode json = new ObjectMapper()
@@ -32,7 +32,7 @@ public class CourtScheduleConsumerPactTest {
 
         return builder
             .usingLegacyDsl() // Important: enables DSL compatibility
-            .given("court schedule for case  456789 exists")
+            .given("court schedule for case 456789 exists")
             .uponReceiving("A request to get court schedule for case 456789")
             .path("/case/456789/courtschedule")
             .method("GET")
@@ -53,22 +53,3 @@ public class CourtScheduleConsumerPactTest {
         assertTrue(response.contains("Initial appearance for case 456789"));
     }
 }
-
-/* DslPart body = LambdaDsl.newJsonBody(bodyDsl -> {
-    bodyDsl.minArrayLike("courtSchedule", 1, schedule -> {
-        schedule.minArrayLike("hearings", 1, hearing -> {
-            hearing.stringType("hearingId", "HRG-123456");
-            hearing.stringType("hearingType", "Preliminary");
-            hearing.stringType("hearingDescription", "Initial appearance for case 456789");
-            hearing.stringType("listNote", "Judge prefers afternoon start");
-
-            hearing.minArrayLike("courtSittings", 1, sitting -> {
-                sitting.datetime("sittingStart", "yyyy-MM-dd'T'HH:mmX", "2025-03-25T09:00Z");
-                sitting.datetime("sittingEnd", "yyyy-MM-dd'T'HH:mmX", "2025-03-25T12:00Z");
-                sitting.uuid("judiciaryId", "123e4567-e89b-12d3-a456-426614174000");
-                sitting.uuid("courtHouse", "223e4567-e89b-12d3-a456-426614174111");
-            });
-        });
-    });
-}).build();
-            )*/

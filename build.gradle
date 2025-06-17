@@ -15,6 +15,7 @@ plugins {
     See https://github.com/hmcts/gradle-java-plugin
  */
   id 'uk.gov.hmcts.java' version '0.12.65'
+  id "au.com.dius.pact" version "4.6.17"
 }
 
 group = 'uk.gov.moj.cp'
@@ -235,3 +236,23 @@ sourceSets {
 wrapper {
   distributionType = Wrapper.DistributionType.ALL
 }
+
+/*pact {
+  publish {
+    pactBrokerUrl = 'https://hmcts-dts.pactflow.io'
+    pactBrokerToken = System.getenv('PACT_BROKER_TOKEN') // stored as secret
+    consumerVersion = System.getenv('GIT_COMMIT') ?: 'dev'
+    tags = [System.getenv('GIT_BRANCH') ?: 'dev']
+  }
+}*/
+
+pact {
+  publish {
+    pactBrokerUrl = 'https://hmcts-dts.pactflow.io'
+    pactBrokerToken = project.findProperty('PACT_BROKER_TOKEN') ?: System.getenv('PACT_BROKER_TOKEN')
+    consumerVersion = project.findProperty('GIT_COMMIT') ?: System.getenv('GIT_COMMIT') ?: 'dev'
+    tags = [project.findProperty('GIT_BRANCH') ?: System.getenv('GIT_BRANCH') ?: 'dev']
+    consumerBranch = project.findProperty('GIT_BRANCH') ?: System.getenv('GIT_BRANCH') ?: 'dev'
+  }
+}
+

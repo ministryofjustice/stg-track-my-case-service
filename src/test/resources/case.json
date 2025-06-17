@@ -1,7 +1,9 @@
 {
   "caseResults": [
     {
-      "resultText": "This is the example outcome of case results"
+      "resultText": "This is the example outcome of case results",
+      "caseUrn": "DVL12XM5",
+      "hearingId": "0d23005-f743-434b-a919-c70471b2ef43"
     }
   ]
 }

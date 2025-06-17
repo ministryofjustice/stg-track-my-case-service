@@ -21,10 +21,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(PactConsumerTestExt.class)
-@PactTestFor(providerName = "JudgesProvider", pactVersion = au.com.dius.pact.core.model.PactSpecVersion.V4)
+@PactTestFor(providerName = "VPJudgesProvider1", pactVersion = au.com.dius.pact.core.model.PactSpecVersion.V4)
 public class JudgesConsumerPactTest {
 
-    @Pact(consumer = "JudgesConsumer")
+    @Pact(consumer = "VPJudgesConsumer1")
     public V4Pact definePact(PactBuilder builder) throws IOException {
 
         JsonNode json = new ObjectMapper()
@@ -32,9 +32,9 @@ public class JudgesConsumerPactTest {
 
         return builder
             .usingLegacyDsl() // Important: enables DSL compatibility
-            .given("judge with ID 123 exists")
-            .uponReceiving("A request to get judges with ID 123")
-            .path("/judges/123")
+            .given("judge exists")
+            .uponReceiving("A request to get judges")
+            .path("/judges/a228cbdb-e1d0-4d29-bb44-06b7669b66a3")
             .method("GET")
             .willRespondWith()
             .status(200)
@@ -45,7 +45,7 @@ public class JudgesConsumerPactTest {
 
     @Test
     void testGetJudges(MockServer mockServer) {
-        String url = mockServer.getUrl() + "/judges/123";
+        String url = mockServer.getUrl() + "/judges/a228cbdb-e1d0-4d29-bb44-06b7669b66a3";
         RestTemplate restTemplate = new RestTemplate();
         String response = restTemplate.getForObject(url, String.class);
 
@@ -53,14 +53,3 @@ public class JudgesConsumerPactTest {
         assertTrue(response.contains("John Smith"));
     }
 }
-
-/* .body(
-                LambdaDsl.newJsonBody(body -> {
-                    body.object("judiciary", judiciary -> {
-                        judiciary.stringType("johTitle", "His Honour");
-                        judiciary.stringType("johNameSurname", "John Smith");
-                        judiciary.stringType("role", "judge");
-                        judiciary.stringType("johKnownAs", "His Honour Judge Smith");
-                    });
-                }).build()
-            )*/

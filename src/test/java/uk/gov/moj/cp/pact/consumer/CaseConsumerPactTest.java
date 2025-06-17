@@ -21,10 +21,10 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(PactConsumerTestExt.class)
-@PactTestFor(providerName = "CaseProvider", pactVersion = au.com.dius.pact.core.model.PactSpecVersion.V4)
+@PactTestFor(providerName = "VPCaseProvider1", pactVersion = au.com.dius.pact.core.model.PactSpecVersion.V4)
 public class CaseConsumerPactTest {
 
-    @Pact(consumer = "CaseConsumer")
+    @Pact(consumer = "VPCaseConsumer1")
     public V4Pact definePact(PactBuilder builder) throws IOException {
 
         JsonNode json = new ObjectMapper()
@@ -53,11 +53,3 @@ public class CaseConsumerPactTest {
         assertTrue(response.contains("This is the example outcome of case results"));
     }
 }
-
-/*
-DslPart body = LambdaDsl.newJsonBody(bodyDsl -> {
-    bodyDsl.minArrayLike("caseResults", 1, result -> {
-        result.stringType("resultText", "This is the example outcome of case results");
-    });
-}).build();
- */

@@ -21,10 +21,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(PactConsumerTestExt.class)
-@PactTestFor(providerName = "CourtHouseProvider", pactVersion = au.com.dius.pact.core.model.PactSpecVersion.V4)
+@PactTestFor(providerName = "VPCourtHouseProvider1", pactVersion = au.com.dius.pact.core.model.PactSpecVersion.V4)
 public class CourtHouseConsumerPactTest {
 
-    @Pact(consumer = "CourtHouseConsumer")
+    @Pact(consumer = "VPCourtHouseConsumer1")
     public V4Pact definePact(PactBuilder builder) throws IOException {
 
         JsonNode json = new ObjectMapper()
@@ -53,35 +53,3 @@ public class CourtHouseConsumerPactTest {
         assertTrue(response.contains("Central London County Court"));
     }
 }
-
-
-/*
- LambdaDsl.newJsonBody(body -> {
-                    body.stringType("courtHouseType", "crown");
-                    body.stringType("courtHouseCode", "LND001");
-                    body.stringType("courtHouseName", "Central London County Court");
-                    body.stringType("courtHouseDescription", "Main Crown Court in London handling major cases");
-
-                    body.minArrayLike("courtRoom", 1, courtRoom -> {
-                        courtRoom.numberType("courtRoomNumber", 1);
-                        courtRoom.numberType("courtRoomId", 101);
-                        courtRoom.stringType("courtRoomName", "Courtroom A");
-
-                        courtRoom.object("venueContact", venue -> {
-                            venue.stringType("venueTelephone", "01772 844700");
-                            venue.stringType("venueEmail", "court1@moj.gov.uk");
-                            venue.stringType("primaryContactName", "Name");
-                            venue.stringType("venueSupport", "0330 566 5561");
-                        });
-
-                        courtRoom.object("address", address -> {
-                            address.stringType("address1", "Thomas More Building");
-                            address.stringType("address2", "Royal Courts of Justice");
-                            address.stringType("address3", "Strand");
-                            address.stringType("address4", "London");
-                            address.stringType("postalCode", "WC2A 2LL");
-                            address.stringType("country", "UK");
-                        });
-                    });
-                }).build()
- */
