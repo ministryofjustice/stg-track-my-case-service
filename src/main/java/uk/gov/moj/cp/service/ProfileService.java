@@ -10,9 +10,9 @@ import java.util.List;
 @Service
 public class ProfileService {
 
-    public List<ProfileDto> profile(Long id) {
-        String output = "[ { \"crn\": 1234567891011, \"offence\": \"primary offence\" }, "
-            + "{ \"crn\":  1110987654321 , \"offence\": \"primary offence\" } ]";
+    public List<ProfileDto> profile(String id) {
+        String output = "[ { \"crn\": 1234567891011, \"offence\": \"Burglary\" }, "
+            + "{ \"crn\":  1110987654321 , \"offence\": \"Assault\" } ]";
 
         try {
             List<ProfileDto> profileList = Utils.convertJsonStringToList(

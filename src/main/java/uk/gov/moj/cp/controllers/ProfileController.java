@@ -28,8 +28,8 @@ public class ProfileController {
     @Autowired
     private ProfileService profileService;
 
-    @GetMapping("profile/{id}")
-    public ResponseEntity<List<ProfileDto>> profile(@PathVariable Long id) {
+    @GetMapping("cases/{id}")
+    public ResponseEntity<List<ProfileDto>> profile(@PathVariable String id) {
         return ok(profileService.profile(id));
     }
 

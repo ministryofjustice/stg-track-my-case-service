@@ -11,7 +11,10 @@
         "courtHouseType": {
           "description": "Specifies the type of court",
           "type": "string",
-          "enum": ["crown", "magistrate"]
+          "enum": [
+            "crown",
+            "magistrate"
+          ]
         },
         "courtHouseCode": {
           "description": "Links to the court that is responsible for the courtrooms",
@@ -67,7 +70,9 @@
           "title": "Venue Telephone",
           "type": "string",
           "default": "",
-          "examples": ["01772 844700"],
+          "examples": [
+            "01772 844700"
+          ],
           "pattern": "^.*$"
         },
         "venueEmail": {
@@ -75,7 +80,9 @@
           "title": "Venue Email",
           "type": "string",
           "default": "",
-          "examples": ["court1@moj.gov.uk"],
+          "examples": [
+            "court1@moj.gov.uk"
+          ],
           "pattern": "^.*$"
         },
         "primaryContactName": {
@@ -83,7 +90,9 @@
           "title": "Primary Contact Name",
           "type": "string",
           "default": "",
-          "examples": ["Name"],
+          "examples": [
+            "Name"
+          ],
           "pattern": "^.*$"
         },
         "venueSupport": {
@@ -91,7 +100,9 @@
           "title": "Venue Support",
           "type": "string",
           "default": "",
-          "examples": ["0330 566 5561"],
+          "examples": [
+            "0330 566 5561"
+          ],
           "pattern": "^.*$"
         }
       },
