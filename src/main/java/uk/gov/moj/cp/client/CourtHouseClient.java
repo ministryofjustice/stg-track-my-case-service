@@ -26,14 +26,14 @@ public class CourtHouseClient {
     private String courthearingCourthousesUrl;
 
     @Value("${services.courthearing-courthouses.version}")
-    private String getCourthearingCourthousesVersion;
+    private String courthearingCourthousesVersion;
 
     private static final String COURTHOUSES_BY_ID = "courthouses/{id}";
 
-    protected String getCourthearingCourthousesById(String id) {
+    protected String buildCourthearingCourthousesByIdUrl(String id) {
         return UriComponentsBuilder
             .fromUri(URI.create(courthearingCourthousesUrl))
-            .pathSegment(getCourthearingCourthousesVersion)
+            .pathSegment(courthearingCourthousesVersion)
             .pathSegment(COURTHOUSES_BY_ID)
             .buildAndExpand(id)
             .toUriString();
@@ -42,7 +42,7 @@ public class CourtHouseClient {
     public ResponseEntity<String> getCourtHouseById(String id) {
         try {
             ResponseEntity<String> responseEntity = restTemplate.exchange(
-                getCourthearingCourthousesById(id),
+                buildCourthearingCourthousesByIdUrl(id),
                 HttpMethod.GET,
                 getRequestEntity(),
                 String.class

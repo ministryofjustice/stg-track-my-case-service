@@ -1,34 +1,57 @@
 package uk.gov.moj.cp.client;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
+import java.util.List;
+
+@Slf4j
 @Component
+@RequiredArgsConstructor
 public class JudgesClient {
-    private final String crimeCaseUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-judges/0.2.0/judges/%s";
-    private static final HttpHeaders headers = new HttpHeaders();
+
     private final RestTemplate restTemplate;
 
-    @Autowired
-    public JudgesClient(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
+    @Value("${services.refdata-courthearing-judges.url}")
+    private String judgesUrl;
+
+    @Value("${services.refdata-courthearing-judges.version}")
+    private String judgesVersion;
+
+    private static final String JUDGES_BY_ID_PATH = "judges/{id}";
+
+    protected String buildJudgesUrl(Long id) {
+        return UriComponentsBuilder
+            .fromUri(URI.create(judgesUrl))
+            .pathSegment(judgesVersion)
+            .pathSegment(JUDGES_BY_ID_PATH)
+            .buildAndExpand(id)
+            .toUriString();
     }
 
-    public HttpEntity<String> getJudgesById(Long id) {
-        headers.set("Accept", "application/json");
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        ResponseEntity<String> response = restTemplate.exchange(
-            String.format(crimeCaseUrl, id),
-            HttpMethod.GET,
-            entity,
-            String.class
-        );
-        return response;
+    public ResponseEntity<String> getJudgesById(Long id) {
+        try {
+            return restTemplate.exchange(
+                buildJudgesUrl(id),
+                HttpMethod.GET,
+                getRequestEntity(),
+                String.class
+            );
+        } catch (Exception e) {
+            log.error("Error while calling Judges API", e);
+        }
+        return null;
     }
 
+    protected HttpEntity<String> getRequestEntity() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        return new HttpEntity<>(headers);
+    }
 }

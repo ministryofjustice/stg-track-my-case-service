@@ -27,17 +27,17 @@ class CourtHouseClientTest {
     private RestTemplate restTemplate;
 
     @Test
-    void shouldGetCourthearingCourthousesById() {
+    void shouldBuildCourthearingCourthousesByIdUrl() {
         String id = "123";
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-courthouses/0.4.0/courthouses/123";
+        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-courthouses/0.7.0/courthouses/123";
 
-        assertThat(courtHouseClient.getCourthearingCourthousesById(id)).isEqualTo(expectedUrl);
+        assertThat(courtHouseClient.buildCourthearingCourthousesByIdUrl(id)).isEqualTo(expectedUrl);
     }
 
     @Test
     void shouldReturnCourtHouseDetails_whenRequestIsSuccessful() {
         String id = "123";
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-courthouses/0.4.0/courthouses/123";
+        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-courthouses/0.7.0/courthouses/123";
 
         ResponseEntity<String> response = new ResponseEntity<>("Some mock response", HttpStatus.OK);
 
@@ -57,7 +57,7 @@ class CourtHouseClientTest {
     @Test
     void shouldLogErrorAndReturnNull_whenRestTemplateThrowsException() {
         String id = "123";
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-courthouses/0.4.0/courthouses/123";
+        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-courthouses/0.7.0/courthouses/123";
 
         when(restTemplate.exchange(
             eq(expectedUrl),
@@ -66,7 +66,7 @@ class CourtHouseClientTest {
             eq(String.class)
         )).thenThrow(new RestClientException("Timeout"));
 
-        HttpEntity<String> result = courtHouseClient.getCourtHouseById("INVALID_ID");
+        HttpEntity<String> result = courtHouseClient.getCourtHouseById(id);
 
         assertThat(result).isNull();
     }
