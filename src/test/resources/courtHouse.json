@@ -1,0 +1,27 @@
+{
+  "courtHouseType": "crown",
+  "courtHouseCode": "LND001",
+  "courtHouseName": "Central London County Court",
+  "courtHouseDescription": "Main Crown Court in London handling major cases",
+  "courtRoom": [
+    {
+      "courtRoomNumber": 1,
+      "courtRoomId": 101,
+      "courtRoomName": "Courtroom A",
+      "venueContact": {
+        "venueTelephone": "01772 844700",
+        "venueEmail": "court1@moj.gov.uk",
+        "primaryContactName": "Name",
+        "venueSupport": "0330 566 5561"
+      },
+      "address": {
+        "address1": "Thomas More Building",
+        "address2": "Royal Courts of Justice",
+        "address3": "Strand",
+        "address4": "London",
+        "postalCode": "WC2A 2LL",
+        "country": "UK"
+      }
+    }
+  ]
+}
