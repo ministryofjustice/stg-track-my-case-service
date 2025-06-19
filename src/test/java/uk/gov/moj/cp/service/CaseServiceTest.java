@@ -6,6 +6,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import uk.gov.moj.cp.client.CrimeCaseClient;
 import uk.gov.moj.cp.dto.CaseJudiciaryResult;
 
@@ -29,7 +31,7 @@ public class CaseServiceTest {
             + "{ \"resultText\": \"Sentenced to 12 months custody.\" }, "
             + "{ \"resultText\": \"Fine of £500 imposed.\" } ]";
 
-        HttpEntity<String> mockHttpEntity = new HttpEntity<>(mockResponse);
+        ResponseEntity<String> mockHttpEntity = new ResponseEntity<>(mockResponse, HttpStatus.OK);
         when(crimeCaseClient.getCaseById(caseId)).thenReturn(mockHttpEntity);
         List<CaseJudiciaryResult> result = caseService.getCaseById(caseId);
 
