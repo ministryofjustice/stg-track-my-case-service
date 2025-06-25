@@ -30,7 +30,6 @@ The template contains the following plugins:
   Applies code analysis tools with HMCTS default settings. See the [project repository](https://github.com/hmcts/gradle-java-plugin) for details.
 
   Analysis tools include:
-
   - checkstyle
 
     https://docs.gradle.org/current/userguide/checkstyle_plugin.html
@@ -172,9 +171,9 @@ There is no need to remove postgres and java or similar core images.
 ### publishing pact contract to PactFlow broker by running the test locally
 
 update .env file with below details
-  PACT_BROKER_URL= <<PactFlow broker url>>
-  PACT_BROKER_TOKEN= <<Your PactFlow broker token>>
-  PACT_ENV= << This is the environment in PactFlow broker to which we tag the contracts>
+PACT_BROKER_URL= <<PactFlow broker url>>
+PACT_BROKER_TOKEN= <<Your PactFlow broker token>>
+PACT_ENV= << This is the environment in PactFlow broker to which we tag the contracts>
 Run RootControllerIntegrationTest to generate the pact contracts
 The pact contract jsons will be generated inside /build/pacts directory
 run ./publish-pacts.sh
