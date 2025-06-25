@@ -1,4 +1,4 @@
-name: Publish Pacts to PactFlow
+name: Publish pact contracts to pact broker
 
 on:
   push:

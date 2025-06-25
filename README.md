@@ -169,12 +169,15 @@ docker image rm <image-id>
 
 There is no need to remove postgres and java or similar core images.
 
-### Create .env file in root directory to run locally
+### publishing pact contract to PactFlow broker by running the test locally
 
-SERVER_PORT=9999
-PACT_BROKER_URL=https://hmcts-dts.pactflow.io
-PACT_BROKER_TOKEN=eOmnLAeYytphFMQZIj7hUg
-PACT_ENV=dev/pactTest
+update .env file with below details
+  PACT_BROKER_URL= <<PactFlow broker url>>
+  PACT_BROKER_TOKEN= <<Your PactFlow broker token>>
+  PACT_ENV= << This is the environment in PactFlow broker to which we tag the contracts>
+Run RootControllerIntegrationTest to generate the pact contracts
+The pact contract jsons will be generated inside /build/pacts directory
+run ./publish-pacts.sh
 
 ## License
 
