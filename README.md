@@ -9,13 +9,14 @@ simply use this one as a starting point and build on top of it.
 ## What's inside
 
 The template is a working application with a minimal setup. It contains:
-* application skeleton
-* setup script to prepare project
-* common plugins and libraries
-* docker setup
-* code quality tools already set up
-* MIT license and contribution information
-* Helm chart using chart-java.
+
+- application skeleton
+- setup script to prepare project
+- common plugins and libraries
+- docker setup
+- code quality tools already set up
+- MIT license and contribution information
+- Helm chart using chart-java.
 
 The application exposes health endpoint (http://localhost:4550/health) and metrics endpoint
 (http://localhost:4550/metrics).
@@ -24,20 +25,19 @@ The application exposes health endpoint (http://localhost:4550/health) and metri
 
 The template contains the following plugins:
 
-* HMCTS Java plugin
+- HMCTS Java plugin
 
   Applies code analysis tools with HMCTS default settings. See the [project repository](https://github.com/hmcts/gradle-java-plugin) for details.
 
   Analysis tools include:
-
-  * checkstyle
+  - checkstyle
 
     https://docs.gradle.org/current/userguide/checkstyle_plugin.html
 
     Performs code style checks on Java source files using Checkstyle and generates reports from these checks.
-    The checks are included in gradle's *check* task (you can run them by executing `./gradlew check` command).
+    The checks are included in gradle's _check_ task (you can run them by executing `./gradlew check` command).
 
-  * org.owasp.dependencycheck
+  - org.owasp.dependencycheck
 
     https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/index.html
 
@@ -45,7 +45,7 @@ The template contains the following plugins:
     of known vulnerable components that are included in the build. To run it
     execute `gradle dependencyCheck` command.
 
-* jacoco
+- jacoco
 
   https://docs.gradle.org/current/userguide/jacoco_plugin.html
 
@@ -58,7 +58,7 @@ The template contains the following plugins:
 
   The report will be created in build/reports subdirectory in your project directory.
 
-* io.spring.dependency-management
+- io.spring.dependency-management
 
   https://github.com/spring-gradle-plugins/dependency-management-plugin
 
@@ -66,14 +66,13 @@ The template contains the following plugins:
   using `dependency 'groupId:artifactId:version'`
   or `dependency group:'group', name:'name', version:version'`.
 
-* org.springframework.boot
+- org.springframework.boot
 
   http://projects.spring.io/spring-boot/
 
   Reduces the amount of work needed to create a Spring application
 
-
-* com.github.ben-manes.versions
+- com.github.ben-manes.versions
 
   https://github.com/ben-manes/gradle-versions-plugin
 
@@ -169,7 +168,16 @@ docker image rm <image-id>
 
 There is no need to remove postgres and java or similar core images.
 
+### publishing pact contract to PactFlow broker by running the test locally
+
+update .env file with below details
+PACT_BROKER_URL= <<PactFlow broker url>>
+PACT_BROKER_TOKEN= <<Your PactFlow broker token>>
+PACT_ENV= << This is the environment in PactFlow broker to which we tag the contracts>
+Run RootControllerIntegrationTest to generate the pact contracts
+The pact contract jsons will be generated inside /build/pacts directory
+run ./publish-pacts.sh
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
-
