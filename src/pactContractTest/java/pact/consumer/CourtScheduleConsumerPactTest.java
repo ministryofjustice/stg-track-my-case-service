@@ -21,14 +21,14 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(PactConsumerTestExt.class)
-@PactTestFor(providerName = "VPCourtScheduleProvider", pactVersion = au.com.dius.pact.core.model.PactSpecVersion.V4)
+@PactTestFor(providerName = "CPCourtScheduleProvider", pactVersion = au.com.dius.pact.core.model.PactSpecVersion.V4)
 public class CourtScheduleConsumerPactTest {
 
     @Pact(consumer = "VPCourtScheduleConsumer")
     public V4Pact definePact(PactBuilder builder) throws IOException {
 
         JsonNode json = new ObjectMapper()
-            .readTree(Paths.get("src/test/resources/courtSchedule.json").toFile());
+            .readTree(Paths.get("src/pactContractTest/resources/courtSchedule.json").toFile());
 
         return builder
             .usingLegacyDsl()

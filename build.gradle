@@ -55,6 +55,15 @@ sourceSets {
     }
     resources.srcDir file('src/integrationTest/resources')
   }
+
+  pactContractTest {
+    java {
+      compileClasspath += main.output
+      runtimeClasspath += main.output
+      srcDir file('src/pactContractTest/java')
+    }
+    resources.srcDir file('src/pactContractTest/resources')
+  }
 }
 
 configurations {
@@ -63,6 +72,9 @@ configurations {
 
   integrationTestImplementation.extendsFrom testImplementation
   integrationTestRuntimeOnly.extendsFrom runtimeOnly
+
+  pactContractTestImplementation.extendsFrom testImplementation
+  pactContractTestRuntimeOnly.extendsFrom testRuntimeOnly
 }
 
 tasks.withType(JavaCompile) {
@@ -99,6 +111,23 @@ task integration(type: Test) {
   testClassesDirs = sourceSets.integrationTest.output.classesDirs
   classpath = sourceSets.integrationTest.runtimeClasspath
   failFast = true
+}
+
+task pactContractTest(type: Test) {
+  description = "Runs Pact consumer contract tests"
+  group = "Verification"
+  testClassesDirs = sourceSets.pactContractTest.output.classesDirs
+  classpath = sourceSets.pactContractTest.runtimeClasspath
+  shouldRunAfter test
+  useJUnitPlatform()
+}
+
+tasks.named('check') {
+  dependsOn tasks.named('pactContractTest')
+}
+
+tasks.named('processPactContractTestResources') {
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 jacocoTestReport {
