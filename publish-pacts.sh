@@ -19,7 +19,7 @@ fi
 export GIT_BRANCH="$BRANCH_NAME"
 
 # Run Gradle tasks: tests and publish pacts
-./gradlew test pactPublish
+./gradlew test pactContractTest pactPublish
 
 
 # verifying existence of build/pacts directory
