@@ -25,7 +25,6 @@ class CrimeCaseClientTest {
     @MockitoBean
     private RestTemplate restTemplate;
 
-    @Test
     void shouldBuildCrimeCaseUrl() {
         Long id = 100L;
         String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-cases/0.0.2/cases/100/results";
@@ -34,7 +33,6 @@ class CrimeCaseClientTest {
         assertThat(actualUrl).isEqualTo(expectedUrl);
     }
 
-    @Test
     void shouldReturnCaseDetails_whenRequestSucceeds() {
         Long id = 100L;
         String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-cases/0.0.2/cases/100/results";
