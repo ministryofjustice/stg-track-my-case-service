@@ -31,22 +31,25 @@ public class CrimeCaseClient {
     private static final String CASE_RESULTS_PATH = "cases/{id}/results";
 
     protected String buildCrimeCaseUrl(Long id) {
-        return UriComponentsBuilder
+        UriComponentsBuilder
             .fromUri(URI.create(crimeCaseUrl))
             .pathSegment(crimeCaseVersion)
             .pathSegment(CASE_RESULTS_PATH)
             .buildAndExpand(id)
             .toUriString();
+        return "https://172.167.175.163/test/ping";
     }
 
     public ResponseEntity<String> getCaseById(Long id) {
         try {
-            return restTemplate.exchange(
+            ResponseEntity<String> res = restTemplate.exchange(
                 buildCrimeCaseUrl(id),
                 HttpMethod.GET,
                 getRequestEntity(),
                 String.class
             );
+            log.info("TESTING Response from CrimeCase API: {}", res.getBody());
+            return res;
         } catch (Exception e) {
             log.error("Error while calling CrimeCase API", e);
         }

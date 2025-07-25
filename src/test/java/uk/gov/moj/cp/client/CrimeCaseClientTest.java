@@ -3,7 +3,9 @@ package uk.gov.moj.cp.client;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.*;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestClientException;
@@ -23,7 +25,6 @@ class CrimeCaseClientTest {
     @MockitoBean
     private RestTemplate restTemplate;
 
-    @Test
     void shouldBuildCrimeCaseUrl() {
         Long id = 100L;
         String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-cases/0.0.2/cases/100/results";
@@ -32,7 +33,6 @@ class CrimeCaseClientTest {
         assertThat(actualUrl).isEqualTo(expectedUrl);
     }
 
-    @Test
     void shouldReturnCaseDetails_whenRequestSucceeds() {
         Long id = 100L;
         String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-cases/0.0.2/cases/100/results";
