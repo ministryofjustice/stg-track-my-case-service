@@ -1,5 +1,6 @@
 package uk.gov.moj.cp.client;
 
+import com.moj.generated.hmcts.CourtHouse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,45 +30,48 @@ class CourtHouseClientTest {
     @Test
     void shouldBuildCourthearingCourthousesByIdUrl() {
         String id = "123";
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-courthouses/0.7.0/courthouses/123";
+        String courtRoomId = "123";
+        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-courthouses/0.7.3/courthouses/123/courtrooms/123";
 
-        assertThat(courtHouseClient.buildCourthearingCourthousesByIdUrl(id)).isEqualTo(expectedUrl);
+        assertThat(courtHouseClient.buildCourthearingCourthousesByIdUrl(id, courtRoomId)).isEqualTo(expectedUrl);
     }
 
     @Test
     void shouldReturnCourtHouseDetails_whenRequestIsSuccessful() {
         String id = "123";
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-courthouses/0.7.0/courthouses/123";
+        String courtRoomId = "123";
+        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-courthouses/0.7.3/courthouses/123/courtrooms/123";
 
-        ResponseEntity<String> response = new ResponseEntity<>("Some mock response", HttpStatus.OK);
-
+        ResponseEntity<CourtHouse> response = new ResponseEntity<>(new CourtHouse(
+            CourtHouse.CourtHouseType.CROWN, "code", null, null, null),
+                                                                   HttpStatus.OK);
         when(restTemplate.exchange(
             eq(expectedUrl),
             eq(HttpMethod.GET),
             eq(courtHouseClient.getRequestEntity()),
-            eq(String.class)
+            eq(CourtHouse.class)
         )).thenReturn(response);
-
-        HttpEntity<String> actual = courtHouseClient.getCourtHouseById(id);
+        HttpEntity<CourtHouse> actual = courtHouseClient.getCourtHouseById(id, courtRoomId);
 
         assertThat(actual).isNotNull();
-        assertThat("Some mock response").isEqualTo(actual.getBody());
+        assertThat("code").isEqualTo(actual.getBody().getCourtHouseCode());
+        assertThat(CourtHouse.CourtHouseType.CROWN.value()).isEqualTo(actual.getBody().getCourtHouseType().toString());
     }
 
     @Test
     void shouldLogErrorAndReturnNull_whenRestTemplateThrowsException() {
         String id = "123";
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-courthouses/0.7.0/courthouses/123";
+        String courtRoomId = "123";
+        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-courthouses/0.7.3/courthouses/123/courtrooms/123";
 
         when(restTemplate.exchange(
             eq(expectedUrl),
             eq(HttpMethod.GET),
             eq(courtHouseClient.getRequestEntity()),
-            eq(String.class)
+            eq(CourtHouse.class)
         )).thenThrow(new RestClientException("Timeout"));
 
-        HttpEntity<String> result = courtHouseClient.getCourtHouseById(id);
-
+        HttpEntity<CourtHouse> result = courtHouseClient.getCourtHouseById(id, courtRoomId);
         assertThat(result).isNull();
     }
 }

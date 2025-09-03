@@ -1,5 +1,6 @@
 package uk.gov.moj.cp.client;
 
+import com.moj.generated.hmcts.CourtHouse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,28 +29,28 @@ public class CourtHouseClient {
     @Value("${services.courthearing-courthouses.version}")
     private String courthearingCourthousesVersion;
 
-    private static final String COURTHOUSES_BY_ID = "courthouses/{id}";
+    private static final String COURTHOUSES_BY_ID_AND_ROOM_ID = "courthouses/{id}/courtrooms/{court_room_id}";
 
-    protected String buildCourthearingCourthousesByIdUrl(String id) {
+    protected String buildCourthearingCourthousesByIdUrl(String id, String courtRoomId) {
         return UriComponentsBuilder
             .fromUri(URI.create(courthearingCourthousesUrl))
             .pathSegment(courthearingCourthousesVersion)
-            .pathSegment(COURTHOUSES_BY_ID)
-            .buildAndExpand(id)
+            .pathSegment(COURTHOUSES_BY_ID_AND_ROOM_ID)
+            .buildAndExpand(id, courtRoomId)
             .toUriString();
     }
 
-    public ResponseEntity<String> getCourtHouseById(String id) {
+    public ResponseEntity<CourtHouse> getCourtHouseById(String id, String courtRoomId) {
         try {
-            ResponseEntity<String> responseEntity = restTemplate.exchange(
-                buildCourthearingCourthousesByIdUrl(id),
+            ResponseEntity<CourtHouse> responseEntity = restTemplate.exchange(
+                buildCourthearingCourthousesByIdUrl(id, courtRoomId),
                 HttpMethod.GET,
                 getRequestEntity(),
-                String.class
+                CourtHouse.class
             );
             return responseEntity;
         } catch (Exception e) {
-            log.error("Error while calling CourtHouse API", e);
+            log.atError().log("Error while calling CourtHouse API", e);
         }
         return null;
     }

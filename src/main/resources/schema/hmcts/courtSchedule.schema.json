@@ -80,6 +80,14 @@
                         "examples": [
                           "223e4567-e89b-12d3-a456-426614174111"
                         ]
+                      },
+                      "courtRoom": {
+                        "description": "Court Room details ref id",
+                        "type": "string",
+                        "pattern": "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
+                        "examples": [
+                          "223e4567-e89b-12d3-a456-426614174111"
+                        ]
                       }
                     }
                   }

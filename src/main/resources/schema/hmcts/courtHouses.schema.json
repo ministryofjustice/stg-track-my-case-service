@@ -24,9 +24,9 @@
           "description": "Name of the court house",
           "type": "string"
         },
-        "courtHouseDescription": {
-          "description": "Description of the court",
-          "type": "string"
+        "address": {
+          "description": "Courthouse address",
+          "$ref": "#/$defs/address"
         },
         "courtRoom": {
           "type": "array",
@@ -34,10 +34,6 @@
             "description": "The court room that owns the court rooms",
             "type": "object",
             "properties": {
-              "courtRoomNumber": {
-                "description": "Court room number in court",
-                "type": "integer"
-              },
               "courtRoomId": {
                 "description": "Ref data id (EPIMS or OU Court id)",
                 "type": "integer"
@@ -45,14 +41,6 @@
               "courtRoomName": {
                 "description": "Name for the court room",
                 "type": "string"
-              },
-              "venueContact": {
-                "description": "Contact details for the venue",
-                "$ref": "#/$defs/venueContact"
-              },
-              "address": {
-                "description": "Courthouse address",
-                "$ref": "#/$defs/address"
               }
             }
           }
