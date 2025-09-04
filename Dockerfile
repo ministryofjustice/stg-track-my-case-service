@@ -12,7 +12,7 @@ COPY . .
 RUN ./gradlew assemble -Dorg.gradle.daemon=false
 
 # Use Eclipse Temurin JRE for running the application
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:22-jre-jammy
 
 # Set the maintainer label
 LABEL maintainer="MOJ Strategic Service Transformation Team <STGTransformationTeam@justice.gov.uk>"
