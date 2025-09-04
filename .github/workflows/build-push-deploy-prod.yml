@@ -17,10 +17,10 @@ jobs:
       new_tag: ${{ steps.set-version-tag-output.outputs.new_tag }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Bump version and push tag
-        uses: anothrNick/github-tag-action@1.73.0
+        uses: anothrNick/github-tag-action@1.75.0
         id: bump-id
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -31,7 +31,7 @@ jobs:
         run: echo "new_tag=${{ steps.bump-id.outputs.new_tag }}" >> $GITHUB_OUTPUT
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Build
         env:
@@ -41,7 +41,7 @@ jobs:
           docker build . -t working_image:$NEW_TAG_V
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ secrets.PROD_ECR_ROLE_TO_ASSUME }}
           aws-region: ${{ vars.PROD_ECR_REGION }}
@@ -91,7 +91,7 @@ jobs:
           helm repo update mojanalytics
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ secrets.PROD_ECR_ROLE_TO_ASSUME }}
           aws-region: ${{ vars.PROD_ECR_REGION }}
