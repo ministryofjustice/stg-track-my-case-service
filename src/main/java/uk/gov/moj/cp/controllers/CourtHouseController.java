@@ -26,9 +26,10 @@ public class CourtHouseController {
     @Autowired
     private CourtHouseService courtHouseService;
 
-    @GetMapping("courthouses/{id}")
-    public ResponseEntity<CourtHouseDto> getCourtHouseById(@PathVariable String id) {
-        return ok(courtHouseService.getCourtHouseById(id));
+    @GetMapping("courthouses/{id}/courtrooms/{court_room_id}")
+    public ResponseEntity<CourtHouseDto> getCourtHouseById(@PathVariable String id,
+                                                           @PathVariable("court_room_id") String courtRoomId) {
+        return ok(courtHouseService.getCourtHouseById(id, courtRoomId));
     }
 
 }

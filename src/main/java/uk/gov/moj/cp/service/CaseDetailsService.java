@@ -51,7 +51,7 @@ public class CaseDetailsService {
             sitting.judiciaryId(),
             sitting.sittingStart(),
             sitting.sittingEnd(),
-            courtHouseService.getCourtHouseById(sitting.courtHouse())
+            courtHouseService.getCourtHouseById(sitting.courtHouse(), sitting.courtRoom())
         );
     }
 }

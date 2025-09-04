@@ -1,5 +1,6 @@
 package uk.gov.moj.cp.client;
 
+import com.moj.generated.hmcts.CourtScheduleSchema;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,7 +29,7 @@ class CourtScheduleClientTest {
     @Test
     void shouldBuildCourtScheduleUrl() {
         String caseUrn = "CASE123";
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-schedulingandlisting-courtschedule/0.4.1/case/CASE123/courtschedule";
+        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-schedulingandlisting-courtschedule/0.4.2-188dae3/case/CASE123/courtschedule";
 
         String actualUrl = courtScheduleClient.buildCourtScheduleUrl(caseUrn);
         assertThat(actualUrl).isEqualTo(expectedUrl);
@@ -37,37 +38,40 @@ class CourtScheduleClientTest {
     @Test
     void shouldReturnCourtSchedule_whenRequestSucceeds() {
         String caseUrn = "CASE123";
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-schedulingandlisting-courtschedule/0.4.1/case/CASE123/courtschedule";
+        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-schedulingandlisting-courtschedule/0.4.2-188dae3/case/CASE123/courtschedule";
 
-        ResponseEntity<String> mockResponse = new ResponseEntity<>("Mock court schedule", HttpStatus.OK);
+        ResponseEntity<CourtScheduleSchema> mockResponse = new ResponseEntity<>(
+            new CourtScheduleSchema(),
+            HttpStatus.OK
+        );
 
         when(restTemplate.exchange(
             eq(expectedUrl),
             eq(HttpMethod.GET),
             eq(courtScheduleClient.getRequestEntity()),
-            eq(String.class)
+            eq(CourtScheduleSchema.class)
         )).thenReturn(mockResponse);
 
-        ResponseEntity<String> actualResponse = courtScheduleClient.getCourtScheduleByCaseUrn(caseUrn);
+        ResponseEntity<CourtScheduleSchema> actualResponse = courtScheduleClient.getCourtScheduleByCaseUrn(
+            caseUrn);
 
         assertThat(actualResponse).isNotNull();
-        assertThat(actualResponse.getBody()).isEqualTo("Mock court schedule");
+        assertThat(actualResponse.getBody().getCourtSchedule().size()).isEqualTo(0);
     }
 
     @Test
     void shouldReturnNull_whenRestTemplateThrowsException() {
         String caseUrn = "CASE123";
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-schedulingandlisting-courtschedule/0.4.1/case/CASE123/courtschedule";
+        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-schedulingandlisting-courtschedule/0.4.2-188dae3/case/CASE123/courtschedule";
 
         when(restTemplate.exchange(
             eq(expectedUrl),
             eq(HttpMethod.GET),
             eq(courtScheduleClient.getRequestEntity()),
-            eq(String.class)
+            eq(CourtScheduleSchema.class)
         )).thenThrow(new RestClientException("Service unavailable"));
 
-        ResponseEntity<String> response = courtScheduleClient.getCourtScheduleByCaseUrn(caseUrn);
-
+        ResponseEntity<CourtScheduleSchema> response = courtScheduleClient.getCourtScheduleByCaseUrn(caseUrn);
         assertThat(response).isNull();
     }
 }

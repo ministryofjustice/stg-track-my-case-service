@@ -8,28 +8,19 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record CourtHouseDto(
     String courtHouseId,
+    String courtRoomId,
     String courtHouseType,
     String courtHouseCode,
     String courtHouseName,
-    String courtHouseDescription,
+    @JsonProperty("address") CourtRoomDto.AddressDto address,
+    //String courtHouseDescription,
     @JsonProperty("courtRoom") List<CourtRoomDto> courtRoomDtoList
 ) {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public record CourtRoomDto(
-        int courtRoomNumber,
         int courtRoomId,
-        String courtRoomName,
-        @JsonProperty("venueContact") CourtRoomDto.VenueContactDto venueContact,
-        @JsonProperty("address") CourtRoomDto.AddressDto address
+        String courtRoomName
     ) {
-        @JsonInclude(JsonInclude.Include.NON_NULL)
-        public record VenueContactDto(
-            String venueTelephone,
-            String venueEmail,
-            String primaryContactName,
-            String venueSupport
-        ) {}
-
         @JsonInclude(JsonInclude.Include.NON_NULL)
         public record AddressDto(
             String address1,

@@ -57,10 +57,10 @@ services:
     version: 0.0.2
   crime-schedulingandlisting-courtschedule:
     url: https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-schedulingandlisting-courtschedule
-    version: 0.4.1
+    version: 0.4.2-188dae3
   refdata-courthearing-judges:
     url: https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-judges
     version: 0.3.2
   courthearing-courthouses:
     url: https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-courthouses
-    version: 0.7.0
+    version: 0.7.3
