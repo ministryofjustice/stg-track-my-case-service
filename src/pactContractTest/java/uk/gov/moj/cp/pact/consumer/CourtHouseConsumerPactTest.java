@@ -34,7 +34,7 @@ public class CourtHouseConsumerPactTest {
             .usingLegacyDsl()
             .given("court house with ID 123 exists")
             .uponReceiving("A request to get court house details with ID 123")
-            .path("/courthouses/123")
+            .path("/courthouses/123/courtrooms/123")
             .method("GET")
             .willRespondWith()
             .status(200)
@@ -45,7 +45,7 @@ public class CourtHouseConsumerPactTest {
 
     @Test
     void testGetCourtHouse(MockServer mockServer) {
-        String url = mockServer.getUrl() + "/courthouses/123";
+        String url = mockServer.getUrl() + "/courthouses/123/courtrooms/123";
         RestTemplate restTemplate = new RestTemplate();
         String response = restTemplate.getForObject(url, String.class);
 
