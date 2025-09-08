@@ -1,22 +1,20 @@
 package uk.gov.moj.cp.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.moj.generated.hmcts.CourtSchedule;
+import com.moj.generated.hmcts.CourtScheduleSchema;
 import com.moj.generated.hmcts.CourtSitting;
 import com.moj.generated.hmcts.Hearing;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import uk.gov.moj.cp.client.CourtScheduleClient;
 import uk.gov.moj.cp.dto.CourtScheduleDto;
-import uk.gov.moj.cp.util.Utils;
 
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static uk.gov.moj.cp.util.Utils.getJsonNode;
 
 @Service
 public class CourtScheduleService {
@@ -25,23 +23,11 @@ public class CourtScheduleService {
     private CourtScheduleClient courtScheduleClient;
 
     public List<CourtScheduleDto> getCourtScheduleByCaseUrn(String caseUrn) {
-        HttpEntity<String> result = courtScheduleClient.getCourtScheduleByCaseUrn(caseUrn);
-
-        if (result == null || result.getBody() == null || result.getBody().isEmpty()) {
+        ResponseEntity<CourtScheduleSchema> result = courtScheduleClient.getCourtScheduleByCaseUrn(caseUrn);
+        if (result == null || result.getBody() == null) {
             throw new RuntimeException("Response body is null or empty");
         }
-
-        try {
-            JsonNode courtSchedule = getJsonNode(result.getBody(), "courtSchedule");
-            List<CourtSchedule> courtScheduleResultList = Utils.convertJsonStringToList(
-                courtSchedule.toString(),
-                CourtSchedule.class
-            );
-            JSONObject aa = new JSONObject().put("aa", courtScheduleResultList);
-            return convertToCourtScheduleResult(courtScheduleResultList);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        return convertToCourtScheduleResult(result.getBody().getCourtSchedule());
     }
 
     private List<CourtScheduleDto> convertToCourtScheduleResult(List<CourtSchedule> courtScheduleResultList) {
@@ -63,11 +49,21 @@ public class CourtScheduleService {
 
     private CourtScheduleDto.HearingDto.CourtSittingDto getCourtSittings(CourtSitting courtSitting) {
         return new CourtScheduleDto.HearingDto.CourtSittingDto(
-            courtSitting.getSittingStart().toString(),
-            courtSitting.getSittingEnd().toString(),
+            getBSTDateAndTime(courtSitting.getSittingStart()),
+            getBSTDateAndTime(courtSitting.getSittingEnd()),
             courtSitting.getJudiciaryId(),
-            courtSitting.getCourtHouse()
+            courtSitting.getCourtHouse(),
+            courtSitting.getCourtRoom()
         );
     }
+
+    private String getBSTDateAndTime(Date date) {
+        return Optional.ofNullable(date)
+            .map(d -> d.toInstant().atZone(ZoneId.systemDefault())
+                .withZoneSameInstant(ZoneId.of("Europe/London"))
+                .toLocalDateTime().toString())
+            .orElse("N/A");
+    }
+
 }
 

@@ -1,5 +1,6 @@
 package uk.gov.moj.cp.client;
 
+import com.moj.generated.hmcts.CourtScheduleSchema;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,13 +40,13 @@ public class CourtScheduleClient {
             .toString();
     }
 
-    public ResponseEntity<String> getCourtScheduleByCaseUrn(String caseUrn) {
+    public ResponseEntity<CourtScheduleSchema> getCourtScheduleByCaseUrn(String caseUrn) {
         try {
             return restTemplate.exchange(
                 buildCourtScheduleUrl(caseUrn),
                 HttpMethod.GET,
                 getRequestEntity(),
-                String.class
+                CourtScheduleSchema.class
             );
         } catch (Exception e) {
             log.error("Error while calling CourtSchedule API", e);
