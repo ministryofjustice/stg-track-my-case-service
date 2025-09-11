@@ -130,12 +130,6 @@ jobs:
         run: |
           process_ip_range=$(echo $IP_RANGES | sed "s/,/\\\,/g")
 
-          echo "Secrets keys:"
-          echo "$SECRETS_CONTEXT" | jq 'keys'
-
-          echo "Vars keys:"
-          echo "$VARS_CONTEXT" | jq 'keys'
-
           combined_json=$(jq -n \
               --argjson secrets_json "$SECRETS_CONTEXT" \
               --argjson vars_json "$VARS_CONTEXT" \
@@ -150,8 +144,6 @@ jobs:
                 custom_variables="$custom_variables --set $custom_key=$value"
             fi
           done
-          echo "custom variables:"
-          echo "$custom_variables" | jq 'keys'
 
           helm upgrade --install --wait --timeout 10m0s --namespace $KUBE_NAMESPACE $RELEASE_NAME mojanalytics/webapp-cp \
           --set AuthProxy.Env.Auth0Domain=$AUTH0_DOMAIN \
