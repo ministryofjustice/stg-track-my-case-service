@@ -1,6 +1,7 @@
 package uk.gov.moj.cp.client;
 
 import com.moj.generated.hmcts.CourtScheduleSchema;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
 import java.util.List;
 
 @Slf4j
@@ -23,21 +23,24 @@ public class CourtScheduleClient {
 
     private final RestTemplate restTemplate;
 
-    @Value("${services.crime-schedulingandlisting-courtschedule.url}")
-    private String courtScheduleUrl;
+    @Getter
+    @Value("${services.amp-url}")
+    private String ampUrl;
 
-    @Value("${services.crime-schedulingandlisting-courtschedule.version}")
-    private String courtScheduleVersion;
+    @Getter
+    @Value("${services.amp-subscription-key}")
+    private String ampSubscriptionKey;
 
-    private static final String COURT_SCHEDULE_PATH = "case/{caseUrn}/courtschedule";
+    @Getter
+    @Value("${services.api-cp-crime-schedulingandlisting-courtschedule.path}")
+    private String apiCpCrimeSchedulingandlistingCourtschedulePath;
 
     protected String buildCourtScheduleUrl(String caseUrn) {
         return UriComponentsBuilder
-            .fromUri(URI.create(courtScheduleUrl))
-            .pathSegment(courtScheduleVersion)
-            .pathSegment(COURT_SCHEDULE_PATH)
+            .fromUriString(getAmpUrl())
+            .path(getApiCpCrimeSchedulingandlistingCourtschedulePath())
             .buildAndExpand(caseUrn)
-            .toString();
+            .toUriString();
     }
 
     public ResponseEntity<CourtScheduleSchema> getCourtScheduleByCaseUrn(String caseUrn) {
@@ -57,6 +60,7 @@ public class CourtScheduleClient {
     protected HttpEntity<String> getRequestEntity() {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        headers.set("Ocp-Apim-Subscription-Key", getAmpSubscriptionKey());
         return new HttpEntity<>(headers);
     }
 }

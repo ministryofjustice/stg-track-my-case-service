@@ -7,6 +7,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -17,6 +18,10 @@ import static org.mockito.Mockito.when;
 
 @ActiveProfiles("test")
 @SpringBootTest
+@TestPropertySource(properties = {
+    "services.amp-url=https://some.dev.environment.com",
+    "services.amp-subscription-key=some-amp-subscription-key"
+})
 class CrimeCaseClientTest {
 
     @Autowired
@@ -25,17 +30,19 @@ class CrimeCaseClientTest {
     @MockitoBean
     private RestTemplate restTemplate;
 
+    @Test
     void shouldBuildCrimeCaseUrl() {
         Long id = 100L;
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-cases/0.0.2/cases/100/results";
+        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-courthearing-cases/0.7.1/cases/100/results";
 
         String actualUrl = crimeCaseClient.buildCrimeCaseUrl(id);
         assertThat(actualUrl).isEqualTo(expectedUrl);
     }
 
+    @Test
     void shouldReturnCaseDetails_whenRequestSucceeds() {
         Long id = 100L;
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-cases/0.0.2/cases/100/results";
+        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-courthearing-cases/0.7.1/cases/100/results";
 
         ResponseEntity<String> mockResponse = new ResponseEntity<>("Mock case data", HttpStatus.OK);
 
@@ -55,7 +62,7 @@ class CrimeCaseClientTest {
     @Test
     void shouldReturnNull_whenRestTemplateThrowsException() {
         Long id = 100L;
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-cases/0.0.2/cases/100/results";
+        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-courthearing-cases/0.7.1/cases/100/results";
 
         when(restTemplate.exchange(
             eq(expectedUrl),

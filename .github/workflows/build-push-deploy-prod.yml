@@ -73,8 +73,6 @@ jobs:
         env:
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
           KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
-          AMP_URL: ${{ secrets.AMP_URL }}
-          AMP_SUBSCRIPTION_KEY: ${{ secrets.AMP_SUBSCRIPTION_KEY }}
         run: |
           echo "${{ secrets.KUBE_CERT }}" > ca.crt
           kubectl config set-cluster ${KUBE_CLUSTER} --certificate-authority=./ca.crt --server=https://${KUBE_CLUSTER}

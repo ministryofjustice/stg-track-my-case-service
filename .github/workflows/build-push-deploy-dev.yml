@@ -81,8 +81,6 @@ jobs:
         env:
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
           KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
-          AMP_URL: ${{ secrets.AMP_URL }}
-          AMP_SUBSCRIPTION_KEY: ${{ secrets.AMP_SUBSCRIPTION_KEY }}
         run: |
           echo "${{ secrets.KUBE_CERT }}" > ca.crt
           kubectl config set-cluster ${KUBE_CLUSTER} --certificate-authority=./ca.crt --server=https://${KUBE_CLUSTER}
@@ -132,6 +130,9 @@ jobs:
         run: |
           process_ip_range=$(echo $IP_RANGES | sed "s/,/\\\,/g")
 
+          echo "SECRETS_CONTEXT=${{ SECRETS_CONTEXT }}"
+          echo "VARS_CONTEXT=${{ VARS_CONTEXT }}"
+
           combined_json=$(jq -n \
               --argjson secrets_json "$SECRETS_CONTEXT" \
               --argjson vars_json "$VARS_CONTEXT" \
@@ -146,6 +147,7 @@ jobs:
                 custom_variables="$custom_variables --set $custom_key=$value"
             fi
           done
+          echo "custom_variables=${{ custom_variables }}"
 
           helm upgrade --install --wait --timeout 10m0s --namespace $KUBE_NAMESPACE $RELEASE_NAME mojanalytics/webapp-cp \
           --set AuthProxy.Env.Auth0Domain=$AUTH0_DOMAIN \

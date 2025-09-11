@@ -52,19 +52,19 @@ azure:
     instrumentation-key: ${rpe.AppInsightsInstrumentationKey:00000000-0000-0000-0000-000000000000}
 
 services:
-  apimurl: ${AMP_URL}
-  apimkey: ${AMP_SUBSCRIPTION_KEY}
+  amp-url: ${AMP_URL}
+  amp-subscription-key: ${AMP_SUBSCRIPTION_KEY}
 
-  courthearing-courthouses:
-    path: /courthouses/{court_houseid}/courtrooms/{court_roomid}
+  api-cp-refdata-courthearing-courthouses:
+    path: /courthouses/{court_id}/courtrooms/{court_room_id}
 
-  crime-schedulingandlisting-courtschedule:
-    path: /case/{case_id}/courtschedule
+  api-cp-crime-schedulingandlisting-courtschedule:
+    path: /case/{case_urn}/courtschedule
 
   refdata-courthearing-judges:
     url: https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-judges
-    version: 0.3.2
+    version: 0.3.10
 
   crime-cases:
-    url: https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-cases
-    version: 0.0.2
+    url: https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-courthearing-cases
+    version: 0.7.1

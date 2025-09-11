@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
 import java.util.List;
 
 @Slf4j
@@ -28,13 +27,13 @@ public class JudgesClient {
     @Value("${services.refdata-courthearing-judges.version}")
     private String judgesVersion;
 
-    private static final String JUDGES_BY_ID_PATH = "judges/{id}";
+    private static final String JUDGES_BY_ID_PATH = "/judges/{id}";
 
     protected String buildJudgesUrl(Long id) {
         return UriComponentsBuilder
-            .fromUri(URI.create(judgesUrl))
+            .fromUriString(judgesUrl)
             .pathSegment(judgesVersion)
-            .pathSegment(JUDGES_BY_ID_PATH)
+            .path(JUDGES_BY_ID_PATH)
             .buildAndExpand(id)
             .toUriString();
     }
