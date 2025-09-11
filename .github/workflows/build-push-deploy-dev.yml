@@ -150,7 +150,8 @@ jobs:
                 custom_variables="$custom_variables --set $custom_key=$value"
             fi
           done
-          echo "custom_variables=${{ custom_variables }}"
+          echo "custom variables:"
+          echo "$custom_variables" | jq 'keys'
 
           helm upgrade --install --wait --timeout 10m0s --namespace $KUBE_NAMESPACE $RELEASE_NAME mojanalytics/webapp-cp \
           --set AuthProxy.Env.Auth0Domain=$AUTH0_DOMAIN \
