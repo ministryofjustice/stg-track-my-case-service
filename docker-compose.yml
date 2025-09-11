@@ -8,6 +8,11 @@ services:
         https_proxy: ${https_proxy}
         no_proxy: ${no_proxy}
         BASE_IMAGE: ${BASE_IMAGE}
+        SERVER_PORT: ${SERVER_PORT}
+        JAR_FILENAME: ${JAR_FILENAME}
+        JAR_FILE_PATH: ${JAR_FILE_PATH}
+        AMP_URL: ${AMP_URL}
+        AMP_SUBSCRIPTION_KEY: ${AMP_SUBSCRIPTION_KEY}
     environment:
       # these environment variables are used by java-logging library
       - ROOT_APPENDER

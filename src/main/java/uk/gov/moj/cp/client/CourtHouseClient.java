@@ -1,6 +1,7 @@
 package uk.gov.moj.cp.client;
 
 import com.moj.generated.hmcts.CourtHouse;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
 import java.util.List;
 
 @Slf4j
@@ -23,27 +23,30 @@ public class CourtHouseClient {
 
     private final RestTemplate restTemplate;
 
-    @Value("${services.courthearing-courthouses.url}")
-    private String courthearingCourthousesUrl;
+    @Getter
+    @Value("${services.amp-url}")
+    private String ampUrl;
 
-    @Value("${services.courthearing-courthouses.version}")
-    private String courthearingCourthousesVersion;
+    @Getter
+    @Value("${services.amp-subscription-key}")
+    private String ampSubscriptionKey;
 
-    private static final String COURTHOUSES_BY_ID_AND_ROOM_ID = "courthouses/{id}/courtrooms/{court_room_id}";
+    @Getter
+    @Value("${services.api-cp-refdata-courthearing-courthouses.path}")
+    private String apiCpRefdataCourthearingCourthousesPath;
 
-    protected String buildCourthearingCourthousesByIdUrl(String id, String courtRoomId) {
+    protected String buildCourthearingCourthousesByIdUrl(String courtId, String courtRoomId) {
         return UriComponentsBuilder
-            .fromUri(URI.create(courthearingCourthousesUrl))
-            .pathSegment(courthearingCourthousesVersion)
-            .pathSegment(COURTHOUSES_BY_ID_AND_ROOM_ID)
-            .buildAndExpand(id, courtRoomId)
+            .fromUriString(getAmpUrl())
+            .path(getApiCpRefdataCourthearingCourthousesPath())
+            .buildAndExpand(courtId, courtRoomId)
             .toUriString();
     }
 
-    public ResponseEntity<CourtHouse> getCourtHouseById(String id, String courtRoomId) {
+    public ResponseEntity<CourtHouse> getCourtHouseById(String courtId, String courtRoomId) {
         try {
             ResponseEntity<CourtHouse> responseEntity = restTemplate.exchange(
-                buildCourthearingCourthousesByIdUrl(id, courtRoomId),
+                buildCourthearingCourthousesByIdUrl(courtId, courtRoomId),
                 HttpMethod.GET,
                 getRequestEntity(),
                 CourtHouse.class
@@ -58,6 +61,7 @@ public class CourtHouseClient {
     protected HttpEntity<String> getRequestEntity() {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        headers.set("Ocp-Apim-Subscription-Key", getAmpSubscriptionKey());
         return new HttpEntity<>(headers);
     }
 

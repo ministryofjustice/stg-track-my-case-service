@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URI;
 import java.util.List;
 
 @Slf4j
@@ -28,16 +27,15 @@ public class CrimeCaseClient {
     @Value("${services.crime-cases.version}")
     private String crimeCaseVersion;
 
-    private static final String CASE_RESULTS_PATH = "cases/{id}/results";
+    private static final String CASE_RESULTS_PATH = "/cases/{case_id}/results";
 
-    protected String buildCrimeCaseUrl(Long id) {
-        UriComponentsBuilder
-            .fromUri(URI.create(crimeCaseUrl))
+    protected String buildCrimeCaseUrl(Long caseId) {
+        return UriComponentsBuilder
+            .fromUriString(crimeCaseUrl)
             .pathSegment(crimeCaseVersion)
-            .pathSegment(CASE_RESULTS_PATH)
-            .buildAndExpand(id)
+            .path(CASE_RESULTS_PATH)
+            .buildAndExpand(caseId)
             .toUriString();
-        return "https://172.167.175.163/test/ping";
     }
 
     public ResponseEntity<String> getCaseById(Long id) {

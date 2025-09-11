@@ -7,6 +7,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -17,6 +18,10 @@ import static org.mockito.Mockito.when;
 
 @ActiveProfiles("test")
 @SpringBootTest
+@TestPropertySource(properties = {
+    "services.amp-url=https://some.dev.environment.com",
+    "services.amp-subscription-key=some-amp-subscription-key"
+})
 class JudgesClientTest {
 
     @Autowired
@@ -28,7 +33,7 @@ class JudgesClientTest {
     @Test
     void shouldBuildJudgesUrlCorrectly() {
         Long id = 456L;
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-judges/0.3.2/judges/456";
+        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-judges/0.3.10/judges/456";
 
         String actualUrl = judgesClient.buildJudgesUrl(id);
         assertThat(actualUrl).isEqualTo(expectedUrl);
@@ -37,7 +42,7 @@ class JudgesClientTest {
     @Test
     void shouldReturnJudgeDetails_whenRequestSucceeds() {
         Long id = 456L;
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-judges/0.3.2/judges/456";
+        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-judges/0.3.10/judges/456";
 
         ResponseEntity<String> mockResponse = new ResponseEntity<>("Mock judge info", HttpStatus.OK);
 
@@ -57,7 +62,7 @@ class JudgesClientTest {
     @Test
     void shouldReturnNull_whenRestTemplateThrowsException() {
         Long id = 456L;
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-judges/0.3.2/judges/456";
+        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-judges/0.3.10/judges/456";
 
         when(restTemplate.exchange(
             eq(expectedUrl),
