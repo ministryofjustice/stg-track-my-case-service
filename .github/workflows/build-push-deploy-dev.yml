@@ -130,8 +130,11 @@ jobs:
         run: |
           process_ip_range=$(echo $IP_RANGES | sed "s/,/\\\,/g")
 
-          echo "SECRETS_CONTEXT=${{ SECRETS_CONTEXT }}"
-          echo "VARS_CONTEXT=${{ VARS_CONTEXT }}"
+          echo "----"
+          echo "${{ SECRETS_CONTEXT }}"
+          echo "----"
+          echo "${{ VARS_CONTEXT }}"
+          echo "----"
 
           combined_json=$(jq -n \
               --argjson secrets_json "$SECRETS_CONTEXT" \
