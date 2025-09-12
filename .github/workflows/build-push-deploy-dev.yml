@@ -165,8 +165,10 @@ jobs:
           --set WebApp.Image.Repository=$ECR_REPO_WEBAPP \
           --set WebApp.Image.Tag=$NEW_TAG_V \
           --set WebApp.Name=$KUBE_NAMESPACE \
-          --set-string WebApp.Env.AMP_URL="$AMP_URL" \
-          --set-string WebApp.Env.AMP_SUBSCRIPTION_KEY="$AMP_SUBSCRIPTION_KEY" \
+          --set-string WebApp.Env.AMP_URL=$AMP_URL \
+          --set-string WebApp.Env.AMP_SUBSCRIPTION_KEY=$AMP_SUBSCRIPTION_KEY \
+          --set-string app.env.AMP_URL="$AMP_URL" \
+          --set-string app.env.AMP_SUBSCRIPTION_KEY="$AMP_SUBSCRIPTION_KEY" \
           --set securityContext.allowPrivilegeEscalation=false \
           --set securityContext.capabilities.drop=["ALL"] \
           --set securityContext.runAsNonRoot=true \
