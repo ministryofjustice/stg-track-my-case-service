@@ -123,6 +123,8 @@ jobs:
           ECR_REPO_WEBAPP: ${{ steps.login-ecr.outputs.registry }}/${{ vars.DEV_ECR_REPOSITORY }}
           IP_RANGES: ${{ secrets.IP_RANGES }}
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+          AMP_URL: ${{ secrets.AMP_URL }}
+          AMP_SUBSCRIPTION_KEY: ${{ secrets.AMP_SUBSCRIPTION_KEY }}
           NEW_TAG_V: ${{ needs.build-push-dev.outputs.new_tag }}
           RELEASE_NAME: ${{ github.event.repository.name }}-dev
           SECRETS_CONTEXT:  ${{ toJson(secrets) }}
@@ -151,6 +153,8 @@ jobs:
           --set AuthProxy.Env.Auth0TokenAlg=$AUTH0_TOKEN_ALG \
           --set AuthProxy.Env.AuthenticationRequired=$AUTHENTICATION_REQUIRED \
           --set AuthProxy.Env.CookieSecret=$COOKIE_SECRET \
+          --set AuthProxy.Env.AMP_URL=$AMP_URL \
+          --set AuthProxy.Env.AMP_SUBSCRIPTION_KEY=$AMP_SUBSCRIPTION_KEY \
           --set AuthProxy.Env.IPRanges=$process_ip_range \
           --set AuthProxy.Image.Repository=$ECR_REPO_AUTH0 \
           --set AuthProxy.Image.Tag="latest" \
