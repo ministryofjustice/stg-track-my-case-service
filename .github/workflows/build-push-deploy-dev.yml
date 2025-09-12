@@ -153,8 +153,8 @@ jobs:
           --set AuthProxy.Env.Auth0TokenAlg=$AUTH0_TOKEN_ALG \
           --set AuthProxy.Env.AuthenticationRequired=$AUTHENTICATION_REQUIRED \
           --set AuthProxy.Env.CookieSecret=$COOKIE_SECRET \
-          --set AuthProxy.Env.AMP_URL=$AMP_URL \
-          --set AuthProxy.Env.AMP_SUBSCRIPTION_KEY=$AMP_SUBSCRIPTION_KEY \
+          --set-string AuthProxy.Env.AMP_URL="$AMP_URL" \
+          --set-string AuthProxy.Env.AMP_SUBSCRIPTION_KEY="$AMP_SUBSCRIPTION_KEY" \
           --set AuthProxy.Env.IPRanges=$process_ip_range \
           --set AuthProxy.Image.Repository=$ECR_REPO_AUTH0 \
           --set AuthProxy.Image.Tag="latest" \
