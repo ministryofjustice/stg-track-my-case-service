@@ -155,7 +155,7 @@ jobs:
           --set AuthProxy.Env.CookieSecret=$COOKIE_SECRET \
           --set AuthProxy.Env.IPRanges=$process_ip_range \
           --set-string AuthProxy.Env.AMP_URL=$AMP_URL \
-          --set-string AuthProxy.Env.AMP_SUBSCRIPTION_KEY=$AMP_SUBSCRIPTION_KEY \          
+          --set-string AuthProxy.Env.AMP_SUBSCRIPTION_KEY=$AMP_SUBSCRIPTION_KEY \
           --set AuthProxy.Image.Repository=$ECR_REPO_AUTH0 \
           --set AuthProxy.Image.Tag="latest" \
           --set Namespace=$KUBE_NAMESPACE \
@@ -200,4 +200,3 @@ jobs:
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
           $custom_variables
-
