@@ -154,6 +154,8 @@ jobs:
           --set AuthProxy.Env.AuthenticationRequired=$AUTHENTICATION_REQUIRED \
           --set AuthProxy.Env.CookieSecret=$COOKIE_SECRET \
           --set AuthProxy.Env.IPRanges=$process_ip_range \
+          --set-string AuthProxy.Env.AMP_URL=$AMP_URL \
+          --set-string AuthProxy.Env.AMP_SUBSCRIPTION_KEY=$AMP_SUBSCRIPTION_KEY \          
           --set AuthProxy.Image.Repository=$ECR_REPO_AUTH0 \
           --set AuthProxy.Image.Tag="latest" \
           --set Namespace=$KUBE_NAMESPACE \
@@ -163,8 +165,6 @@ jobs:
           --set WebApp.Image.Repository=$ECR_REPO_WEBAPP \
           --set WebApp.Image.Tag=$NEW_TAG_V \
           --set WebApp.Name=$KUBE_NAMESPACE \
-          --set-string WebApp.Env.AMP_URL="$AMP_URL" \
-          --set-string WebApp.Env.AMP_SUBSCRIPTION_KEY="$AMP_SUBSCRIPTION_KEY" \
           --set securityContext.allowPrivilegeEscalation=false \
           --set securityContext.capabilities.drop=["ALL"] \
           --set securityContext.runAsNonRoot=true \
@@ -183,6 +183,8 @@ jobs:
           --set AuthProxy.Env.Auth0TokenAlg=$AUTH0_TOKEN_ALG \
           --set AuthProxy.Env.AuthenticationRequired=$AUTHENTICATION_REQUIRED \
           --set AuthProxy.Env.CookieSecret=$COOKIE_SECRET \
+          --set-string AuthProxy.Env.AMP_URL=$AMP_URL \
+          --set-string AuthProxy.Env.AMP_SUBSCRIPTION_KEY=$AMP_SUBSCRIPTION_KEY \
           --set AuthProxy.Env.IPRanges=$process_ip_range \
           --set AuthProxy.Image.Repository=$ECR_REPO_AUTH0 \
           --set AuthProxy.Image.Tag="latest" \
@@ -193,8 +195,6 @@ jobs:
           --set WebApp.Image.Repository=$ECR_REPO_WEBAPP \
           --set WebApp.Image.Tag=$NEW_TAG_V \
           --set WebApp.Name=$KUBE_NAMESPACE \
-          --set-string WebApp.Env.AMP_URL="$AMP_URL" \
-          --set-string WebApp.Env.AMP_SUBSCRIPTION_KEY="$AMP_SUBSCRIPTION_KEY" \
           --set securityContext.allowPrivilegeEscalation=false \
           --set securityContext.capabilities.drop=["ALL"] \
           --set securityContext.runAsNonRoot=true \
