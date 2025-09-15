@@ -147,6 +147,9 @@ jobs:
             fi
           done
 
+          helm status  "$RELEASE_NAME" -n "$KUBE_NAMESPACE"
+          helm history "$RELEASE_NAME" -n "$KUBE_NAMESPACE"
+
           helm upgrade --install --dry-run --debug --namespace $KUBE_NAMESPACE $RELEASE_NAME mojanalytics/webapp-cp \
           --set AuthProxy.Env.Auth0Domain=$AUTH0_DOMAIN \
           --set AuthProxy.Env.Auth0Passwordless=$AUTH0_PASSWORDLESS \
@@ -176,12 +179,6 @@ jobs:
 
           echo "=== Chart values: WebApp section ==="
           helm show values mojanalytics/webapp-cp | sed -n '/^WebApp:/,/^[A-Za-z]/p'
-
-          NS=stg-track-my-case-service-dev
-          REL=track-my-case-dev
-
-          helm status  "$REL" -n "$NS"
-          helm history "$REL" -n "$NS"
 
           helm upgrade --install --atomic --wait --timeout 10m0s --namespace $KUBE_NAMESPACE $RELEASE_NAME mojanalytics/webapp-cp \
           --set AuthProxy.Env.Auth0Domain=$AUTH0_DOMAIN \
