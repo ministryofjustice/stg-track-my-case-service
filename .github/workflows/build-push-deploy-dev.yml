@@ -130,8 +130,6 @@ jobs:
           SECRETS_CONTEXT:  ${{ toJson(secrets) }}
           VARS_CONTEXT:  ${{ toJson(vars) }}
         run: |
-          echo "KUBE_NAMESPACE=$KUBE_NAMESPACE"
-
           process_ip_range=$(echo $IP_RANGES | sed "s/,/\\\,/g")
 
           combined_json=$(jq -n \
@@ -149,10 +147,10 @@ jobs:
             fi
           done
 
-          helm status  "$RELEASE_NAME" -n "$KUBE_NAMESPACE"
-          helm history "$RELEASE_NAME" -n "$KUBE_NAMESPACE"
-
           if helm status "$RELEASE_NAME" -n "$KUBE_NAMESPACE" >/dev/null 2>&1; then
+            helm status  "$RELEASE_NAME" -n "$KUBE_NAMESPACE" || true
+            helm history "$RELEASE_NAME" -n "$KUBE_NAMESPACE" || true
+
             # safe to inspect history / rollback / clear pending
             state=$(helm status "$RELEASE_NAME" -n "$KUBE_NAMESPACE" -o json 2>/dev/null | jq -r '.info.status | select(.!=null)')
             # Auto-clear pending-* for the current release
@@ -161,10 +159,15 @@ jobs:
               echo "Helm release is $state at revision $latest — clearing it"
               # Try rollback to previous deployed if exists
               prev=$(helm history "$RELEASE_NAME" -n "$KUBE_NAMESPACE" -o json | jq '[.[] | select(.status=="deployed")][-1].revision')
-              if [[ "$prev" != "null" ]]; then
+              if [[ -n "$prev" ]]; then
+                echo "Rolling back to deployed revision $prev..."
                 helm rollback "$RELEASE_NAME" "$prev" -n "$KUBE_NAMESPACE" || true
+              else
+                echo "No deployed revision to roll back to (first install or all failed)."
               fi
             fi
+          else
+           echo "Release '$RELEASE_NAME' not found in namespace '$KUBE_NAMESPACE' — first install. Skipping history/rollback."
           fi
 
           helm upgrade --install --dry-run --debug --namespace $KUBE_NAMESPACE $RELEASE_NAME mojanalytics/webapp-cp \
