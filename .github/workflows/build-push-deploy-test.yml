@@ -1,10 +1,12 @@
 name: CI/CD test
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
+  workflow_run:
+    workflows:
+      - CI/CD dev
+    types:
+      - completed
 
 permissions: {}
 concurrency: test
@@ -130,6 +132,8 @@ jobs:
           SECRETS_CONTEXT:  ${{ toJson(secrets) }}
           VARS_CONTEXT:  ${{ toJson(vars) }}
         run: |
+          echo "KUBE_NAMESPACE=$KUBE_NAMESPACE"
+
           process_ip_range=$(echo $IP_RANGES | sed "s/,/\\\,/g")
 
           combined_json=$(jq -n \
