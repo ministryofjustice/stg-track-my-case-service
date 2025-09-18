@@ -45,6 +45,7 @@ public class CaseDetailsService {
         );
     }
 
+
     private CaseDetailsCourtSittingDto getCaseDetailsCourtSittingDto(
         CourtScheduleDto.HearingDto.CourtSittingDto sitting) {
         return new CaseDetailsCourtSittingDto(
