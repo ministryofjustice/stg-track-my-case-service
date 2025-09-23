@@ -8,6 +8,7 @@ import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public record CaseDetailsDto(
+    String caseUrn,
     @JsonProperty("courtSchedule") List<CaseDetailsCourtScheduleDto> courtSchedule
 ) {
     public record CaseDetailsCourtScheduleDto(
@@ -21,7 +22,7 @@ public record CaseDetailsDto(
             @JsonProperty("listNote") String listNote
         ) {
             public record CaseDetailsCourtSittingDto(
-                @JsonProperty("judiciaryid") String judiciaryId,
+                @JsonProperty("judiciaryId") String judiciaryId,
                 @JsonProperty("sittingStart") String sittingStart,
                 @JsonProperty("sittingEnd") String sittingEnd,
                 @JsonProperty("courtHouse") CourtHouseDto courtHouse
