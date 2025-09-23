@@ -18,7 +18,7 @@ public record CourtScheduleDto(
         public record CourtSittingDto(
             String sittingStart,
             String sittingEnd,
-            @JsonProperty("judiciaryid") String judiciaryId,
+            @JsonProperty("judiciaryId") String judiciaryId,
             String courtHouse,
             String courtRoom
         ) {}

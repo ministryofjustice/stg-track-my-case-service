@@ -23,6 +23,7 @@ public class CaseDetailsService {
         List<CourtScheduleDto> courtSchedule = courtScheduleService.getCourtScheduleByCaseUrn(caseUrn);
 
         return new CaseDetailsDto(
+            caseUrn,
             courtSchedule.stream()
                 .map(schedule -> new CaseDetailsDto.CaseDetailsCourtScheduleDto(
                     schedule.hearingDtos().stream()
