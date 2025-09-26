@@ -1,5 +1,6 @@
 package uk.gov.moj.cp.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.moj.cp.dto.CaseDetailsDto;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class CaseDetailsService {
 
     @Autowired
@@ -22,7 +24,7 @@ public class CaseDetailsService {
     public CaseDetailsDto getCaseDetailsByCaseUrn(String caseUrn) {
         List<CourtScheduleDto> courtSchedule = courtScheduleService.getCourtScheduleByCaseUrn(caseUrn);
 
-        return new CaseDetailsDto(
+        CaseDetailsDto caseDetails = new CaseDetailsDto(
             caseUrn,
             courtSchedule.stream()
                 .map(schedule -> new CaseDetailsDto.CaseDetailsCourtScheduleDto(
@@ -32,6 +34,16 @@ public class CaseDetailsService {
                 ))
                 .collect(Collectors.toList())
         );
+        String courtHouseAndRoomIds = caseDetails.courtSchedule().stream()
+            .flatMap(a -> a.hearings().stream()
+                .flatMap(b -> b.courtSittings().stream()
+                    .map(c -> c.courtHouse().courtHouseId() + ":" + c.courtHouse().courtRoomId())))
+            .collect(Collectors.joining("  "));
+
+        log.atInfo().log("caseUrn : {} -> Received CourtHouse Id and courtRoomId :{}",
+                         caseUrn, courtHouseAndRoomIds);
+        return caseDetails;
+
     }
 
     private CaseDetailsHearingDto getCaseDetailsHearingDto(CourtScheduleDto.HearingDto hearing) {

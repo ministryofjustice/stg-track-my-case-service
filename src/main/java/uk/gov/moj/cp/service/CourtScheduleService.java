@@ -29,17 +29,18 @@ public class CourtScheduleService {
         if (result == null || result.getBody() == null) {
             throw new RuntimeException("Response body is null or empty for caseUrn: " + caseUrn);
         }
-        return convertToCourtScheduleResult(result.getBody().getCourtSchedule());
+        return convertToCourtScheduleResult(caseUrn, result.getBody().getCourtSchedule());
     }
 
-    private List<CourtScheduleDto> convertToCourtScheduleResult(List<CourtSchedule> courtScheduleResultList) {
+    private List<CourtScheduleDto> convertToCourtScheduleResult(String caseUrn,
+                                                                List<CourtSchedule> courtScheduleResultList) {
         String hearingIdList = courtScheduleResultList.stream().map(a ->
                                                                         a.getHearings().stream().map(
                                                                             b -> b.getHearingId()).collect(
                                                                             Collectors.joining(",")))
                         .collect(Collectors.joining(","));
 
-        log.atInfo().log("Received Hearing Ids : {}", hearingIdList);
+        log.atInfo().log("Received Hearing Ids : {} for caseUrn : {} ", hearingIdList, caseUrn);
         return courtScheduleResultList.stream().map(a ->
             new CourtScheduleDto(
                 a.getHearings().stream().map(this::getHearings).collect(Collectors.toUnmodifiableList())

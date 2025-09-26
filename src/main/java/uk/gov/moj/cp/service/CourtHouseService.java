@@ -28,8 +28,6 @@ public class CourtHouseService {
     }
 
     private CourtHouseDto convertToJudiciaryResult(CourtHouse courtHouseResult, String id, String courtRoomId) {
-        log.atInfo().log("Received CourtHouse Id : {} courtRoomId :{} CourtHouseName : {}",
-                         id, courtRoomId, courtHouseResult.getCourtHouseName());
         return new CourtHouseDto(
                 id,
                 courtRoomId,
