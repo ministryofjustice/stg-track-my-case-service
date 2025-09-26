@@ -46,7 +46,6 @@ public class CrimeCaseClient {
                 getRequestEntity(),
                 String.class
             );
-            log.info("TESTING Response from CrimeCase API: {}", res.getBody());
             return res;
         } catch (Exception e) {
             log.error("Error while calling CrimeCase API", e);
