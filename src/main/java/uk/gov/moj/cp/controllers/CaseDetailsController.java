@@ -1,5 +1,6 @@
 package uk.gov.moj.cp.controllers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,6 +16,7 @@ import static org.springframework.http.ResponseEntity.ok;
  * Default endpoints per application.
  */
 @RestController
+@Slf4j
 public class CaseDetailsController {
 
     /**
@@ -28,6 +30,7 @@ public class CaseDetailsController {
 
     @GetMapping("/case/{case_urn}/casedetails")
     public ResponseEntity<CaseDetailsDto> getCaseDetailsByCaseUrn(@PathVariable("case_urn") String caseUrn) {
+        log.atInfo().log("Received request to get case details for caseUrn: {}", caseUrn);
         return ok(caseDetailsService.getCaseDetailsByCaseUrn(caseUrn));
     }
 
