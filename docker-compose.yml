@@ -13,6 +13,9 @@ services:
         JAR_FILE_PATH: ${JAR_FILE_PATH}
         AMP_URL: ${AMP_URL}
         AMP_SUBSCRIPTION_KEY: ${AMP_SUBSCRIPTION_KEY}
+        DB_URL: ${DB_URL}
+        DB_USERNAME: ${DB_USERNAME}
+        DB_PASSWD: ${DB_PASSWD}
     environment:
       # these environment variables are used by java-logging library
       - ROOT_APPENDER
