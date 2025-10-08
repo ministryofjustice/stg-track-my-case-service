@@ -1,5 +1,6 @@
 package uk.gov.moj.cp.client;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,19 +22,31 @@ public class CrimeCaseClient {
 
     private final RestTemplate restTemplate;
 
+    @Getter
+    @Value("${services.amp-url}")
+    private String ampUrl;
+
+    @Getter
+    @Value("${services.amp-subscription-key}")
+    private String ampSubscriptionKey;
+
+    @Getter
     @Value("${services.crime-cases.url}")
     private String crimeCaseUrl;
 
+    @Getter
     @Value("${services.crime-cases.version}")
     private String crimeCaseVersion;
 
-    private static final String CASE_RESULTS_PATH = "/cases/{case_id}/results";
+    @Getter
+    @Value("${services.crime-cases.path}")
+    private String crimeCasePath;
 
     protected String buildCrimeCaseUrl(Long caseId) {
         return UriComponentsBuilder
-            .fromUriString(crimeCaseUrl)
-            .pathSegment(crimeCaseVersion)
-            .path(CASE_RESULTS_PATH)
+            .fromUriString(getCrimeCaseUrl())
+            .pathSegment(getCrimeCaseVersion())
+            .path(getCrimeCasePath())
             .buildAndExpand(caseId)
             .toUriString();
     }

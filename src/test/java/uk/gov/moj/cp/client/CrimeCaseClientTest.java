@@ -1,27 +1,20 @@
 package uk.gov.moj.cp.client;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@ActiveProfiles("test")
-@SpringBootTest
-@TestPropertySource(properties = {
-    "services.amp-url=https://some.dev.environment.com",
-    "services.amp-subscription-key=some-amp-subscription-key"
-})
 class CrimeCaseClientTest {
 
     @Autowired
@@ -30,10 +23,47 @@ class CrimeCaseClientTest {
     @MockitoBean
     private RestTemplate restTemplate;
 
+    private final String ampUrl = "https://some.dev.environment.com";
+    private final String ampSubscriptionKey = "some-amp-subscription-key";
+    private final String apiCrimeCasesUrl = "https://test-url";
+    public static final String CASES_CASE_ID_RESULTS = "/cases/{case_id}/results";
+    public static final String VERSION = "0.7.1";
+
+    @BeforeEach
+    public void setUp() {
+        restTemplate = mock(RestTemplate.class);
+        crimeCaseClient = new CrimeCaseClient(restTemplate) {
+            @Override
+            public String getAmpUrl() {
+                return ampUrl;
+            }
+
+            @Override
+            public String getAmpSubscriptionKey() {
+                return ampSubscriptionKey;
+            }
+
+            @Override
+            public String getCrimeCaseUrl() {
+                return apiCrimeCasesUrl;
+            }
+
+            @Override
+            public String getCrimeCaseVersion() {
+                return VERSION;
+            }
+
+            @Override
+            public String getCrimeCasePath() {
+                return CASES_CASE_ID_RESULTS;
+            }
+        };
+    }
+
     @Test
     void shouldBuildCrimeCaseUrl() {
         Long id = 100L;
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-courthearing-cases/0.7.1/cases/100/results";
+        String expectedUrl = "https://test-url/0.7.1/cases/100/results";
 
         String actualUrl = crimeCaseClient.buildCrimeCaseUrl(id);
         assertThat(actualUrl).isEqualTo(expectedUrl);
@@ -42,7 +72,7 @@ class CrimeCaseClientTest {
     @Test
     void shouldReturnCaseDetails_whenRequestSucceeds() {
         Long id = 100L;
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-courthearing-cases/0.7.1/cases/100/results";
+        String expectedUrl = "https://test-url/0.7.1/cases/100/results";
 
         ResponseEntity<String> mockResponse = new ResponseEntity<>("Mock case data", HttpStatus.OK);
 
@@ -62,7 +92,7 @@ class CrimeCaseClientTest {
     @Test
     void shouldReturnNull_whenRestTemplateThrowsException() {
         Long id = 100L;
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-courthearing-cases/0.7.1/cases/100/results";
+        String expectedUrl = "https://test-url/0.7.1/cases/100/results";
 
         when(restTemplate.exchange(
             eq(expectedUrl),

@@ -1,5 +1,6 @@
 package uk.gov.moj.cp.client;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,9 +22,19 @@ public class JudgesClient {
 
     private final RestTemplate restTemplate;
 
-    @Value("${services.refdata-courthearing-judges.url}")
-    private String judgesUrl;
+    @Getter
+    @Value("${services.amp-url}")
+    private String ampUrl;
 
+    @Getter
+    @Value("${services.amp-subscription-key}")
+    private String ampSubscriptionKey;
+
+    @Getter
+    @Value("${services.refdata-courthearing-judges.url}")
+    private String apiRefDataCourtHearingJudgesPath;
+
+    @Getter
     @Value("${services.refdata-courthearing-judges.version}")
     private String judgesVersion;
 
@@ -31,8 +42,8 @@ public class JudgesClient {
 
     protected String buildJudgesUrl(Long id) {
         return UriComponentsBuilder
-            .fromUriString(judgesUrl)
-            .pathSegment(judgesVersion)
+            .fromUriString(getApiRefDataCourtHearingJudgesPath())
+            .pathSegment(getJudgesVersion())
             .path(JUDGES_BY_ID_PATH)
             .buildAndExpand(id)
             .toUriString();
