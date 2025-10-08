@@ -25,7 +25,7 @@ class JudgesClientTest {
 
     private final String ampUrl = "https://some.dev.environment.com";
     private final String ampSubscriptionKey = "some-amp-subscription-key";
-    private final String apiRefDataCourtHearingJudgesPath = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-judges/0.3.10";
+    private final String apiRefDataCourtHearingJudgesPath = "https://test-url/0.3.10";
 
     @BeforeEach
     public void setUp() {
@@ -51,7 +51,7 @@ class JudgesClientTest {
     @Test
     void shouldBuildJudgesUrlCorrectly() {
         Long id = 456L;
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-judges/0.3.10/judges/456";
+        String expectedUrl = "https://test-url/0.3.10/judges/456";
 
         String actualUrl = judgesClient.buildJudgesUrl(id);
         assertThat(actualUrl).isEqualTo(expectedUrl);
@@ -60,7 +60,7 @@ class JudgesClientTest {
     @Test
     void shouldReturnJudgeDetails_whenRequestSucceeds() {
         Long id = 456L;
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-judges/0.3.10/judges/456";
+        String expectedUrl = "https://test-url/0.3.10/judges/456";
 
         ResponseEntity<String> mockResponse = new ResponseEntity<>("Mock judge info", HttpStatus.OK);
 
@@ -80,7 +80,7 @@ class JudgesClientTest {
     @Test
     void shouldReturnNull_whenRestTemplateThrowsException() {
         Long id = 456L;
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-judges/0.3.10/judges/456";
+        String expectedUrl = "https://test-url/0.3.10/judges/456";
 
         when(restTemplate.exchange(
             eq(expectedUrl),

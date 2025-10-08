@@ -25,7 +25,7 @@ class CrimeCaseClientTest {
 
     private final String ampUrl = "https://some.dev.environment.com";
     private final String ampSubscriptionKey = "some-amp-subscription-key";
-    private final String apiCrimeCasesUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-courthearing-cases";
+    private final String apiCrimeCasesUrl = "https://test-url";
     public static final String CASES_CASE_ID_RESULTS = "/cases/{case_id}/results";
     public static final String VERSION = "0.7.1";
 
@@ -63,7 +63,7 @@ class CrimeCaseClientTest {
     @Test
     void shouldBuildCrimeCaseUrl() {
         Long id = 100L;
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-courthearing-cases/0.7.1/cases/100/results";
+        String expectedUrl = "https://test-url/0.7.1/cases/100/results";
 
         String actualUrl = crimeCaseClient.buildCrimeCaseUrl(id);
         assertThat(actualUrl).isEqualTo(expectedUrl);
@@ -72,7 +72,7 @@ class CrimeCaseClientTest {
     @Test
     void shouldReturnCaseDetails_whenRequestSucceeds() {
         Long id = 100L;
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-courthearing-cases/0.7.1/cases/100/results";
+        String expectedUrl = "https://test-url/0.7.1/cases/100/results";
 
         ResponseEntity<String> mockResponse = new ResponseEntity<>("Mock case data", HttpStatus.OK);
 
@@ -92,7 +92,7 @@ class CrimeCaseClientTest {
     @Test
     void shouldReturnNull_whenRestTemplateThrowsException() {
         Long id = 100L;
-        String expectedUrl = "https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-courthearing-cases/0.7.1/cases/100/results";
+        String expectedUrl = "https://test-url/0.7.1/cases/100/results";
 
         when(restTemplate.exchange(
             eq(expectedUrl),
