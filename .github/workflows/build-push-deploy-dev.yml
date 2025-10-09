@@ -141,7 +141,8 @@ jobs:
             value=$(echo "$row" | base64 --decode | jq -r '.value')
             if [[ $key == XXX* ]]; then
               custom_key=$(echo "$key" | sed 's/^XXX_/Secrets.WebApp.Parameters./')
-              safe_value=$(printf '%s' "$value" | sed 's/,/\\,/g; s/=/\\=/g')
+              # Trim leading/trailing whitespace, then escape commas and equals
+              safe_value=$(printf '%s' "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/,/\\,/g' -e 's/=/\\=/g')
               custom_variables_array+=("--set" "${custom_key}=${safe_value}")
             fi
           done
