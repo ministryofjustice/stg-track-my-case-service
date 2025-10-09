@@ -2,12 +2,6 @@ name: CI/CD preprod
 
 on:
   workflow_dispatch:
-  workflow_run:
-    workflows:
-      - CI/CD test
-    types:
-      - completed
-
 permissions: {}
 concurrency: preprod
 
@@ -125,11 +119,6 @@ jobs:
           ECR_REPO_WEBAPP: ${{ steps.login-ecr.outputs.registry }}/${{ vars.PREPROD_ECR_REPOSITORY }}
           IP_RANGES: ${{ secrets.IP_RANGES }}
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
-          AMP_URL: ${{ secrets.AMP_URL }}
-          AMP_SUBSCRIPTION_KEY: ${{ secrets.AMP_SUBSCRIPTION_KEY }}
-          DB_URL: ${{ secrets.DB_URL }}
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          DB_PASSWD: ${{ secrets.DB_PASSWD }}
           NEW_TAG_V: ${{ needs.build-push-preprod.outputs.new_tag }}
           RELEASE_NAME: ${{ github.event.repository.name }}-preprod
           SECRETS_CONTEXT:  ${{ toJson(secrets) }}

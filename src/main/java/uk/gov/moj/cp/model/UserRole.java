@@ -1,6 +1,6 @@
 package uk.gov.moj.cp.model;
 
-public enum Roles {
+public enum UserRole {
     USER,
     ADMIN
 }

@@ -123,11 +123,6 @@ jobs:
           ECR_REPO_WEBAPP: ${{ steps.login-ecr.outputs.registry }}/${{ vars.DEV_ECR_REPOSITORY }}
           IP_RANGES: ${{ secrets.IP_RANGES }}
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
-          AMP_URL: ${{ secrets.AMP_URL }}
-          AMP_SUBSCRIPTION_KEY: ${{ secrets.AMP_SUBSCRIPTION_KEY }}
-          DB_URL: ${{ secrets.DB_URL }}
-          DB_USERNAME: ${{ secrets.DB_USERNAME }}
-          DB_PASSWD: ${{ secrets.DB_PASSWD }}
           NEW_TAG_V: ${{ needs.build-push-dev.outputs.new_tag }}
           RELEASE_NAME: ${{ github.event.repository.name }}-dev
           SECRETS_CONTEXT:  ${{ toJson(secrets) }}

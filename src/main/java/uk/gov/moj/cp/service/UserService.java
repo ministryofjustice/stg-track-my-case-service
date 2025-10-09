@@ -1,90 +1,141 @@
 package uk.gov.moj.cp.service;
 
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.EnumUtils;
-import org.springframework.dao.DataIntegrityViolationException;
+import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import uk.gov.moj.cp.dto.UpdateUserDto;
+import uk.gov.moj.cp.dto.UserCreationResponseDto;
+import uk.gov.moj.cp.dto.UserDto;
 import uk.gov.moj.cp.dto.UserResponseDto;
-import uk.gov.moj.cp.model.ActiveStatus;
-import uk.gov.moj.cp.model.Roles;
-import uk.gov.moj.cp.model.User;
+import uk.gov.moj.cp.entity.User;
+import uk.gov.moj.cp.model.UserCreationStatus;
+import uk.gov.moj.cp.model.UserRole;
+import uk.gov.moj.cp.model.UserStatus;
 import uk.gov.moj.cp.repository.UserRepository;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
+import java.util.Optional;
 
 @Service
-@Slf4j
+@RequiredArgsConstructor
 public class UserService {
+
     private final UserRepository userRepository;
 
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
+    private Optional<User> getByEmailIgnoreCase(String email) {
+        return userRepository.findByEmailIgnoreCase(email.toLowerCase().trim());
     }
 
-    public User createUser(final User user) {
-        validateUser(user);
+    public UserCreationResponseDto createUser(final UserDto userDto) {
+        return validateAndCreateUser(userDto);
+    }
+
+    public List<UserCreationResponseDto> addUsers(final List<UserDto> userDtos) {
+        return userDtos.stream().map(this::validateAndCreateUser).toList();
+    }
+
+    private UserCreationResponseDto validateAndCreateUser(UserDto userDto) {
         try {
-            return userRepository.save(user);
-        } catch (Exception exception) {
-            log.error("Error creating user: {}", exception.getMessage());
-            throw new RuntimeException("Error creating user", exception);
-        }
-    }
-
-    private static void validateUser(final User user) {
-        if (!EnumUtils.isValidEnumIgnoreCase(Roles.class, user.getRole())) {
-            throw new IllegalArgumentException("Invalid role: " + user.getRole());
-        }
-
-        if (!EnumUtils.isValidEnumIgnoreCase(ActiveStatus.class, String.valueOf(user.isActive()).toUpperCase())) {
-            throw new IllegalArgumentException("Invalid active status: " + user.isActive());
-        }
-    }
-
-    public User updateUser(final UUID id, final User updatedUser) {
-        validateUser(updatedUser);
-        return userRepository.findById(id).map(user -> {
-            user.setEmail(updatedUser.getEmail());
-            user.setRole(updatedUser.getRole());
-            user.setActive(updatedUser.isActive());
-            return userRepository.save(user);
-        }).orElseThrow(() -> new RuntimeException("User not found"));
-    }
-
-    public void deleteUser(UUID id) {
-        userRepository.findById(id).ifPresent(user -> {
-            user.setActive(Boolean.valueOf(ActiveStatus.FALSE.name()));
-            userRepository.save(user);
-        });
-    }
-
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
-    }
-
-    public User getUser(final String email) {
-        return userRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
-    }
-
-    public List<UserResponseDto> addUsers(final List<User> users) {
-        List<UserResponseDto> responseList = new ArrayList<>();
-
-        for (User user : users) {
-            try {
-                validateUser(user);
-                userRepository.save(user);
-                responseList.add(new UserResponseDto(user.getEmail(), "CREATED"));
-            } catch (DataIntegrityViolationException e) {
-                responseList.add(new UserResponseDto(user.getEmail(), "FAILED", "Email already exists"));
-            } catch (IllegalArgumentException e) {
-                responseList.add(new UserResponseDto(user.getEmail(), "FAILED", e.getMessage()));
-            } catch (Exception e) {
-                responseList.add(new UserResponseDto(user.getEmail(), "FAILED", e.getMessage()));
+            validateEmail(userDto.getEmail());
+            User user = new User(userDto.getEmail().toLowerCase().trim());
+            Optional<User> emailOptional = getByEmailIgnoreCase(user.getEmail());
+            if (emailOptional.isEmpty()) {
+                User savedUser = userRepository.save(user);
+                return UserCreationResponseDto.builder()
+                    .email(savedUser.getEmail())
+                    .status(UserCreationStatus.CREATED)
+                    .build();
+            } else {
+                return UserCreationResponseDto.builder()
+                    .email(user.getEmail())
+                    .status(UserCreationStatus.FAILED)
+                    .reason("Email already exists")
+                    .build();
             }
+        } catch (IllegalArgumentException e) {
+            return UserCreationResponseDto.builder()
+                .email(userDto.getEmail())
+                .status(UserCreationStatus.FAILED)
+                .reason("User email validation failed")
+                .build();
+        } catch (Exception e) {
+            return UserCreationResponseDto.builder()
+                .email(userDto.getEmail())
+                .status(UserCreationStatus.FAILED)
+                .reason("Invalid user data")
+                .build();
         }
-        return responseList;
+    }
+
+    private static void validateEmail(String email) {
+        if (StringUtils.isBlank(email) || !email.contains("@")) {
+            throw new IllegalArgumentException("Invalid email: " + email);
+        }
+    }
+
+    public UserResponseDto getUser(final String email) {
+        try {
+            validateEmail(email);
+            Optional<User> userOptional = getByEmailIgnoreCase(email);
+            if (userOptional.isPresent()) {
+                return getUserResponseDto(userOptional.get());
+            }
+        } catch (Exception e) {
+        }
+        return null;
+    }
+
+    public UserResponseDto updateUser(final UpdateUserDto updateUserDto) {
+        try {
+            final String email = updateUserDto.getEmail();
+            validateEmail(email);
+            Optional<User> userOptional = getByEmailIgnoreCase(email);
+            if (userOptional.isPresent()) {
+                User originalUser = userOptional.get();
+                UserRole role = updateUserDto.getRole();
+                if (role != null) {
+                    originalUser.setRole(role);
+                }
+                UserStatus status = updateUserDto.getStatus();
+                if (status != null) {
+                    originalUser.setStatus(status);
+                }
+                User updatedUser = userRepository.save(originalUser);
+                return getUserResponseDto(updatedUser);
+            }
+        } catch (Exception e) {
+        }
+        return null;
+    }
+
+    public UserResponseDto deleteUser(final UserDto userDto) {
+        try {
+            validateEmail(userDto.getEmail());
+            Optional<User> userOptional = getByEmailIgnoreCase(userDto.getEmail());
+            if (userOptional.isPresent()) {
+                User originalUser = userOptional.get();
+                originalUser.setStatus(UserStatus.DELETED);
+                User updatedUser = userRepository.save(originalUser);
+                return getUserResponseDto(updatedUser);
+            }
+        } catch (Exception e) {
+        }
+        return null;
+    }
+
+    public List<UserResponseDto> getAllUsers() {
+        List<User> allUser = userRepository.findAll();
+        return allUser.stream()
+            .map(UserService::getUserResponseDto)
+            .toList();
+    }
+
+    private static UserResponseDto getUserResponseDto(User user) {
+        return UserResponseDto.builder()
+            .email(user.getEmail())
+            .role(user.getRole())
+            .status(user.getStatus())
+            .updated(user.getUpdated())
+            .build();
     }
 }
