@@ -62,3 +62,6 @@ services:
     path: /cases/{case_id}/results
     url: https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-crime-courthearing-cases
     version: 0.7.1
+
+  users:
+    authorization-header: ${SECURITY_JWT_TOKEN}

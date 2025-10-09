@@ -94,7 +94,7 @@ class UserControllerTest {
 
         when(userService.deleteUser(userDto)).thenReturn(deletedUser);
 
-        mockMvc.perform(delete("/api/user")
+        mockMvc.perform(delete("/api/users/delete")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(userDto)))
             .andExpect(status().isOk())
@@ -114,7 +114,7 @@ class UserControllerTest {
 
         when(userService.getUser("test@example.com")).thenReturn(user);
 
-        mockMvc.perform(get("/api/user")
+        mockMvc.perform(get("/api/users")
                             .param("email", "test@example.com"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.email").value("test@example.com"))
@@ -123,19 +123,11 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/user - should return error when email parameter is missing")
-    void testGetUserByEmail_MissingEmailParam() throws Exception {
-        mockMvc.perform(get("/api/user"))
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.message").value("Please provide a valid email using query param /user?email=name@example.com"));
-    }
-
-    @Test
     @DisplayName("GET /api/user - should return error when user is not found by email")
     void testGetUserByEmail_UserNotFound() throws Exception {
         when(userService.getUser("missing@example.com")).thenReturn(null);
 
-        mockMvc.perform(get("/api/user")
+        mockMvc.perform(get("/api/users")
                             .param("email", "missing@example.com"))
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.message").value("User not found by email: missing@example.com"));
@@ -154,7 +146,7 @@ class UserControllerTest {
         when(userService.getUser("test+user@example.com")).thenReturn(user);
 
         // URL encode the email parameter
-        mockMvc.perform(get("/api/user")
+        mockMvc.perform(get("/api/users")
                             .param("email", "test%2Buser%40example.com"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.email").value("test+user@example.com"))
@@ -189,7 +181,7 @@ class UserControllerTest {
 
         when(userService.addUsers(eq(users))).thenReturn(responseDtos);
 
-        mockMvc.perform(post("/api/users")
+        mockMvc.perform(post("/api/users/create")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(users)))
             .andExpect(status().isOk())
@@ -198,30 +190,6 @@ class UserControllerTest {
             .andExpect(jsonPath("$[0].email").value("u1@example.com"))
             .andExpect(jsonPath("$[1].status").value("CREATED"))
             .andExpect(jsonPath("$[1].email").value("u2@example.com"));
-    }
-
-    @Test
-    @DisplayName("POST /api/user - create user")
-    void testCreateUser() throws Exception {
-        final UserDto userDto = UserDto.builder()
-            .email("test@example.com")
-            .build();
-
-        final UserCreationResponseDto responseDto = UserCreationResponseDto.builder()
-            .email("test@example.com")
-            .status(UserCreationStatus.CREATED)
-            .reason("User created successfully")
-            .build();
-
-        when(userService.createUser(any(UserDto.class))).thenReturn(responseDto);
-
-        mockMvc.perform(post("/api/user")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(userDto)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.email").value("test@example.com"))
-            .andExpect(jsonPath("$.status").value("CREATED"))
-            .andExpect(jsonPath("$.reason").value("User created successfully"));
     }
 
     @Test
@@ -242,7 +210,7 @@ class UserControllerTest {
 
         when(userService.updateUser(any(UpdateUserDto.class))).thenReturn(updatedUser);
 
-        mockMvc.perform(put("/api/user")
+        mockMvc.perform(put("/api/users/edit")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(updateUserDto)))
             .andExpect(status().isOk())
@@ -262,7 +230,7 @@ class UserControllerTest {
 
         when(userService.updateUser(any(UpdateUserDto.class))).thenReturn(null);
 
-        mockMvc.perform(put("/api/user")
+        mockMvc.perform(put("/api/users/edit")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(updateUserDto)))
             .andExpect(status().isNotFound())
@@ -278,35 +246,11 @@ class UserControllerTest {
 
         when(userService.deleteUser(userDto)).thenReturn(null);
 
-        mockMvc.perform(delete("/api/user")
+        mockMvc.perform(delete("/api/users/delete")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(userDto)))
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.message").value("User not found by email: missing@example.com"));
-    }
-
-    @Test
-    @DisplayName("POST /api/user - should handle failed user creation")
-    void testCreateUser_FailedCreation() throws Exception {
-        final UserDto userDto = UserDto.builder()
-            .email("invalid-email")
-            .build();
-
-        final UserCreationResponseDto responseDto = UserCreationResponseDto.builder()
-            .email("invalid-email")
-            .status(UserCreationStatus.FAILED)
-            .reason("User email validation failed")
-            .build();
-
-        when(userService.createUser(any(UserDto.class))).thenReturn(responseDto);
-
-        mockMvc.perform(post("/api/user")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(userDto)))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.email").value("invalid-email"))
-            .andExpect(jsonPath("$.status").value("FAILED"))
-            .andExpect(jsonPath("$.reason").value("User email validation failed"));
     }
 
     @Test
@@ -337,7 +281,7 @@ class UserControllerTest {
 
         when(userService.addUsers(eq(users))).thenReturn(responseDtos);
 
-        mockMvc.perform(post("/api/users")
+        mockMvc.perform(post("/api/users/create")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(users)))
             .andExpect(status().isOk())
@@ -350,26 +294,8 @@ class UserControllerTest {
 
     @Test
     @DisplayName("GET /api/user - should handle null email parameter")
-    void testGetUserByEmail_EmptyEmailParam() throws Exception {
-        mockMvc.perform(get("/api/user")
-                            .param("email", ""))
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.message").value("Please provide a valid email using query param /user?email=name@example.com"));
-    }
-
-    @Test
-    @DisplayName("GET /api/user - should handle null email parameter")
-    void testGetUserByEmail_NullEmailParam() throws Exception {
-        mockMvc.perform(get("/api/user"))
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.message").value("Please provide a valid email using query param /user?email=name@example.com"));
-    }
-
-    @Test
-    @DisplayName("GET /api/user - should handle null email parameter")
     void testGetUserByEmail_WrongEmailParam() throws Exception {
-        mockMvc.perform(get("/api/user")
-                            .param("email", "q"))
+        mockMvc.perform(get("/api/users?email=q"))
             .andExpect(status().isNotFound())
             .andExpect(jsonPath("$.message").value("User not found by email: q"));
     }

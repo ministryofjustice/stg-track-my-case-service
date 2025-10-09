@@ -24,47 +24,36 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping(UserController.PATH_API_USERS)
 @RequiredArgsConstructor
 public class UserController {
 
+    public static final String PATH_API_USERS = "/api/users";
+
     private final UserService userService;
 
-    @GetMapping("/users")
-    public ResponseEntity<List<UserResponseDto>> getAllUsers() {
+    @GetMapping
+    public ResponseEntity<Object> getAllUsers(@RequestParam(name = "email", required = false) final String email) {
+        if (StringUtils.isNotEmpty(email)) {
+            final String decodedEmail = URLDecoder.decode(email, StandardCharsets.UTF_8).toLowerCase().trim();
+            UserResponseDto userResponseDto = userService.getUser(decodedEmail);
+            if (userResponseDto != null) {
+                return ResponseEntity.ok(userResponseDto);
+            }
+            return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponseDto("User not found by email: " + decodedEmail));
+        }
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    @PostMapping("/user")
-    public ResponseEntity<UserCreationResponseDto> createUser(@RequestBody final UserDto user) {
-        return ResponseEntity.ok(userService.createUser(user));
-    }
-
-    @PostMapping("/users")
+    @PostMapping("/create")
     public ResponseEntity<List<UserCreationResponseDto>> createUsers(@RequestBody final List<UserDto> users) {
         List<UserCreationResponseDto> responses = userService.addUsers(users);
         return ResponseEntity.ok(responses);
     }
 
-    @GetMapping("/user")
-    public ResponseEntity<Object> getUserByEmail(@RequestParam(name = "email", required = false) final String email) {
-        if (StringUtils.isEmpty(email)) {
-            return ResponseEntity
-                .status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponseDto("Please provide a valid email using query param "
-                                               + "/user?email=name@example.com"));
-        }
-        final String decodedEmail = URLDecoder.decode(email, StandardCharsets.UTF_8);
-        UserResponseDto userResponseDto = userService.getUser(decodedEmail);
-        if (userResponseDto != null) {
-            return ResponseEntity.ok(userResponseDto);
-        }
-        return ResponseEntity
-            .status(HttpStatus.NOT_FOUND)
-            .body(new ErrorResponseDto("User not found by email: " + decodedEmail));
-    }
-
-    @PutMapping("/user")
+    @PutMapping("/edit")
     public ResponseEntity<Object> updateUser(@RequestBody final UpdateUserDto user) {
         UserResponseDto userResponseDto = userService.updateUser(user);
         if (userResponseDto != null) {
@@ -75,7 +64,7 @@ public class UserController {
             .body(new ErrorResponseDto("User not found by email: " + user.getEmail()));
     }
 
-    @DeleteMapping("/user")
+    @DeleteMapping("/delete")
     public ResponseEntity<Object> deleteUser(@RequestBody final UserDto user) {
         UserResponseDto userResponseDto = userService.deleteUser(user);
         if (userResponseDto != null) {
