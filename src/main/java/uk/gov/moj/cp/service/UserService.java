@@ -1,6 +1,7 @@
 package uk.gov.moj.cp.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import uk.gov.moj.cp.dto.UpdateUserDto;
@@ -16,6 +17,7 @@ import uk.gov.moj.cp.repository.UserRepository;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -81,6 +83,7 @@ public class UserService {
                 return getUserResponseDto(userOptional.get());
             }
         } catch (Exception e) {
+            log.error("Error while loading user by email", e);
         }
         return null;
     }
@@ -104,6 +107,7 @@ public class UserService {
                 return getUserResponseDto(updatedUser);
             }
         } catch (Exception e) {
+            log.error("Error while loading user by email", e);
         }
         return null;
     }
@@ -119,6 +123,7 @@ public class UserService {
                 return getUserResponseDto(updatedUser);
             }
         } catch (Exception e) {
+            log.error("Error while loading user by email", e);
         }
         return null;
     }

@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -51,7 +50,8 @@ public class UserController {
         if (email == null) {
             return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponseDto("Should provide a valid email using query param /user?email=name@example.com"));
+                .body(new ErrorResponseDto("Please provide a valid email using query param "
+                                               + "/user?email=name@example.com"));
         }
         final String decodedEmail = URLDecoder.decode(email, StandardCharsets.UTF_8);
         UserResponseDto userResponseDto = userService.getUser(decodedEmail);

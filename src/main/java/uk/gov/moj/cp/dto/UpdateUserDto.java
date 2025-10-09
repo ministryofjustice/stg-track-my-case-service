@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import uk.gov.moj.cp.model.UserCreationStatus;
 import uk.gov.moj.cp.model.UserRole;
 import uk.gov.moj.cp.model.UserStatus;
 

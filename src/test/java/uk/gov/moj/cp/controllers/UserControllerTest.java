@@ -104,7 +104,7 @@ class UserControllerTest {
 
     @Test
     @DisplayName("GET /api/user - get user by email")
-    void testGetUserByEmailByEmail() throws Exception {
+    void testGetUserByEmail() throws Exception {
         final UserResponseDto user = UserResponseDto.builder()
             .email("test@example.com")
             .role(UserRole.ADMIN)
@@ -115,7 +115,7 @@ class UserControllerTest {
         when(userService.getUser("test@example.com")).thenReturn(user);
 
         mockMvc.perform(get("/api/user")
-                            .requestAttr("email", "test@example.com"))
+                            .queryParam("email", "test@example.com"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.email").value("test@example.com"))
             .andExpect(jsonPath("$.role").value("ADMIN"))

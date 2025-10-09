@@ -6,16 +6,15 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import uk.gov.moj.cp.dto.UpdateUserDto;
 import uk.gov.moj.cp.dto.UserCreationResponseDto;
 import uk.gov.moj.cp.dto.UserDto;
-import uk.gov.moj.cp.dto.UpdateUserDto;
 import uk.gov.moj.cp.dto.UserResponseDto;
-import uk.gov.moj.cp.model.UserCreationStatus;
-import uk.gov.moj.cp.model.UserStatus;
-import uk.gov.moj.cp.model.UserRole;
 import uk.gov.moj.cp.entity.User;
+import uk.gov.moj.cp.model.UserCreationStatus;
+import uk.gov.moj.cp.model.UserRole;
+import uk.gov.moj.cp.model.UserStatus;
 import uk.gov.moj.cp.repository.UserRepository;
-
 
 import java.util.List;
 import java.util.Optional;
@@ -42,7 +41,7 @@ public class UserServiceTest {
     @Test
     @DisplayName("Should create user successfully")
     void testCreateUser_Success() {
-        UserDto userDto = UserDto.builder()
+        final UserDto userDto = UserDto.builder()
             .email("test@example.com")
             .build();
 
@@ -98,7 +97,7 @@ public class UserServiceTest {
     @Test
     @DisplayName("Should update existing user")
     void testUpdateUser_Success() {
-        UpdateUserDto updateUserDto = UpdateUserDto.builder()
+        final UpdateUserDto updateUserDto = UpdateUserDto.builder()
             .email("test@example.com")
             .role(UserRole.ADMIN)
             .status(UserStatus.DELETED)
@@ -144,7 +143,7 @@ public class UserServiceTest {
     @Test
     @DisplayName("Should mark user as deleted on delete")
     void testDeleteUser() {
-        UserDto userDto = UserDto.builder()
+        final UserDto userDto = UserDto.builder()
             .email("test@example.com")
             .build();
 
@@ -243,11 +242,11 @@ public class UserServiceTest {
     @Test
     @DisplayName("Should add users and return response list")
     void testAddUsers() {
-        UserDto userDto1 = UserDto.builder()
+        final UserDto userDto1 = UserDto.builder()
             .email("user1@example.com")
             .build();
 
-        UserDto userDto2 = UserDto.builder()
+        final UserDto userDto2 = UserDto.builder()
             .email("user2@example.com")
             .build();
 
