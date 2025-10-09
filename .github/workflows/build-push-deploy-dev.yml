@@ -196,6 +196,9 @@ jobs:
           echo "=== Chart values: WebApp section ==="
           helm show values mojanalytics/webapp-cp | sed -n '/^WebApp:/,/^[A-Za-z]/p'
 
+          echo "=== DEBUG: custom_variables expansion ==="
+          echo "$custom_variables"
+          set -x
           helm upgrade --install --atomic --wait --timeout 10m0s --namespace $KUBE_NAMESPACE $RELEASE_NAME mojanalytics/webapp-cp \
           --set AuthProxy.Env.Auth0Domain=$AUTH0_DOMAIN \
           --set AuthProxy.Env.Auth0Passwordless=$AUTH0_PASSWORDLESS \
@@ -217,3 +220,4 @@ jobs:
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
           $custom_variables
+          set +x
