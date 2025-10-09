@@ -3,19 +3,20 @@ package uk.gov.moj.cp.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import uk.gov.moj.cp.model.UserStatus;
+import lombok.NoArgsConstructor;
 import uk.gov.moj.cp.model.UserRole;
-
-import java.time.LocalDateTime;
+import uk.gov.moj.cp.model.UserStatus;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserResponseDto {
+@EqualsAndHashCode
+public class UpdateUserDto {
     private String email;
-    private UserRole role;
     private UserStatus status;
-    private LocalDateTime updated;
+    private UserRole role;
 }

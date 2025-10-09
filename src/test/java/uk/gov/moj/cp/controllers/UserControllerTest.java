@@ -10,20 +10,24 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import uk.gov.moj.cp.dto.UserCreationResponseDto;
+import uk.gov.moj.cp.dto.UserDto;
 import uk.gov.moj.cp.dto.UserResponseDto;
-import uk.gov.moj.cp.model.ActiveStatus;
-import uk.gov.moj.cp.model.Roles;
-import uk.gov.moj.cp.model.User;
+import uk.gov.moj.cp.dto.UpdateUserDto;
+import uk.gov.moj.cp.model.UserCreationStatus;
+import uk.gov.moj.cp.model.UserStatus;
+import uk.gov.moj.cp.model.UserRole;
 import uk.gov.moj.cp.service.UserService;
 
 import java.util.List;
-import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -47,96 +51,326 @@ class UserControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/user - get all users")
+    @DisplayName("GET /api/users - get all users")
     void testGetAllUsers() throws Exception {
-        final User u1 = new User();
-        u1.setEmail("user1@example.com");
-        u1.setRole(Roles.USER.name());
-        u1.setActive(Boolean.valueOf(ActiveStatus.TRUE.name()));
+        final UserResponseDto u1 = UserResponseDto.builder()
+            .email("user1@example.com")
+            .role(UserRole.USER)
+            .status(UserStatus.ACTIVE)
+            .updated(java.time.LocalDateTime.now())
+            .build();
 
-        final User u2 = new User();
-        u2.setId(UUID.randomUUID());
-        u2.setEmail("user2@example.com");
-        u2.setRole(Roles.ADMIN.name());
-        u2.setActive(Boolean.valueOf(ActiveStatus.FALSE.name()));
+        final UserResponseDto u2 = UserResponseDto.builder()
+            .email("user2@example.com")
+            .role(UserRole.ADMIN)
+            .status(UserStatus.DELETED)
+            .updated(java.time.LocalDateTime.now())
+            .build();
 
         when(userService.getAllUsers()).thenReturn(List.of(u1, u2));
 
         mockMvc.perform(get("/api/users"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.length()").value(2))
-            .andExpect(jsonPath("$[0].email").value("user1@example.com"));
+            .andExpect(jsonPath("$[0].email").value("user1@example.com"))
+            .andExpect(jsonPath("$[0].role").value("USER"))
+            .andExpect(jsonPath("$[1].email").value("user2@example.com"))
+            .andExpect(jsonPath("$[1].role").value("ADMIN"));
     }
 
     @Test
-    @DisplayName("DELETE /api/user/{id} - delete user")
+    @DisplayName("DELETE /api/user - delete user")
     void testDeleteUser() throws Exception {
-        final UUID id = UUID.randomUUID();
+        final UserDto userDto = UserDto.builder()
+            .email("test@example.com")
+            .build();
 
-        mockMvc.perform(delete("/api/user/{id}", id))
-            .andExpect(status().isNoContent());
+        final UserResponseDto deletedUser = UserResponseDto.builder()
+            .email("test@example.com")
+            .role(UserRole.USER)
+            .status(UserStatus.DELETED)
+            .updated(java.time.LocalDateTime.now())
+            .build();
+
+        when(userService.deleteUser(userDto)).thenReturn(deletedUser);
+
+        mockMvc.perform(delete("/api/user")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(userDto)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.email").value("test@example.com"))
+            .andExpect(jsonPath("$.status").value("DELETED"));
     }
 
     @Test
-    @DisplayName("GET /api/user/{email} - get user by email")
+    @DisplayName("GET /api/user - get user by email")
     void testGetUserByEmail() throws Exception {
-        final User user = new User();
-        user.setEmail("test@example.com");
-        user.setRole(Roles.ADMIN.name());
-        user.setActive(Boolean.valueOf(ActiveStatus.TRUE.name()));
+        final UserResponseDto user = UserResponseDto.builder()
+            .email("test@example.com")
+            .role(UserRole.ADMIN)
+            .status(UserStatus.ACTIVE)
+            .updated(java.time.LocalDateTime.now())
+            .build();
 
         when(userService.getUser("test@example.com")).thenReturn(user);
 
-        mockMvc.perform(get("/api/user/{email}", "test@example.com"))
+        mockMvc.perform(get("/api/user")
+                            .param("email", "test@example.com"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.email").value("test@example.com"))
-            .andExpect(jsonPath("$.role").value("ADMIN"));
+            .andExpect(jsonPath("$.role").value("ADMIN"))
+            .andExpect(jsonPath("$.status").value("ACTIVE"));
     }
 
     @Test
-    @DisplayName("POST /api/user/bulk - add multiple users")
+    @DisplayName("GET /api/user - should return error when email parameter is missing")
+    void testGetUserByEmail_MissingEmailParam() throws Exception {
+        mockMvc.perform(get("/api/user"))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message").value("Please provide a valid email using query param /user?email=name@example.com"));
+    }
+
+    @Test
+    @DisplayName("GET /api/user - should return error when user is not found by email")
+    void testGetUserByEmail_UserNotFound() throws Exception {
+        when(userService.getUser("missing@example.com")).thenReturn(null);
+
+        mockMvc.perform(get("/api/user")
+                            .param("email", "missing@example.com"))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message").value("User not found by email: missing@example.com"));
+    }
+
+    @Test
+    @DisplayName("GET /api/user - should handle URL encoded email parameter")
+    void testGetUserByEmail_UrlEncodedEmail() throws Exception {
+        final UserResponseDto user = UserResponseDto.builder()
+            .email("test+user@example.com")
+            .role(UserRole.USER)
+            .status(UserStatus.ACTIVE)
+            .updated(java.time.LocalDateTime.now())
+            .build();
+
+        when(userService.getUser("test+user@example.com")).thenReturn(user);
+
+        // URL encode the email parameter
+        mockMvc.perform(get("/api/user")
+                            .param("email", "test%2Buser%40example.com"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.email").value("test+user@example.com"))
+            .andExpect(jsonPath("$.role").value("USER"))
+            .andExpect(jsonPath("$.status").value("ACTIVE"));
+    }
+
+    @Test
+    @DisplayName("POST /api/users - add multiple users")
     void testCreateUsers() throws Exception {
-        final User user1 = new User();
-        user1.setEmail("u1@example.com");
-        user1.setRole(Roles.ADMIN.name());
-        user1.setActive(Boolean.valueOf(ActiveStatus.TRUE.name()));
+        final UserDto user1 = UserDto.builder()
+            .email("u1@example.com")
+            .build();
 
-        final User user2 = new User();
-        user2.setEmail("u2@example.com");
-        user2.setRole(Roles.USER.name());
-        user2.setActive(Boolean.valueOf(ActiveStatus.TRUE.name()));
+        final UserDto user2 = UserDto.builder()
+            .email("u2@example.com")
+            .build();
+        List<UserDto> users = List.of(user1, user2);
 
-        List<UserResponseDto> responseDtos = List.of(
-            new UserResponseDto("u1@example.com", "CREATED", "Success"),
-            new UserResponseDto("u2@example.com", "CREATED", "reason")
+        List<UserCreationResponseDto> responseDtos = List.of(
+            UserCreationResponseDto.builder()
+                .email("u1@example.com")
+                .status(UserCreationStatus.CREATED)
+                .reason("Success")
+                .build(),
+            UserCreationResponseDto.builder()
+                .email("u2@example.com")
+                .status(UserCreationStatus.CREATED)
+                .reason("User created successfully")
+                .build()
         );
 
-        when(userService.addUsers(any())).thenReturn(responseDtos);
+        when(userService.addUsers(eq(users))).thenReturn(responseDtos);
 
         mockMvc.perform(post("/api/users")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(List.of(user1, user2))))
+                            .content(objectMapper.writeValueAsString(users)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.length()").value(2))
-            .andExpect(jsonPath("$[0].status").value("CREATED"));
+            .andExpect(jsonPath("$[0].status").value("CREATED"))
+            .andExpect(jsonPath("$[0].email").value("u1@example.com"))
+            .andExpect(jsonPath("$[1].status").value("CREATED"))
+            .andExpect(jsonPath("$[1].email").value("u2@example.com"));
     }
 
     @Test
     @DisplayName("POST /api/user - create user")
     void testCreateUser() throws Exception {
-        final User user = new User();
-        user.setEmail("test@example.com");
-        user.setRole(Roles.ADMIN.name());
-        user.setActive(Boolean.valueOf(ActiveStatus.TRUE.name()));
+        final UserDto userDto = UserDto.builder()
+            .email("test@example.com")
+            .build();
 
-        when(userService.createUser(any(User.class))).thenReturn(user);
+        final UserCreationResponseDto responseDto = UserCreationResponseDto.builder()
+            .email("test@example.com")
+            .status(UserCreationStatus.CREATED)
+            .reason("User created successfully")
+            .build();
+
+        when(userService.createUser(any(UserDto.class))).thenReturn(responseDto);
 
         mockMvc.perform(post("/api/user")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(user)))
+                            .content(objectMapper.writeValueAsString(userDto)))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.email").value("test@example.com"))
-            .andExpect(jsonPath("$.role").value("ADMIN"));
+            .andExpect(jsonPath("$.status").value("CREATED"))
+            .andExpect(jsonPath("$.reason").value("User created successfully"));
     }
 
+    @Test
+    @DisplayName("PUT /api/user - update user")
+    void testUpdateUser() throws Exception {
+        final UpdateUserDto updateUserDto = UpdateUserDto.builder()
+            .email("test@example.com")
+            .status(UserStatus.ACTIVE)
+            .role(UserRole.ADMIN)
+            .build();
+
+        final UserResponseDto updatedUser = UserResponseDto.builder()
+            .email("test@example.com")
+            .role(UserRole.ADMIN)
+            .status(UserStatus.ACTIVE)
+            .updated(java.time.LocalDateTime.now())
+            .build();
+
+        when(userService.updateUser(any(UpdateUserDto.class))).thenReturn(updatedUser);
+
+        mockMvc.perform(put("/api/user")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(updateUserDto)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.email").value("test@example.com"))
+            .andExpect(jsonPath("$.role").value("ADMIN"))
+            .andExpect(jsonPath("$.status").value("ACTIVE"));
+    }
+
+    @Test
+    @DisplayName("PUT /api/user - should return error when user is not found")
+    void testUpdateUser_UserNotFound() throws Exception {
+        final UpdateUserDto updateUserDto = UpdateUserDto.builder()
+            .email("missing@example.com")
+            .status(UserStatus.ACTIVE)
+            .role(UserRole.ADMIN)
+            .build();
+
+        when(userService.updateUser(any(UpdateUserDto.class))).thenReturn(null);
+
+        mockMvc.perform(put("/api/user")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(updateUserDto)))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message").value("User not found by email: missing@example.com"));
+    }
+
+    @Test
+    @DisplayName("DELETE /api/user - should return error when user is not found")
+    void testDeleteUser_UserNotFound() throws Exception {
+        final UserDto userDto = UserDto.builder()
+            .email("missing@example.com")
+            .build();
+
+        when(userService.deleteUser(userDto)).thenReturn(null);
+
+        mockMvc.perform(delete("/api/user")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(userDto)))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message").value("User not found by email: missing@example.com"));
+    }
+
+    @Test
+    @DisplayName("POST /api/user - should handle failed user creation")
+    void testCreateUser_FailedCreation() throws Exception {
+        final UserDto userDto = UserDto.builder()
+            .email("invalid-email")
+            .build();
+
+        final UserCreationResponseDto responseDto = UserCreationResponseDto.builder()
+            .email("invalid-email")
+            .status(UserCreationStatus.FAILED)
+            .reason("User email validation failed")
+            .build();
+
+        when(userService.createUser(any(UserDto.class))).thenReturn(responseDto);
+
+        mockMvc.perform(post("/api/user")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(userDto)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.email").value("invalid-email"))
+            .andExpect(jsonPath("$.status").value("FAILED"))
+            .andExpect(jsonPath("$.reason").value("User email validation failed"));
+    }
+
+    @Test
+    @DisplayName("POST /api/users - should handle mixed success and failure results")
+    void testCreateUsers_MixedResults() throws Exception {
+        final UserDto user1 = UserDto.builder()
+            .email("valid@example.com")
+            .build();
+
+        final UserDto user2 = UserDto.builder()
+            .email("invalid-email")
+            .build();
+
+        List<UserDto> users = List.of(user1, user2);
+
+        List<UserCreationResponseDto> responseDtos = List.of(
+            UserCreationResponseDto.builder()
+                .email("valid@example.com")
+                .status(UserCreationStatus.CREATED)
+                .reason("User created successfully")
+                .build(),
+            UserCreationResponseDto.builder()
+                .email("invalid-email")
+                .status(UserCreationStatus.FAILED)
+                .reason("User email validation failed")
+                .build()
+        );
+
+        when(userService.addUsers(eq(users))).thenReturn(responseDtos);
+
+        mockMvc.perform(post("/api/users")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(users)))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.length()").value(2))
+            .andExpect(jsonPath("$[0].status").value("CREATED"))
+            .andExpect(jsonPath("$[0].email").value("valid@example.com"))
+            .andExpect(jsonPath("$[1].status").value("FAILED"))
+            .andExpect(jsonPath("$[1].email").value("invalid-email"));
+    }
+
+    @Test
+    @DisplayName("GET /api/user - should handle null email parameter")
+    void testGetUserByEmail_EmptyEmailParam() throws Exception {
+        mockMvc.perform(get("/api/user")
+                            .param("email", ""))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message").value("Please provide a valid email using query param /user?email=name@example.com"));
+    }
+
+    @Test
+    @DisplayName("GET /api/user - should handle null email parameter")
+    void testGetUserByEmail_NullEmailParam() throws Exception {
+        mockMvc.perform(get("/api/user"))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message").value("Please provide a valid email using query param /user?email=name@example.com"));
+    }
+
+    @Test
+    @DisplayName("GET /api/user - should handle null email parameter")
+    void testGetUserByEmail_WrongEmailParam() throws Exception {
+        mockMvc.perform(get("/api/user")
+                            .param("email", "q"))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.message").value("User not found by email: q"));
+    }
 }
