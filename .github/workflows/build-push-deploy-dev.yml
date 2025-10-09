@@ -139,16 +139,25 @@ jobs:
           for row in $(echo "$combined_json" | jq -r 'to_entries[] | @base64'); do
             key=$(echo "$row" | base64 --decode | jq -r '.key')
             value=$(echo "$row" | base64 --decode | jq -r '.value')
+
             if [[ $key == XXX* ]]; then
+              # Transform the key to Helm path
               custom_key=$(echo "$key" | sed 's/^XXX_/Secrets.WebApp.Parameters./')
-              # Trim leading/trailing whitespace, then escape commas and equals
-              safe_value=$(printf '%s' "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/,/\\,/g' -e 's/=/\\=/g')
+
+              # Trim leading/trailing whitespace from value
+              value_trimmed=$(echo "$value" | awk '{$1=$1; print}')
+
+              # Escape commas and equals (but NOT slashes)
+              safe_value=$(printf '%s' "$value_trimmed" | sed 's/,/\\,/g; s/=/\\=/g')
+
+              # Add to Helm --set array
               custom_variables_array+=("--set" "${custom_key}=${safe_value}")
             fi
           done
 
-          echo "=== DEBUG: custom_variables array ==="
-          printf '%s\n' "${custom_variables_array[@]}"        
+          # Debug
+          echo "=== DEBUG: custom_variables_array ==="
+          printf '%s\n' "${custom_variables_array[@]}"    
 
           if helm status "$RELEASE_NAME" -n "$KUBE_NAMESPACE" >/dev/null 2>&1; then
             helm status  "$RELEASE_NAME" -n "$KUBE_NAMESPACE" || true
