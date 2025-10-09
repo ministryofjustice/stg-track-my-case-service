@@ -136,14 +136,18 @@ jobs:
               '$secrets_json + $vars_json')
 
           custom_variables=""
-          for row in $(echo "${combined_json}" | jq -r 'to_entries[] | @base64'); do
-            key=$(echo ${row} | base64 --decode | jq -r '.key')
-            value=$(echo ${row} | base64 --decode | jq -r '.value')
+          for row in $(echo "$combined_json" | jq -r 'to_entries[] | @base64'); do
+            key=$(echo "$row" | base64 --decode | jq -r '.key')
+            value=$(echo "$row" | base64 --decode | jq -r '.value')
             if [[ $key == XXX* ]]; then
-                custom_key=$(echo $key | sed 's/^XXX_/Secrets.WebApp.Parameters./')
-                custom_variables="$custom_variables --set $custom_key=$value"
+              custom_key=$(echo "$key" | sed 's/^XXX_/Secrets.WebApp.Parameters./')
+              # Escape special chars safely
+              custom_variables="$custom_variables --set $custom_key=$(printf '%q' "$value")"
             fi
           done
+
+          echo "=== DEBUG: custom_variables expansion ==="
+          echo "$custom_variables"          
 
           if helm status "$RELEASE_NAME" -n "$KUBE_NAMESPACE" >/dev/null 2>&1; then
             helm status  "$RELEASE_NAME" -n "$KUBE_NAMESPACE" || true
@@ -167,10 +171,6 @@ jobs:
           else
            echo "Release '$RELEASE_NAME' not found in namespace '$KUBE_NAMESPACE' — first install. Skipping history/rollback."
           fi
-
-          echo "=== DEBUG: custom_variables expansion ==="
-          echo "$custom_variables"
-          set -x
 
           helm upgrade --install --dry-run --debug --namespace $KUBE_NAMESPACE $RELEASE_NAME mojanalytics/webapp-cp \
           --set AuthProxy.Env.Auth0Domain=$AUTH0_DOMAIN \
@@ -202,8 +202,7 @@ jobs:
 
           echo "=== Chart values: WebApp section ==="
           helm show values mojanalytics/webapp-cp | sed -n '/^WebApp:/,/^[A-Za-z]/p'
-
-
+          
           helm upgrade --install --atomic --wait --timeout 10m0s --namespace $KUBE_NAMESPACE $RELEASE_NAME mojanalytics/webapp-cp \
           --set AuthProxy.Env.Auth0Domain=$AUTH0_DOMAIN \
           --set AuthProxy.Env.Auth0Passwordless=$AUTH0_PASSWORDLESS \
@@ -225,4 +224,3 @@ jobs:
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
           $custom_variables
-          set +x
