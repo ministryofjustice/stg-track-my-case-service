@@ -1,5 +1,6 @@
 package uk.gov.moj.cp.controllers;
 
+import io.micrometer.common.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -47,7 +48,7 @@ public class UserController {
 
     @GetMapping("/user")
     public ResponseEntity<Object> getUserByEmail(@RequestParam(name = "email", required = false) final String email) {
-        if (email == null) {
+        if (StringUtils.isEmpty(email)) {
             return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponseDto("Please provide a valid email using query param "
