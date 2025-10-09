@@ -141,8 +141,9 @@ jobs:
             value=$(echo "$row" | base64 --decode | jq -r '.value')
             if [[ $key == XXX* ]]; then
               custom_key=$(echo "$key" | sed 's/^XXX_/Secrets.WebApp.Parameters./')
-              # Escape special chars safely
-              custom_variables="$custom_variables --set $custom_key=$(printf '%q' "$value")"
+              # Escape commas and equals, but NOT slashes
+              safe_value=$(printf '%s' "$value" | sed 's/,/\\,/g; s/=/\\=/g')
+              custom_variables="$custom_variables --set ${custom_key}=${safe_value}"
             fi
           done
 
@@ -171,6 +172,10 @@ jobs:
           else
            echo "Release '$RELEASE_NAME' not found in namespace '$KUBE_NAMESPACE' — first install. Skipping history/rollback."
           fi
+
+          echo "=== DEBUG: Helm command ==="
+          set -x
+          
 
           helm upgrade --install --dry-run --debug --namespace $KUBE_NAMESPACE $RELEASE_NAME mojanalytics/webapp-cp \
           --set AuthProxy.Env.Auth0Domain=$AUTH0_DOMAIN \
