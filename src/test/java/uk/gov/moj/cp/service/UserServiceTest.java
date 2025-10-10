@@ -52,11 +52,11 @@ public class UserServiceTest {
         when(userRepository.findByEmailIgnoreCase("test@example.com")).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
 
-        UserCreationResponseDto result = userService.createUser(userDto);
+        List<UserCreationResponseDto> result = userService.addUsers(List.of(userDto));
 
-        assertThat(result).isNotNull();
-        assertThat(result.getEmail()).isEqualTo("test@example.com");
-        assertThat(result.getStatus()).isEqualTo(UserCreationStatus.CREATED);
+        assertThat(!result.isEmpty()).isTrue();
+        assertThat(result.getFirst().getEmail()).isEqualTo("test@example.com");
+        assertThat(result.getFirst().getStatus()).isEqualTo(UserCreationStatus.CREATED);
         verify(userRepository, times(1)).save(any(User.class));
     }
 
@@ -67,12 +67,12 @@ public class UserServiceTest {
             .email("invalid-email") // invalid email format
             .build();
 
-        UserCreationResponseDto result = userService.createUser(userDto);
+        List<UserCreationResponseDto> result = userService.addUsers(List.of(userDto));
 
-        assertThat(result).isNotNull();
-        assertThat(result.getEmail()).isEqualTo("invalid-email");
-        assertThat(result.getStatus()).isEqualTo(UserCreationStatus.FAILED);
-        assertThat(result.getReason()).isEqualTo("User email validation failed");
+        assertThat(!result.isEmpty()).isTrue();
+        assertThat(result.getFirst().getEmail()).isEqualTo("invalid-email");
+        assertThat(result.getFirst().getStatus()).isEqualTo(UserCreationStatus.FAILED);
+        assertThat(result.getFirst().getReason()).isEqualTo("User email validation failed");
     }
 
     @Test
@@ -85,9 +85,10 @@ public class UserServiceTest {
         User existingUser = new User("existing@example.com");
         when(userRepository.findByEmailIgnoreCase("existing@example.com")).thenReturn(Optional.of(existingUser));
 
-        UserCreationResponseDto result = userService.createUser(userDto);
+        List<UserCreationResponseDto> results = userService.addUsers(List.of(userDto));
 
-        assertThat(result).isNotNull();
+        assertThat(!results.isEmpty()).isTrue();
+        UserCreationResponseDto result = results.getFirst();
         assertThat(result.getEmail()).isEqualTo("existing@example.com");
         assertThat(result.getStatus()).isEqualTo(UserCreationStatus.FAILED);
         assertThat(result.getReason()).isEqualTo("Email already exists");

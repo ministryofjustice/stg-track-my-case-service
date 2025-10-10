@@ -24,12 +24,8 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    private Optional<User> getByEmailIgnoreCase(String email) {
+    public Optional<User> getByEmailIgnoreCase(String email) {
         return userRepository.findByEmailIgnoreCase(email.toLowerCase().trim());
-    }
-
-    public UserCreationResponseDto createUser(final UserDto userDto) {
-        return validateAndCreateUser(userDto);
     }
 
     public List<UserCreationResponseDto> addUsers(final List<UserDto> userDtos) {
