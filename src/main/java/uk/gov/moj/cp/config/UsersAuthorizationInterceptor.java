@@ -7,6 +7,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.servlet.HandlerInterceptor;
+import uk.gov.moj.cp.util.ApiUtils;
 
 import static uk.gov.moj.cp.controllers.UserController.PATH_API_USERS;
 
@@ -24,9 +25,15 @@ public class UsersAuthorizationInterceptor implements HandlerInterceptor {
         if (!request.getRequestURI().startsWith(PATH_API_USERS)) {
             return true;
         }
-        final String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (StringUtils.isNotEmpty(requiredHeaderValue) && requiredHeaderValue.equals(authorizationHeader)) {
-            return true;
+        final String fullAuthorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (StringUtils.isNotEmpty(fullAuthorizationHeader) && StringUtils.isNotEmpty(requiredHeaderValue)) {
+            final String bearerTokenPrefix = ApiUtils.BEARER_TOKEN_PREFIX;
+            if (fullAuthorizationHeader.startsWith(bearerTokenPrefix)) {
+                final String authorizationHeader = fullAuthorizationHeader.substring(bearerTokenPrefix.length());
+                if (requiredHeaderValue.equals(authorizationHeader)) {
+                    return true;
+                }
+            }
         }
         response.setStatus(HttpStatus.SC_FORBIDDEN);
         response.setContentType(ContentType.APPLICATION_JSON.getMimeType());

@@ -1,7 +1,5 @@
 package uk.gov.moj.cp.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -30,11 +28,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+import static uk.gov.moj.cp.util.Utils.objectMapper;
 
 class UserControllerTest {
     private MockMvc mockMvc;
-    private ObjectMapper objectMapper = new ObjectMapper();
 
     @Mock
     private UserService userService;
@@ -45,8 +42,6 @@ class UserControllerTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
         userController = new UserController(userService);
-        objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
         mockMvc = MockMvcBuilders.standaloneSetup(userController).build();
     }
 
