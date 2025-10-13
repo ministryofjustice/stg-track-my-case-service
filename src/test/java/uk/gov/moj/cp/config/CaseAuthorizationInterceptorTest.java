@@ -3,7 +3,6 @@ package uk.gov.moj.cp.config;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,7 +28,6 @@ import static uk.gov.moj.cp.util.ApiUtils.BASIC_TOKEN_PREFIX;
 import static uk.gov.moj.cp.util.ApiUtils.BEARER_TOKEN_PREFIX;
 
 @ExtendWith(MockitoExtension.class)
-@Disabled
 class CaseAuthorizationInterceptorTest {
 
     @Mock
