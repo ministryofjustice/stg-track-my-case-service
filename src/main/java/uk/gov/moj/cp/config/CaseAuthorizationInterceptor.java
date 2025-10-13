@@ -30,9 +30,6 @@ public class CaseAuthorizationInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request,
                              HttpServletResponse response,
                              Object handler) throws Exception {
-        if (request != null) {
-            return true; // ToDo: remove when UI is ready
-        }
         if (!request.getRequestURI().startsWith(PATH_API_CASE)) {
             return true;
         }
