@@ -29,7 +29,7 @@ public class CaseDetailsService {
             courtSchedule.stream()
                 .map(schedule -> new CaseDetailsDto.CaseDetailsCourtScheduleDto(
                     schedule.hearingDtos().stream()
-                        .map(this::getCaseDetailsHearingDto)
+                        .map(this::getHearingDetails)
                         .collect(Collectors.toList())
                 ))
                 .collect(Collectors.toList())
@@ -46,10 +46,10 @@ public class CaseDetailsService {
 
     }
 
-    private CaseDetailsHearingDto getCaseDetailsHearingDto(CourtScheduleDto.HearingDto hearing) {
+    private CaseDetailsHearingDto getHearingDetails(CourtScheduleDto.HearingDto hearing) {
         return new CaseDetailsHearingDto(
             hearing.courtSittingDtos().stream()
-                .map(this::getCaseDetailsCourtSittingDto)
+                .map(this::getHearingSchedule)
                 .collect(Collectors.toList()),
             hearing.hearingId(),
             hearing.hearingType(),
@@ -59,7 +59,7 @@ public class CaseDetailsService {
     }
 
 
-    private CaseDetailsCourtSittingDto getCaseDetailsCourtSittingDto(
+    private CaseDetailsCourtSittingDto getHearingSchedule(
         CourtScheduleDto.HearingDto.CourtSittingDto sitting) {
         return new CaseDetailsCourtSittingDto(
             sitting.judiciaryId(),
