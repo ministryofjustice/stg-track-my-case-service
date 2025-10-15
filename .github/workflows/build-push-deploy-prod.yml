@@ -128,15 +128,27 @@ jobs:
               --argjson vars_json "$VARS_CONTEXT" \
               '$secrets_json + $vars_json')
 
-          custom_variables=""
-          for row in $(echo "${combined_json}" | jq -r 'to_entries[] | @base64'); do
-            key=$(echo ${row} | base64 --decode | jq -r '.key')
-            value=$(echo ${row} | base64 --decode | jq -r '.value')
+          custom_variables_array=()
+          for row in $(echo "$combined_json" | jq -r 'to_entries[] | @base64'); do
+            key=$(echo "$row" | base64 --decode | jq -r '.key')
+            value=$(echo "$row" | base64 --decode | jq -r '.value')
+
             if [[ $key == XXX* ]]; then
-                custom_key=$(echo $key | sed 's/^XXX_/Secrets.WebApp.Parameters./')
-                custom_variables="$custom_variables --set $custom_key=$value"
+              custom_key=$(echo "$key" | sed 's/^XXX_/Secrets.WebApp.Parameters./')
+
+              # Robustly trim whitespace
+              value_trimmed=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
+              # Escape commas and equals (but not slashes)
+              safe_value=$(printf '%s' "$value_trimmed" | sed 's/,/\\,/g; s/=/\\=/g')
+
+              custom_variables_array+=("--set" "${custom_key}=${safe_value}")
             fi
           done
+
+          # Debug
+          echo "=== DEBUG: custom_variables_array ==="
+          printf '%s\n' "${custom_variables_array[@]}"
 
           if helm status "$RELEASE_NAME" -n "$KUBE_NAMESPACE" >/dev/null 2>&1; then
             helm status  "$RELEASE_NAME" -n "$KUBE_NAMESPACE" || true
@@ -161,6 +173,10 @@ jobs:
            echo "Release '$RELEASE_NAME' not found in namespace '$KUBE_NAMESPACE' — first install. Skipping history/rollback."
           fi
 
+          echo "=== DEBUG: Helm command ==="
+          set -x
+
+
           helm upgrade --install --dry-run --debug --namespace $KUBE_NAMESPACE $RELEASE_NAME mojanalytics/webapp-cp \
           --set AuthProxy.Env.Auth0Domain=$AUTH0_DOMAIN \
           --set AuthProxy.Env.Auth0Passwordless=$AUTH0_PASSWORDLESS \
@@ -181,10 +197,13 @@ jobs:
           --set securityContext.capabilities.drop=["ALL"] \
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
-          $custom_variables  \
-          | sed -n '/containers:/,/imagePullPolicy:/p' \
-          | sed -n '/name: webapp/,$p' \
-          | sed -n '1,/^- name:/p'
+          "${custom_variables_array[@]}"
+          # > rendered.yaml
+
+          # echo "=== DEBUG: webapp container only ==="
+          # sed -n '/containers:/,/imagePullPolicy:/p' rendered.yaml \
+          # | sed -n '/name: webapp/,$p' \
+          # | sed -n '1,/^- name:/p'
 
           echo "=== Chart values: WebApp section ==="
           helm show values mojanalytics/webapp-cp | sed -n '/^WebApp:/,/^[A-Za-z]/p'
@@ -209,4 +228,4 @@ jobs:
           --set securityContext.capabilities.drop=["ALL"] \
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
-          $custom_variables
+          "${custom_variables_array[@]}"
