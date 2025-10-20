@@ -8,7 +8,10 @@ import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto.CaseDetailsH
 import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto.CaseDetailsHearingDto.CaseDetailsCourtSittingDto;
 import uk.gov.moj.cp.dto.CourtScheduleDto;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,6 +33,7 @@ public class CaseDetailsService {
                 .map(schedule -> new CaseDetailsDto.CaseDetailsCourtScheduleDto(
                     schedule.hearingDtos().stream()
                         .map(this::getHearingDetails)
+                        .filter(Objects::nonNull)
                         .collect(Collectors.toList())
                 ))
                 .collect(Collectors.toList())
@@ -47,10 +51,17 @@ public class CaseDetailsService {
     }
 
     private CaseDetailsHearingDto getHearingDetails(CourtScheduleDto.HearingDto hearing) {
+        List<CaseDetailsCourtSittingDto> futureSittings = hearing.courtSittingDtos().stream()
+            .filter(sitting -> validateSittingDateNotInPast(sitting.sittingStart()))
+            .map(this::getHearingSchedule)
+            .collect(Collectors.toList());
+
+        if (futureSittings.isEmpty()) {
+            return null;
+        }
+
         return new CaseDetailsHearingDto(
-            hearing.courtSittingDtos().stream()
-                .map(this::getHearingSchedule)
-                .collect(Collectors.toList()),
+            futureSittings,
             hearing.hearingId(),
             hearing.hearingType(),
             hearing.hearingDescription(),
@@ -67,6 +78,11 @@ public class CaseDetailsService {
             sitting.sittingEnd(),
             courtHouseService.getCourtHouseById(sitting.courtHouse(), sitting.courtRoom())
         );
+    }
+
+    private boolean validateSittingDateNotInPast(String dateTimeString) {
+        LocalDate sittingDate = LocalDateTime.parse(dateTimeString).toLocalDate();
+        return !sittingDate.isBefore(LocalDate.now());
     }
 }
 
