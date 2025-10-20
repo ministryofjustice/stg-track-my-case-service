@@ -9,8 +9,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.web.servlet.HandlerInterceptor;
 import uk.gov.moj.cp.util.ApiUtils;
 
-import static uk.gov.moj.cp.controllers.UserController.PATH_API_USERS;
-
 public class UsersAuthorizationInterceptor implements HandlerInterceptor {
     private final String requiredHeaderValue;
 
@@ -22,9 +20,6 @@ public class UsersAuthorizationInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request,
                              HttpServletResponse response,
                              Object handler) throws Exception {
-        if (!request.getRequestURI().startsWith(PATH_API_USERS)) {
-            return true;
-        }
         final String fullAuthorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (StringUtils.isNotEmpty(fullAuthorizationHeader) && StringUtils.isNotEmpty(requiredHeaderValue)) {
             final String bearerTokenPrefix = ApiUtils.BEARER_TOKEN_PREFIX;

@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import uk.gov.moj.cp.config.ApiPaths;
 import uk.gov.moj.cp.dto.ErrorResponseDto;
 import uk.gov.moj.cp.dto.UpdateUserDto;
 import uk.gov.moj.cp.dto.UserCreationResponseDto;
@@ -24,11 +25,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
-@RequestMapping(UserController.PATH_API_USERS)
+@RequestMapping(ApiPaths.PATH_API_USERS)
 @RequiredArgsConstructor
 public class UserController {
-
-    public static final String PATH_API_USERS = "/api/users";
 
     private final UserService userService;
 

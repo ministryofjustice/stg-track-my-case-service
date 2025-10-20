@@ -16,8 +16,6 @@ import uk.gov.moj.cp.util.ApiUtils;
 import java.util.Base64;
 import java.util.Optional;
 
-import static uk.gov.moj.cp.controllers.CaseDetailsController.PATH_API_CASE;
-
 @Slf4j
 public class CaseAuthorizationInterceptor implements HandlerInterceptor {
     private final UserService userService;
@@ -30,9 +28,6 @@ public class CaseAuthorizationInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request,
                              HttpServletResponse response,
                              Object handler) throws Exception {
-        if (!request.getRequestURI().startsWith(PATH_API_CASE)) {
-            return true;
-        }
         try {
             final String fullAuthorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
             if (StringUtils.isNotEmpty(fullAuthorizationHeader)) {

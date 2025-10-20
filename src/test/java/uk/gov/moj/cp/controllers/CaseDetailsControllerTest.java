@@ -1,13 +1,5 @@
 package uk.gov.moj.cp.controllers;
 
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,24 +11,29 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import uk.gov.moj.cp.dto.CaseDetailsDto;
-import uk.gov.moj.cp.dto.CourtHouseDto;
-import uk.gov.moj.cp.service.CaseDetailsService;
-import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto.CaseDetailsHearingDto.CaseDetailsCourtSittingDto;
-import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto.CaseDetailsHearingDto;
-import uk.gov.moj.cp.dto.CourtHouseDto.CourtRoomDto.AddressDto;
-import uk.gov.moj.cp.dto.CourtHouseDto.CourtRoomDto;
 import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto;
+import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto.CaseDetailsHearingDto;
+import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto.CaseDetailsHearingDto.CaseDetailsCourtSittingDto;
+import uk.gov.moj.cp.dto.CourtHouseDto;
+import uk.gov.moj.cp.dto.CourtHouseDto.CourtRoomDto;
+import uk.gov.moj.cp.dto.CourtHouseDto.CourtRoomDto.AddressDto;
+import uk.gov.moj.cp.service.CaseDetailsService;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 @ExtendWith(MockitoExtension.class)
 public class CaseDetailsControllerTest {
 
     private MockMvc mockMvc;
-    private ObjectMapper objectMapper;
 
     @Mock
     private CaseDetailsService caseDetailsService;
@@ -46,13 +43,11 @@ public class CaseDetailsControllerTest {
 
     @BeforeEach
     void setUp() {
-        objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
         mockMvc = MockMvcBuilders.standaloneSetup(caseDetailsController).build();
     }
 
     @Test
-    @DisplayName("GET /case/{case_urn}/casedetails - success with populated hearing schedule")
+    @DisplayName("GET /api/cases/{case_urn}/casedetails - success with populated hearing schedule")
     void shouldGetCaseDetailsByCaseUrnWithPopulatedHearingSchedule() throws Exception {
         final String caseUrn = "CASE123";
         final String hearingId = UUID.randomUUID().toString();
@@ -102,7 +97,7 @@ public class CaseDetailsControllerTest {
 
         when(caseDetailsService.getCaseDetailsByCaseUrn(caseUrn)).thenReturn(caseDetailsDto);
 
-        mockMvc.perform(get("/case/{case_urn}/casedetails", caseUrn)
+        mockMvc.perform(get("/api/cases/{case_urn}/casedetails", caseUrn)
                             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.caseUrn").value(caseUrn))
@@ -124,16 +119,15 @@ public class CaseDetailsControllerTest {
 
 
     @Test
-    @DisplayName("GET /case/{case_urn}/casedetails - success with empty court schedule")
+    @DisplayName("GET /api/cases/{case_urn}/casedetails - success with empty court schedule")
     void shouldHandleGetCaseDetailsByCaseUrnWithEmptyHearing() throws Exception {
         String caseUrn = "CASE123";
 
-        CaseDetailsDto caseDetailsDto = new CaseDetailsDto(caseUrn,
-                                                           new ArrayList<CaseDetailsDto.CaseDetailsCourtScheduleDto>());
+        CaseDetailsDto caseDetailsDto = new CaseDetailsDto(caseUrn, new ArrayList<>());
 
         when(caseDetailsService.getCaseDetailsByCaseUrn(caseUrn)).thenReturn(caseDetailsDto);
 
-        mockMvc.perform(get("/case/{case_urn}/casedetails", caseUrn)
+        mockMvc.perform(get("/api/cases/{case_urn}/casedetails", caseUrn)
                             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.caseUrn").value(caseUrn))
@@ -143,14 +137,14 @@ public class CaseDetailsControllerTest {
 
 
     @Test
-    @DisplayName("GET /case/{case_urn}/casedetails - service throws IllegalArgumentException")
+    @DisplayName("GET /api/cases/{case_urn}/casedetails - service throws IllegalArgumentException")
     void shouldHandleIllegalArgumentException() throws Exception {
         String caseUrn = "INVALID_FORMAT";
 
         when(caseDetailsService.getCaseDetailsByCaseUrn(caseUrn))
             .thenThrow(new IllegalArgumentException("Invalid case URN format"));
 
-        mockMvc.perform(get("/case/{case_urn}/casedetails", caseUrn)
+        mockMvc.perform(get("/api/cases/{case_urn}/casedetails", caseUrn)
                             .contentType(MediaType.APPLICATION_JSON))
                             .andExpect(status().isNotFound())
                             .andExpect(content().string(
@@ -160,14 +154,14 @@ public class CaseDetailsControllerTest {
     }
 
     @Test
-    @DisplayName("GET /case/{case_urn}/casedetails - service throws NullPointerException")
+    @DisplayName("GET /api/cases/{case_urn}/casedetails - service throws NullPointerException")
     void shouldHandleNullPointerException() throws Exception {
         String caseUrn = "NULL_CASE";
 
         when(caseDetailsService.getCaseDetailsByCaseUrn(caseUrn))
             .thenThrow(new NullPointerException("Null pointer in service"));
 
-        mockMvc.perform(get("/case/{case_urn}/casedetails", caseUrn)
+        mockMvc.perform(get("/api/cases/{case_urn}/casedetails", caseUrn)
                             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isNotFound())
             .andExpect(content().string(

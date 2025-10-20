@@ -8,8 +8,8 @@ import uk.gov.moj.cp.service.UserService;
 
 import java.util.List;
 
-import static uk.gov.moj.cp.controllers.CaseDetailsController.PATH_API_CASE;
-import static uk.gov.moj.cp.controllers.UserController.PATH_API_USERS;
+import static uk.gov.moj.cp.config.ApiPaths.PATH_API_CASES;
+import static uk.gov.moj.cp.config.ApiPaths.PATH_API_USERS;
 
 @Configuration
 public class SecurityConfig implements WebMvcConfigurer {
@@ -31,7 +31,7 @@ public class SecurityConfig implements WebMvcConfigurer {
             ));
         registry.addInterceptor(new CaseAuthorizationInterceptor(userService))
             .addPathPatterns(List.of(
-                PATH_API_CASE + "/**"
+                PATH_API_CASES + "/**"
             ));
     }
 }
