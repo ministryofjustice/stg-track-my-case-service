@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.Import;
 import uk.gov.moj.cp.entity.User;
 import uk.gov.moj.cp.model.UserRole;
 import uk.gov.moj.cp.model.UserStatus;
@@ -14,8 +15,10 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static uk.gov.moj.cp.util.CryptoUtils.ENCRYPTION_PREFIX;
 
 @DataJpaTest
+@Import(TestCryptoConfig.class)
 class UserRepositoryTest {
 
     @Autowired
@@ -23,6 +26,8 @@ class UserRepositoryTest {
 
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    TestEntityManager testEntityManager;
 
     private User user;
 
@@ -37,15 +42,30 @@ class UserRepositoryTest {
     @DisplayName("Should save user successfully")
     void testSaveUser() {
         userRepository.save(user);
-        User saved = userRepository.findByEmailIgnoreCase(user.getEmail()).get();
+        User saved = userRepository.findByEmailLookup(user.getEmail()).get();
 
         assertThat(saved).isNotNull();
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getEmail()).isEqualTo("alice@example.com");
+        assertThat(saved.getEmailLookup()).isNull();
         assertThat(saved.getRole()).isEqualTo(UserRole.ADMIN);
         assertThat(saved.getStatus()).isEqualTo(UserStatus.ACTIVE);
         assertThat(saved.getCreated()).isNotNull();
         assertThat(saved.getUpdated()).isNotNull();
+
+        Object[] raw = (Object[]) testEntityManager.getEntityManager()
+            .createNativeQuery("select email, email_lookup from tmc_user where id = :id")
+            .setParameter("id", saved.getId())
+            .getSingleResult();
+
+        assertThat(raw).isNotNull();
+        String email = (String) raw[0];
+        String emailLookup = (String) raw[1];
+        assertThat(email).startsWith(ENCRYPTION_PREFIX);
+        assertThat(email).doesNotContain("alice@example.com");
+
+        assertThat(emailLookup).isNotEmpty();
+        assertThat(emailLookup).doesNotContain("alice@example.com");
     }
 
     @Test
@@ -53,7 +73,7 @@ class UserRepositoryTest {
     void testFindByEmailIgnoreCaseSuccess() {
         entityManager.persistAndFlush(user);
 
-        Optional<User> found = userRepository.findByEmailIgnoreCase("alice@example.com");
+        Optional<User> found = userRepository.findByEmailLookup("alice@example.com");
 
         assertThat(found).isPresent();
         assertThat(found.get().getEmail()).isEqualTo("alice@example.com");
@@ -64,7 +84,7 @@ class UserRepositoryTest {
     @Test
     @DisplayName("Should return empty when user not found by email")
     void testFindByEmailIgnoreCaseNotFound() {
-        Optional<User> found = userRepository.findByEmailIgnoreCase("bob@example.com");
+        Optional<User> found = userRepository.findByEmailLookup("bob@example.com");
 
         assertThat(found).isEmpty();
     }
@@ -121,7 +141,7 @@ class UserRepositoryTest {
         saved.setStatus(UserStatus.DELETED);
 
         userRepository.save(saved);
-        User updated = userRepository.findByEmailIgnoreCase(saved.getEmail()).get();
+        User updated = userRepository.findByEmailLookup(saved.getEmail()).get();
 
         assertThat(updated.getRole()).isEqualTo(UserRole.USER);
         assertThat(updated.getStatus()).isEqualTo(UserStatus.DELETED);
@@ -130,13 +150,12 @@ class UserRepositoryTest {
     }
 
     @Test
-    @DisplayName("Should handle case insensitive email lookup")
+    @DisplayName("Should not handle case insensitive email lookup")
     void testFindByEmailIgnoreCaseCaseInsensitive() {
         entityManager.persistAndFlush(user);
 
-        Optional<User> found = userRepository.findByEmailIgnoreCase("ALICE@EXAMPLE.COM");
+        Optional<User> found = userRepository.findByEmailLookup("ALICE@EXAMPLE.COM");
 
-        assertThat(found).isPresent();
-        assertThat(found.get().getEmail()).isEqualTo("alice@example.com");
+        assertThat(found).isEmpty();
     }
 }

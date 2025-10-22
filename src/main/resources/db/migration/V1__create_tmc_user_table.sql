@@ -3,6 +3,7 @@
 CREATE TABLE IF NOT EXISTS tmc_user (
     id UUID PRIMARY KEY,
     email varchar(200) NOT NULL UNIQUE,
+    email_lookup varchar(200) NOT NULL UNIQUE,
     status varchar(100) NOT NULL,
     role varchar(100) NOT NULL,
     created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -65,7 +65,7 @@ class CaseAuthorizationInterceptorTest {
         String encodedEmail = Base64.getEncoder().encodeToString(VALID_EMAIL.getBytes());
 
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BASIC_TOKEN_PREFIX + encodedEmail);
-        when(userService.getByEmailIgnoreCase(VALID_EMAIL)).thenReturn(Optional.of(activeUser));
+        when(userService.findActiveUserByEmail(VALID_EMAIL)).thenReturn(Optional.of(activeUser));
 
         // When
         boolean result = interceptor.preHandle(request, response, handler);
@@ -82,7 +82,7 @@ class CaseAuthorizationInterceptorTest {
         String encodedEmail = Base64.getEncoder().encodeToString(VALID_EMAIL.getBytes());
 
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BASIC_TOKEN_PREFIX + encodedEmail);
-        when(userService.getByEmailIgnoreCase(VALID_EMAIL)).thenReturn(Optional.of(deletedUser));
+        when(userService.findActiveUserByEmail(VALID_EMAIL)).thenReturn(Optional.of(deletedUser));
         when(response.getWriter()).thenReturn(printWriter);
 
         // When
@@ -103,7 +103,7 @@ class CaseAuthorizationInterceptorTest {
         String encodedEmail = Base64.getEncoder().encodeToString(INVALID_EMAIL.getBytes());
 
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BASIC_TOKEN_PREFIX + encodedEmail);
-        when(userService.getByEmailIgnoreCase(INVALID_EMAIL)).thenReturn(Optional.empty());
+        when(userService.findActiveUserByEmail(INVALID_EMAIL)).thenReturn(Optional.empty());
         when(response.getWriter()).thenReturn(printWriter);
 
         // When
@@ -236,7 +236,7 @@ class CaseAuthorizationInterceptorTest {
         String emptyBase64 = Base64.getEncoder().encodeToString("".getBytes());
 
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BASIC_TOKEN_PREFIX + emptyBase64);
-        when(userService.getByEmailIgnoreCase("")).thenReturn(Optional.empty());
+        when(userService.findActiveUserByEmail("")).thenReturn(Optional.empty());
         when(response.getWriter()).thenReturn(printWriter);
 
         // When
@@ -278,7 +278,7 @@ class CaseAuthorizationInterceptorTest {
         String encodedEmail = Base64.getEncoder().encodeToString(VALID_EMAIL.getBytes());
 
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BASIC_TOKEN_PREFIX + encodedEmail);
-        when(userService.getByEmailIgnoreCase(VALID_EMAIL)).thenReturn(Optional.of(activeUser));
+        when(userService.findActiveUserByEmail(VALID_EMAIL)).thenReturn(Optional.of(activeUser));
 
         // When
         boolean result = interceptor.preHandle(request, response, handler);
@@ -294,7 +294,7 @@ class CaseAuthorizationInterceptorTest {
         String encodedEmail = Base64.getEncoder().encodeToString(INVALID_EMAIL.getBytes());
 
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BASIC_TOKEN_PREFIX + encodedEmail);
-        when(userService.getByEmailIgnoreCase(INVALID_EMAIL)).thenReturn(Optional.empty());
+        when(userService.findActiveUserByEmail(INVALID_EMAIL)).thenReturn(Optional.empty());
         when(response.getWriter()).thenReturn(printWriter);
 
         // When
@@ -317,7 +317,7 @@ class CaseAuthorizationInterceptorTest {
         String encodedEmail = Base64.getEncoder().encodeToString(specialEmail.getBytes());
 
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BASIC_TOKEN_PREFIX + encodedEmail);
-        when(userService.getByEmailIgnoreCase(specialEmail)).thenReturn(Optional.of(activeUser));
+        when(userService.findActiveUserByEmail(specialEmail)).thenReturn(Optional.of(activeUser));
 
         // When
         boolean result = interceptor.preHandle(request, response, handler);
@@ -335,7 +335,7 @@ class CaseAuthorizationInterceptorTest {
         String encodedEmail = Base64.getEncoder().encodeToString(upperCaseEmail.getBytes());
 
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BASIC_TOKEN_PREFIX + encodedEmail);
-        when(userService.getByEmailIgnoreCase(upperCaseEmail)).thenReturn(Optional.of(activeUser));
+        when(userService.findActiveUserByEmail(upperCaseEmail)).thenReturn(Optional.of(activeUser));
 
         // When
         boolean result = interceptor.preHandle(request, response, handler);
@@ -352,7 +352,7 @@ class CaseAuthorizationInterceptorTest {
         String encodedEmail = Base64.getEncoder().encodeToString(veryLongEmail.getBytes());
 
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BASIC_TOKEN_PREFIX + encodedEmail);
-        when(userService.getByEmailIgnoreCase(veryLongEmail)).thenReturn(Optional.empty());
+        when(userService.findActiveUserByEmail(veryLongEmail)).thenReturn(Optional.empty());
         when(response.getWriter()).thenReturn(printWriter);
 
         // When
@@ -373,7 +373,7 @@ class CaseAuthorizationInterceptorTest {
         String malformedBase64 = "YWJjZGVmZ2hpams="; // Valid Base64 but might cause issues
 
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BASIC_TOKEN_PREFIX + malformedBase64);
-        when(userService.getByEmailIgnoreCase("abcdefghijk")).thenReturn(Optional.empty());
+        when(userService.findActiveUserByEmail("abcdefghijk")).thenReturn(Optional.empty());
         when(response.getWriter()).thenReturn(printWriter);
 
         // When

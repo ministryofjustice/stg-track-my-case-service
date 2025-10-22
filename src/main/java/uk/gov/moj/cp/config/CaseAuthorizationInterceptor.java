@@ -35,7 +35,7 @@ public class CaseAuthorizationInterceptor implements HandlerInterceptor {
                 if (fullAuthorizationHeader.startsWith(basicTokenPrefix)) {
                     final String userEncodedEmail = fullAuthorizationHeader.substring(basicTokenPrefix.length());
                     final String oneLoginEmail = new String(Base64.getDecoder().decode(userEncodedEmail));
-                    Optional<User> userOptional = this.userService.getByEmailIgnoreCase(oneLoginEmail);
+                    Optional<User> userOptional = this.userService.findActiveUserByEmail(oneLoginEmail);
                     if (userOptional.isPresent()) {
                         User user = userOptional.get();
                         if (UserStatus.ACTIVE.equals(user.getStatus())) {

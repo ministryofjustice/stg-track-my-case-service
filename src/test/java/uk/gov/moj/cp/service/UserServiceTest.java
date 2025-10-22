@@ -49,7 +49,7 @@ public class UserServiceTest {
         savedUser.setRole(UserRole.USER);
         savedUser.setStatus(UserStatus.ACTIVE);
 
-        when(userRepository.findByEmailIgnoreCase("test@example.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmailLookup("test@example.com")).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
 
         List<UserCreationResponseDto> result = userService.addUsers(List.of(userDto));
@@ -83,7 +83,7 @@ public class UserServiceTest {
             .build();
 
         User existingUser = new User("existing@example.com");
-        when(userRepository.findByEmailIgnoreCase("existing@example.com")).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByEmailLookup("existing@example.com")).thenReturn(Optional.of(existingUser));
 
         List<UserCreationResponseDto> results = userService.addUsers(List.of(userDto));
 
@@ -112,7 +112,7 @@ public class UserServiceTest {
         updatedUser.setRole(UserRole.ADMIN);
         updatedUser.setStatus(UserStatus.DELETED);
 
-        when(userRepository.findByEmailIgnoreCase("test@example.com")).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByEmailLookup("test@example.com")).thenReturn(Optional.of(existingUser));
         when(userRepository.save(any(User.class))).thenReturn(updatedUser);
 
         UserResponseDto result = userService.updateUser(updateUserDto);
@@ -133,7 +133,7 @@ public class UserServiceTest {
             .status(UserStatus.ACTIVE)
             .build();
 
-        when(userRepository.findByEmailIgnoreCase("missing@example.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmailLookup("missing@example.com")).thenReturn(Optional.empty());
 
         UserResponseDto result = userService.updateUser(updateUserDto);
 
@@ -154,7 +154,7 @@ public class UserServiceTest {
         User deletedUser = new User("test@example.com");
         deletedUser.setStatus(UserStatus.DELETED);
 
-        when(userRepository.findByEmailIgnoreCase("test@example.com")).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByEmailLookup("test@example.com")).thenReturn(Optional.of(existingUser));
         when(userRepository.save(any(User.class))).thenReturn(deletedUser);
 
         UserResponseDto result = userService.deleteUser(userDto);
@@ -172,7 +172,7 @@ public class UserServiceTest {
             .email("missing@example.com")
             .build();
 
-        when(userRepository.findByEmailIgnoreCase("missing@example.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmailLookup("missing@example.com")).thenReturn(Optional.empty());
 
         UserResponseDto result = userService.deleteUser(userDto);
 
@@ -211,7 +211,7 @@ public class UserServiceTest {
         user.setRole(UserRole.ADMIN);
         user.setStatus(UserStatus.ACTIVE);
 
-        when(userRepository.findByEmailIgnoreCase("test@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailLookup("test@example.com")).thenReturn(Optional.of(user));
 
         UserResponseDto result = userService.getUser("test@example.com");
 
@@ -224,7 +224,7 @@ public class UserServiceTest {
     @Test
     @DisplayName("Should return null when user not found by email")
     void testGetUserByEmail_NotFound() {
-        when(userRepository.findByEmailIgnoreCase("missing@example.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmailLookup("missing@example.com")).thenReturn(Optional.empty());
 
         UserResponseDto result = userService.getUser("missing@example.com");
 
@@ -237,7 +237,7 @@ public class UserServiceTest {
         UserResponseDto result = userService.getUser("invalid-email");
 
         assertThat(result).isNull();
-        verify(userRepository, times(0)).findByEmailIgnoreCase(any());
+        verify(userRepository, times(0)).findByEmailLookup(any());
     }
 
     @Test
@@ -259,8 +259,8 @@ public class UserServiceTest {
         savedUser2.setRole(UserRole.USER);
         savedUser2.setStatus(UserStatus.ACTIVE);
 
-        when(userRepository.findByEmailIgnoreCase("user1@example.com")).thenReturn(Optional.empty());
-        when(userRepository.findByEmailIgnoreCase("user2@example.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmailLookup("user1@example.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmailLookup("user2@example.com")).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
 
