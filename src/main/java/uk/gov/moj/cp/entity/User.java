@@ -1,6 +1,7 @@
 package uk.gov.moj.cp.entity;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -32,7 +33,13 @@ public class User {
 
     @Column(nullable = false, unique = true)
     @Size(max = 200, message = "Email must be 200 characters max")
+    @Convert(converter = AttributeAesEncryptor.class)
     private String email;
+
+    @Column(name = "email_lookup", nullable = false, unique = true)
+    @Size(max = 200, message = "Email lookup must be 200 characters max")
+    @Convert(converter = AttributeHmacEncryptor.class)
+    private String emailLookup;
 
     @Setter
     @Column(nullable = false)
@@ -57,7 +64,12 @@ public class User {
 
     public User(String email) {
         this.email = email;
+        this.emailLookup = email;
         this.status = UserStatus.ACTIVE;
         this.role = UserRole.USER;
+    }
+
+    public String getEmailLookup() {
+        return null;
     }
 }

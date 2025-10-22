@@ -65,3 +65,5 @@ services:
 
   users:
     authorization-header: ${SECURITY_JWT_TOKEN}
+    aes-encryption-secret: ${AES_ENCRYPTION_SECRET}
+    hmac-encryption-secret: ${HMAC_ENCRYPTION_SECRET}

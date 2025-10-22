@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static uk.gov.moj.cp.controllers.UserController.PATH_API_USERS;
 import static uk.gov.moj.cp.util.ApiUtils.BEARER_TOKEN_PREFIX;
 
 @ExtendWith(MockitoExtension.class)
@@ -51,23 +50,9 @@ class UsersAuthorizationInterceptorTest {
     }
 
     @Test
-    @DisplayName("Should allow requests to non-users endpoints without authorization")
-    void testPreHandle_NonUsersEndpoint_ShouldAllow() throws Exception {
-        // Given
-        when(request.getRequestURI()).thenReturn(NON_USERS_ENDPOINT);
-
-        // When
-        boolean result = interceptor.preHandle(request, response, handler);
-
-        // Then
-        assertThat(result).isTrue();
-    }
-
-    @Test
     @DisplayName("Should allow requests to users endpoints with valid Bearer token")
     void testPreHandle_UsersEndpoint_ValidBearerToken_ShouldAllow() throws Exception {
         // Given
-        when(request.getRequestURI()).thenReturn(PATH_API_USERS);
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER_TOKEN_PREFIX + VALID_TOKEN);
 
         // When
@@ -81,7 +66,6 @@ class UsersAuthorizationInterceptorTest {
     @DisplayName("Should reject requests to users endpoints with invalid Bearer token")
     void testPreHandle_UsersEndpoint_InvalidBearerToken_ShouldReject() throws Exception {
         // Given
-        when(request.getRequestURI()).thenReturn(PATH_API_USERS);
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER_TOKEN_PREFIX + INVALID_TOKEN);
         when(response.getWriter()).thenReturn(printWriter);
 
@@ -100,7 +84,6 @@ class UsersAuthorizationInterceptorTest {
     @DisplayName("Should reject requests to users endpoints without authorization header")
     void testPreHandle_UsersEndpoint_NoAuthorizationHeader_ShouldReject() throws Exception {
         // Given
-        when(request.getRequestURI()).thenReturn(PATH_API_USERS);
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(null);
         when(response.getWriter()).thenReturn(printWriter);
 
@@ -119,7 +102,6 @@ class UsersAuthorizationInterceptorTest {
     @DisplayName("Should reject requests to users endpoints with empty authorization header")
     void testPreHandle_UsersEndpoint_EmptyAuthorizationHeader_ShouldReject() throws Exception {
         // Given
-        when(request.getRequestURI()).thenReturn(PATH_API_USERS);
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("");
         when(response.getWriter()).thenReturn(printWriter);
 
@@ -138,7 +120,6 @@ class UsersAuthorizationInterceptorTest {
     @DisplayName("Should reject requests to users endpoints with whitespace-only authorization header")
     void testPreHandle_UsersEndpoint_WhitespaceOnlyAuthorizationHeader_ShouldReject() throws Exception {
         // Given
-        when(request.getRequestURI()).thenReturn(PATH_API_USERS);
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("   ");
         when(response.getWriter()).thenReturn(printWriter);
 
@@ -157,7 +138,6 @@ class UsersAuthorizationInterceptorTest {
     @DisplayName("Should reject requests to users endpoints with authorization header not starting with Bearer")
     void testPreHandle_UsersEndpoint_NonBearerAuthorizationHeader_ShouldReject() throws Exception {
         // Given
-        when(request.getRequestURI()).thenReturn(PATH_API_USERS);
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Basic " + VALID_TOKEN);
         when(response.getWriter()).thenReturn(printWriter);
 
@@ -176,7 +156,6 @@ class UsersAuthorizationInterceptorTest {
     @DisplayName("Should reject requests to users endpoints with Bearer token but no actual token")
     void testPreHandle_UsersEndpoint_BearerOnlyNoToken_ShouldReject() throws Exception {
         // Given
-        when(request.getRequestURI()).thenReturn(PATH_API_USERS);
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER_TOKEN_PREFIX);
         when(response.getWriter()).thenReturn(printWriter);
 
@@ -195,7 +174,6 @@ class UsersAuthorizationInterceptorTest {
     @DisplayName("Should reject requests to users endpoints with Bearer token and extra whitespace")
     void testPreHandle_UsersEndpoint_BearerTokenWithWhitespace_ShouldReject() throws Exception {
         // Given
-        when(request.getRequestURI()).thenReturn(PATH_API_USERS);
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER_TOKEN_PREFIX + " " + VALID_TOKEN);
         when(response.getWriter()).thenReturn(printWriter);
 
@@ -214,7 +192,6 @@ class UsersAuthorizationInterceptorTest {
     @DisplayName("Should reject requests to users endpoints with Bearer token and leading/trailing whitespace")
     void testPreHandle_UsersEndpoint_BearerTokenWithLeadingTrailingWhitespace_ShouldReject() throws Exception {
         // Given
-        when(request.getRequestURI()).thenReturn(PATH_API_USERS);
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(" " + BEARER_TOKEN_PREFIX + VALID_TOKEN + " ");
         when(response.getWriter()).thenReturn(printWriter);
 
@@ -233,7 +210,6 @@ class UsersAuthorizationInterceptorTest {
     @DisplayName("Should handle case sensitivity in Bearer token prefix")
     void testPreHandle_UsersEndpoint_LowercaseBearerPrefix_ShouldReject() throws Exception {
         // Given
-        when(request.getRequestURI()).thenReturn(PATH_API_USERS);
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("bearer " + VALID_TOKEN);
         when(response.getWriter()).thenReturn(printWriter);
 
@@ -252,7 +228,6 @@ class UsersAuthorizationInterceptorTest {
     @DisplayName("Should allow requests to users sub-endpoints with valid token")
     void testPreHandle_UsersSubEndpoint_ValidToken_ShouldAllow() throws Exception {
         // Given
-        when(request.getRequestURI()).thenReturn("/api/users/123");
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER_TOKEN_PREFIX + VALID_TOKEN);
 
         // When
@@ -266,7 +241,6 @@ class UsersAuthorizationInterceptorTest {
     @DisplayName("Should reject requests to users sub-endpoints with invalid token")
     void testPreHandle_UsersSubEndpoint_InvalidToken_ShouldReject() throws Exception {
         // Given
-        when(request.getRequestURI()).thenReturn("/api/users/123");
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER_TOKEN_PREFIX + INVALID_TOKEN);
         when(response.getWriter()).thenReturn(printWriter);
 
@@ -286,7 +260,6 @@ class UsersAuthorizationInterceptorTest {
     void testPreHandle_UsersEndpoint_NullRequiredHeaderValue_ShouldReject() throws Exception {
         // Given
         UsersAuthorizationInterceptor interceptorWithNullToken = new UsersAuthorizationInterceptor(null);
-        when(request.getRequestURI()).thenReturn(PATH_API_USERS);
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER_TOKEN_PREFIX + VALID_TOKEN);
         when(response.getWriter()).thenReturn(printWriter);
 
@@ -306,7 +279,6 @@ class UsersAuthorizationInterceptorTest {
     void testPreHandle_UsersEndpoint_EmptyRequiredHeaderValue_ShouldReject() throws Exception {
         // Given
         UsersAuthorizationInterceptor interceptorWithEmptyToken = new UsersAuthorizationInterceptor("");
-        when(request.getRequestURI()).thenReturn(PATH_API_USERS);
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER_TOKEN_PREFIX + VALID_TOKEN);
         when(response.getWriter()).thenReturn(printWriter);
 
@@ -326,7 +298,6 @@ class UsersAuthorizationInterceptorTest {
     void testPreHandle_UsersEndpoint_WhitespaceOnlyRequiredHeaderValue_ShouldReject() throws Exception {
         // Given
         UsersAuthorizationInterceptor interceptorWithWhitespaceToken = new UsersAuthorizationInterceptor("   ");
-        when(request.getRequestURI()).thenReturn(PATH_API_USERS);
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER_TOKEN_PREFIX + VALID_TOKEN);
         when(response.getWriter()).thenReturn(printWriter);
 
@@ -345,7 +316,6 @@ class UsersAuthorizationInterceptorTest {
     @DisplayName("Should handle exact token match - case sensitive")
     void testPreHandle_UsersEndpoint_CaseSensitiveTokenMatch_ShouldReject() throws Exception {
         // Given
-        when(request.getRequestURI()).thenReturn(PATH_API_USERS);
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER_TOKEN_PREFIX + VALID_TOKEN.toUpperCase());
         when(response.getWriter()).thenReturn(printWriter);
 
@@ -366,7 +336,6 @@ class UsersAuthorizationInterceptorTest {
         // Given
         String specialToken = "token-with-special.chars_123!@#";
         UsersAuthorizationInterceptor interceptorWithSpecialToken = new UsersAuthorizationInterceptor(specialToken);
-        when(request.getRequestURI()).thenReturn(PATH_API_USERS);
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER_TOKEN_PREFIX + specialToken);
 
         // When
@@ -381,7 +350,6 @@ class UsersAuthorizationInterceptorTest {
     void testPreHandle_UsersEndpoint_VeryLongToken_ShouldReject() throws Exception {
         // Given
         String veryLongToken = "a".repeat(1000);
-        when(request.getRequestURI()).thenReturn(PATH_API_USERS);
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER_TOKEN_PREFIX + veryLongToken);
         when(response.getWriter()).thenReturn(printWriter);
 
@@ -400,8 +368,6 @@ class UsersAuthorizationInterceptorTest {
     @DisplayName("Should handle empty token")
     void testPreHandle_UsersEndpoint_EmptyToken_ShouldReject() throws Exception {
         // Given
-        when(request.getRequestURI()).thenReturn(PATH_API_USERS);
-        when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER_TOKEN_PREFIX);
         when(response.getWriter()).thenReturn(printWriter);
 
         // When

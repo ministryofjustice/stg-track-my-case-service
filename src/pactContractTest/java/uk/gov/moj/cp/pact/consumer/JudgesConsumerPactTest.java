@@ -7,7 +7,6 @@ import au.com.dius.pact.consumer.junit5.PactConsumerTestExt;
 import au.com.dius.pact.consumer.junit5.PactTestFor;
 import au.com.dius.pact.core.model.V4Pact;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.web.client.RestTemplate;
@@ -19,6 +18,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static uk.gov.moj.cp.util.Utils.objectMapper;
 
 @ExtendWith(PactConsumerTestExt.class)
 @PactTestFor(providerName = "CPRefDataJudgesProvider", pactVersion = au.com.dius.pact.core.model.PactSpecVersion.V4)
@@ -27,7 +27,7 @@ public class JudgesConsumerPactTest {
     @Pact(consumer = "VPRefDataJudgesConsumer")
     public V4Pact definePact(PactBuilder builder) throws IOException {
 
-        JsonNode json = new ObjectMapper()
+        JsonNode json = objectMapper
             .readTree(Paths.get("src/pactContractTest/resources/judges.json").toFile());
 
         return builder

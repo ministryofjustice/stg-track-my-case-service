@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import uk.gov.moj.cp.dto.UpdateUserDto;
 import uk.gov.moj.cp.dto.UserCreationResponseDto;
 import uk.gov.moj.cp.dto.UserDto;
@@ -24,10 +25,27 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    public Optional<User> getByEmailIgnoreCase(String email) {
-        return userRepository.findByEmailIgnoreCase(email.toLowerCase().trim());
+    @Transactional(readOnly = true)
+    public Optional<User> findByEmailLookup(final String email) {
+        String trimmedEmail = email.toLowerCase().trim();
+        Optional<User> userOptional = userRepository.findByEmailLookup(trimmedEmail);
+        if (userOptional.isPresent()) {
+            return userOptional;
+        }
+        return userOptional;
     }
 
+    @Transactional(readOnly = true)
+    public Optional<User> findActiveUserByEmail(final String email) {
+        String trimmedEmail = email.toLowerCase().trim();
+        Optional<User> userOptional = userRepository.findByEmailLookupAndStatus(trimmedEmail, UserStatus.ACTIVE);
+        if (userOptional.isPresent()) {
+            return userOptional;
+        }
+        return userOptional;
+    }
+
+    @Transactional
     public List<UserCreationResponseDto> addUsers(final List<UserDto> userDtos) {
         return userDtos.stream().map(this::validateAndCreateUser).toList();
     }
@@ -36,7 +54,7 @@ public class UserService {
         try {
             validateEmail(userDto.getEmail());
             User user = new User(userDto.getEmail().toLowerCase().trim());
-            Optional<User> emailOptional = getByEmailIgnoreCase(user.getEmail());
+            Optional<User> emailOptional = findByEmailLookup(user.getEmail());
             if (emailOptional.isEmpty()) {
                 User savedUser = userRepository.save(user);
                 return UserCreationResponseDto.builder()
@@ -71,10 +89,11 @@ public class UserService {
         }
     }
 
+    @Transactional(readOnly = true)
     public UserResponseDto getUser(final String email) {
         try {
             validateEmail(email);
-            Optional<User> userOptional = getByEmailIgnoreCase(email);
+            Optional<User> userOptional = findByEmailLookup(email);
             if (userOptional.isPresent()) {
                 return getUserResponseDto(userOptional.get());
             }
@@ -84,11 +103,12 @@ public class UserService {
         return null;
     }
 
+    @Transactional
     public UserResponseDto updateUser(final UpdateUserDto updateUserDto) {
         try {
             final String email = updateUserDto.getEmail();
             validateEmail(email);
-            Optional<User> userOptional = getByEmailIgnoreCase(email);
+            Optional<User> userOptional = findByEmailLookup(email);
             if (userOptional.isPresent()) {
                 User originalUser = userOptional.get();
                 UserRole role = updateUserDto.getRole();
@@ -108,10 +128,11 @@ public class UserService {
         return null;
     }
 
+    @Transactional
     public UserResponseDto deleteUser(final UserDto userDto) {
         try {
             validateEmail(userDto.getEmail());
-            Optional<User> userOptional = getByEmailIgnoreCase(userDto.getEmail());
+            Optional<User> userOptional = findByEmailLookup(userDto.getEmail());
             if (userOptional.isPresent()) {
                 User originalUser = userOptional.get();
                 originalUser.setStatus(UserStatus.DELETED);
@@ -124,6 +145,7 @@ public class UserService {
         return null;
     }
 
+    @Transactional(readOnly = true)
     public List<UserResponseDto> getAllUsers() {
         List<User> allUser = userRepository.findAll();
         return allUser.stream()
