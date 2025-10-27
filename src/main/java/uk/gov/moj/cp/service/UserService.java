@@ -27,22 +27,27 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public Optional<User> findByEmailLookup(final String email) {
-        String trimmedEmail = email.toLowerCase().trim();
-        Optional<User> userOptional = userRepository.findByEmailLookup(trimmedEmail);
-        if (userOptional.isPresent()) {
-            return userOptional;
+        try {
+            String trimmedEmail = email.toLowerCase().trim();
+            return userRepository.findByEmailLookup(trimmedEmail);
+        } catch (Exception e) {
+            log.error("Error while loading user by email lookup", e);
         }
-        return userOptional;
+        return Optional.empty();
     }
 
     @Transactional(readOnly = true)
     public Optional<User> findActiveUserByEmail(final String email) {
-        String trimmedEmail = email.toLowerCase().trim();
-        Optional<User> userOptional = userRepository.findByEmailLookupAndStatus(trimmedEmail, UserStatus.ACTIVE);
-        if (userOptional.isPresent()) {
-            return userOptional;
+        try {
+            String trimmedEmail = email.toLowerCase().trim();
+            Optional<User> userOptional = userRepository.findByEmailLookupAndStatus(trimmedEmail, UserStatus.ACTIVE);
+            if (userOptional.isPresent()) {
+                return userOptional;
+            }
+        } catch (Exception e) {
+            log.error("Error while loading active user by email lookup", e);
         }
-        return userOptional;
+        return Optional.empty();
     }
 
     @Transactional

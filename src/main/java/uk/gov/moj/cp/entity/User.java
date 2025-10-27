@@ -31,12 +31,12 @@ public class User {
     @Column(nullable = false, unique = true)
     private UUID id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, updatable = false)
     @Size(max = 200, message = "Email must be 200 characters max")
     @Convert(converter = AttributeAesEncryptor.class)
     private String email;
 
-    @Column(name = "email_lookup", nullable = false, unique = true)
+    @Column(name = "email_lookup", nullable = false, unique = true, updatable = false)
     @Size(max = 200, message = "Email lookup must be 200 characters max")
     @Convert(converter = AttributeHmacEncryptor.class)
     private String emailLookup;
