@@ -142,14 +142,18 @@ jobs:
 
             if [[ $key == TMC_* ]]; then
               custom_key="Secrets.WebApp.Parameters.${key}"
-              # Robustly trim whitespace
-              value_trimmed=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
-              # Escape commas and equals (but not slashes)
-              safe_value=$(printf '%s' "$value_trimmed" | sed 's/,/\\,/g; s/=/\\=/g')
+              # Trim spaces from both ends
+              safe_value="$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+
+              # Compare raw vs. trimmed
+              if [[ "$value" != "$safe_value" ]]; then
+                echo "ERROR: Value for key '${custom_key}' has leading/trailing whitespace"
+                exit 1
+              fi
 
               # Wrap in quotes to keep value intact for Helm/YAML
-              custom_variables_array+=("--set" "${custom_key}=${safe_value}")
+              custom_variables_array+=("--set-string" "${custom_key}=\"${value}\"")
              fi
           done
 
