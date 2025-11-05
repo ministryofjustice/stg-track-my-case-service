@@ -26,15 +26,15 @@ spring:
   application:
     name: Spring Boot Template
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWD}
+    url: ${TMC_DB_URL}
+    username: ${TMC_DB_USERNAME}
+    password: ${TMC_DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: false
 
   flyway:
     enabled: true
@@ -45,8 +45,8 @@ azure:
     instrumentation-key: ${rpe.AppInsightsInstrumentationKey:00000000-0000-0000-0000-000000000000}
 
 services:
-  amp-url: ${AMP_URL}
-  amp-subscription-key: ${AMP_SUBSCRIPTION_KEY}
+  amp-url: ${TMC_AMP_URL}
+  amp-subscription-key: ${TMC_AMP_SUBSCRIPTION_KEY}
 
   api-cp-refdata-courthearing-courthouses:
     path: /courthouses/{court_id}/courtrooms/{court_room_id}
@@ -64,6 +64,6 @@ services:
     version: 0.7.1
 
   users:
-    authorization-header: ${SECURITY_JWT_TOKEN}
-    aes-encryption-secret: ${AES_ENCRYPTION_SECRET}
-    hmac-encryption-secret: ${HMAC_ENCRYPTION_SECRET}
+    authorization-header: ${TMC_SECURITY_JWT_TOKEN}
+    aes-encryption-secret: ${TMC_AES_ENCRYPTION_SECRET}
+    hmac-encryption-secret: ${TMC_HMAC_ENCRYPTION_SECRET}
