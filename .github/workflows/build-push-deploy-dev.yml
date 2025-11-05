@@ -204,6 +204,7 @@ jobs:
           --set securityContext.capabilities.drop=["ALL"] \
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
+          --set Ingress.ExtraAnnotations."nginx\.ingress\.kubernetes\.io/rewrite-target"="/api" \
           "${custom_variables_array[@]}"
           # > rendered.yaml
 
@@ -235,4 +236,5 @@ jobs:
           --set securityContext.capabilities.drop=["ALL"] \
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
+          --set Ingress.ExtraAnnotations."nginx\.ingress\.kubernetes\.io/rewrite-target"="/api" \
           "${custom_variables_array[@]}"
