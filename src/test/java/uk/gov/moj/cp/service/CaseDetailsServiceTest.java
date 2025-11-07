@@ -31,9 +31,14 @@ class CaseDetailsServiceTest {
 
     @Mock
     private CourtHouseService courtHouseService;
+    @Mock
+    private OAuthTokenService oauthTokenService;
+
 
     @InjectMocks
     private CaseDetailsService caseDetailsService;
+    private final String accessToken = "testToken";
+
 
     @Test
     @DisplayName("includes hearings when sitting date is in the future")
@@ -78,8 +83,9 @@ class CaseDetailsServiceTest {
                 Arrays.asList(courtRoomDto)
         );
 
-        when(courtScheduleService.getCourtScheduleByCaseUrn(caseUrn)).thenReturn(List.of(scheduleDto));
-        when(courtHouseService.getCourtHouseById(any(), any())).thenReturn(courtHouseDto);
+        when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
+        when(courtHouseService.getCourtHouseById(any(), any(), any())).thenReturn(courtHouseDto);
+        when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
 
         CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
@@ -132,8 +138,9 @@ class CaseDetailsServiceTest {
         );
 
         final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto));
+        when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
 
-        when(courtScheduleService.getCourtScheduleByCaseUrn(caseUrn)).thenReturn(List.of(scheduleDto));
+        when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
 
         CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
@@ -204,8 +211,9 @@ class CaseDetailsServiceTest {
                 Arrays.asList(courtRoomDto)
         );
 
-        when(courtScheduleService.getCourtScheduleByCaseUrn(caseUrn)).thenReturn(List.of(scheduleDto));
-        when(courtHouseService.getCourtHouseById(any(), any())).thenReturn(courtHouseDto);
+        when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
+        when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
+        when(courtHouseService.getCourtHouseById(any(), any(), any())).thenReturn(courtHouseDto);
 
         CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
@@ -278,9 +286,10 @@ class CaseDetailsServiceTest {
                 addressDto,
                 Arrays.asList(courtRoomDto)
         );
+        when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
 
-        when(courtScheduleService.getCourtScheduleByCaseUrn(caseUrn)).thenReturn(List.of(scheduleDto));
-        when(courtHouseService.getCourtHouseById(any(), any())).thenReturn(courtHouseDto);
+        when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
+        when(courtHouseService.getCourtHouseById(any(), any(), any())).thenReturn(courtHouseDto);
 
         CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
@@ -352,9 +361,10 @@ class CaseDetailsServiceTest {
                 addressDto,
                 Arrays.asList(courtRoomDto)
         );
+        when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
 
-        when(courtScheduleService.getCourtScheduleByCaseUrn(caseUrn)).thenReturn(List.of(scheduleDto));
-        when(courtHouseService.getCourtHouseById(any(), any())).thenReturn(courtHouseDto);
+        when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
+        when(courtHouseService.getCourtHouseById(any(), any(), any())).thenReturn(courtHouseDto);
 
         CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 

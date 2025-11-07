@@ -67,3 +67,12 @@ services:
     authorization-header: ${TMC_SECURITY_JWT_TOKEN}
     aes-encryption-secret: ${TMC_AES_ENCRYPTION_SECRET}
     hmac-encryption-secret: ${TMC_HMAC_ENCRYPTION_SECRET}
+
+  oauth-token:
+    path: /{tenant_id}/oauth2/{version}/token
+    version: v2.0
+    url: ${TMC_TOKEN_URL}
+    tenant-id: ${TMC_TOKEN_TENANT_ID}
+    client-id: ${TMC_TOKEN_CLIENT_ID}
+    client-secret: ${TMC_TOKEN_CLIENT_SECRET}
+    scope: ${TMC_TOKEN_SCOPE}

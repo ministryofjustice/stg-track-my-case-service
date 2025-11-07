@@ -192,7 +192,7 @@ class CaseAuthorizationInterceptorTest {
     }
 
     @Test
-    @DisplayName("Should reject requests to case endpoints with Basic prefix but no token")
+    @DisplayName("Should reject requests to case endpoints with Basic prefix but no accessToken")
     void testPreHandle_CaseEndpoint_BasicOnlyNoToken_ShouldReject() throws Exception {
         // Given
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BASIC_TOKEN_PREFIX);
@@ -230,7 +230,7 @@ class CaseAuthorizationInterceptorTest {
     }
 
     @Test
-    @DisplayName("Should reject requests to case endpoints with empty Base64 token")
+    @DisplayName("Should reject requests to case endpoints with empty Base64 accessToken")
     void testPreHandle_CaseEndpoint_EmptyBase64Token_ShouldReject() throws Exception {
         // Given
         String emptyBase64 = Base64.getEncoder().encodeToString("".getBytes());
@@ -251,7 +251,7 @@ class CaseAuthorizationInterceptorTest {
     }
 
     @Test
-    @DisplayName("Should handle case sensitivity in Basic token prefix")
+    @DisplayName("Should handle case sensitivity in Basic accessToken prefix")
     void testPreHandle_CaseEndpoint_LowercaseBasicPrefix_ShouldReject() throws Exception {
         // Given
         String encodedEmail = Base64.getEncoder().encodeToString(VALID_EMAIL.getBytes());
