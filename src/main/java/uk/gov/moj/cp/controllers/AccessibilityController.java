@@ -15,7 +15,7 @@ public class AccessibilityController {
     @GetMapping("/active-user")
     public ResponseEntity<?> isActiveUser() {
         // all logic is covered in CaseAuthorizationInterceptor
-        // so if we came here, user should be ACTIVE
+        // if user status is ACTIVE, then return status ok
         return ResponseEntity.ok().build();
     }
 }

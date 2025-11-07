@@ -25,7 +25,7 @@ public class CaseDetailsController {
             return ok(caseDetailsService.getCaseDetailsByCaseUrn(caseUrn));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body("An error occurred while processing the request either caseUrn is not available. "
+                .body("An error occurred while processing the request either caseUrn is not available."
                           + "or see the logs for more details.");
         }
     }
