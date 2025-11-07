@@ -27,15 +27,15 @@ public class CaseDetailsService {
     private OAuthTokenService oauthTokenService;
 
     public CaseDetailsDto getCaseDetailsByCaseUrn(String caseUrn) {
-        String token = oauthTokenService.getJwtToken();
-        List<CourtScheduleDto> courtSchedule = courtScheduleService.getCourtScheduleByCaseUrn(token, caseUrn);
+        String accessToken = oauthTokenService.getJwtToken();
+        List<CourtScheduleDto> courtSchedule = courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn);
 
         CaseDetailsDto caseDetails = new CaseDetailsDto(
             caseUrn,
             courtSchedule.stream()
                 .map(schedule -> new CaseDetailsDto.CaseDetailsCourtScheduleDto(
                     schedule.hearingDtos().stream()
-                        .map(t -> getHearingDetails(token,t))
+                        .map(t -> getHearingDetails(accessToken,t))
                         .filter(Objects::nonNull)
                         .toList()
                 ))
@@ -53,10 +53,10 @@ public class CaseDetailsService {
 
     }
 
-    private CaseDetailsHearingDto getHearingDetails(String token, CourtScheduleDto.HearingDto hearing) {
+    private CaseDetailsHearingDto getHearingDetails(String accessToken, CourtScheduleDto.HearingDto hearing) {
         List<CaseDetailsCourtSittingDto> futureSittings = hearing.courtSittingDtos().stream()
             .filter(sitting -> validateSittingDateNotInPast(sitting.sittingStart()))
-            .map(a -> getHearingSchedule(token, a))
+            .map(a -> getHearingSchedule(accessToken, a))
             .toList();
 
         if (futureSittings.isEmpty()) {
@@ -74,12 +74,12 @@ public class CaseDetailsService {
 
 
     private CaseDetailsCourtSittingDto getHearingSchedule(
-        String token, CourtScheduleDto.HearingDto.CourtSittingDto sitting) {
+        String accessToken, CourtScheduleDto.HearingDto.CourtSittingDto sitting) {
         return new CaseDetailsCourtSittingDto(
             sitting.judiciaryId(),
             sitting.sittingStart(),
             sitting.sittingEnd(),
-            courtHouseService.getCourtHouseById(token, sitting.courtHouse(), sitting.courtRoom())
+            courtHouseService.getCourtHouseById(accessToken, sitting.courtHouse(), sitting.courtRoom())
         );
     }
 

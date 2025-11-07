@@ -31,7 +31,7 @@ class CourtHouseServiceTest {
 
     @InjectMocks
     private CourtHouseService courtHouseService;
-    private final String token = "testToken";
+    private final String accessToken = "testToken";
 
 
     @Test
@@ -57,9 +57,9 @@ class CourtHouseServiceTest {
         );
 
         final ResponseEntity<CourtHouse> entity = ResponseEntity.ok(courtHouse);
-        when(courtHouseClient.getCourtHouseById(token, courtHouseId, courtRoomId)).thenReturn(entity);
+        when(courtHouseClient.getCourtHouseById(accessToken, courtHouseId, courtRoomId)).thenReturn(entity);
 
-        CourtHouseDto dto = courtHouseService.getCourtHouseById(token, courtHouseId, courtRoomId);
+        CourtHouseDto dto = courtHouseService.getCourtHouseById(accessToken, courtHouseId, courtRoomId);
 
         assertNotNull(dto);
         assertEquals(courtHouseId, dto.courtHouseId());
@@ -90,7 +90,7 @@ class CourtHouseServiceTest {
         when(courtHouseClient.getCourtHouseById(anyString(), anyString(), anyString()))
             .thenReturn(new ResponseEntity<>(null, null, 200));
 
-        CourtHouseDto result = courtHouseService.getCourtHouseById(token, "courtId", "courtRoomId");
+        CourtHouseDto result = courtHouseService.getCourtHouseById(accessToken, "courtId", "courtRoomId");
 
         assertNull(result);
     }

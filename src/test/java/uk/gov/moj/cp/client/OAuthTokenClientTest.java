@@ -118,7 +118,7 @@ class OAuthTokenClientTest {
 
         assertThatThrownBy(oauthTokenClient::getJwtToken)
             .isInstanceOf(RuntimeException.class)
-            .hasMessage("Failed to retrieve token");
+            .hasMessage("Failed to retrieve accessToken");
     }
 }
 

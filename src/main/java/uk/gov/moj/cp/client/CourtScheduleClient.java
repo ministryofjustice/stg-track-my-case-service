@@ -43,12 +43,12 @@ public class CourtScheduleClient {
             .toUriString();
     }
 
-    public ResponseEntity<CourtScheduleSchema> getCourtScheduleByCaseUrn(String token, String caseUrn) {
+    public ResponseEntity<CourtScheduleSchema> getCourtScheduleByCaseUrn(String accessToken, String caseUrn) {
         try {
             return restTemplate.exchange(
                 buildCourtScheduleUrl(caseUrn),
                 HttpMethod.GET,
-                getRequestEntity(token),
+                getRequestEntity(accessToken),
                 CourtScheduleSchema.class
             );
         } catch (Exception e) {
@@ -57,10 +57,10 @@ public class CourtScheduleClient {
         return null;
     }
 
-    protected HttpEntity<String> getRequestEntity(String token) {
+    protected HttpEntity<String> getRequestEntity(String accessToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-        headers.setBearerAuth(token);
+        headers.setBearerAuth(accessToken);
         headers.set("Ocp-Apim-Subscription-Key", getAmpSubscriptionKey());
         return new HttpEntity<>(headers);
     }

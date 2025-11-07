@@ -69,7 +69,7 @@ public class OAuthTokenClient {
             return response.getBody();
         } else {
             log.error("Failed to retrieve token. HTTP Status: {}", response.getStatusCode());
-            throw new RuntimeException("Failed to retrieve token");
+            throw new RuntimeException("Failed to retrieve accessToken");
         }
     }
 

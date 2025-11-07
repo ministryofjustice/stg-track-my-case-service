@@ -13,7 +13,7 @@ public class OAuthTokenService {
     private OAuthTokenClient oauthTokenClient;
 
     public String getJwtToken() {
-        return oauthTokenClient.getJwtToken().access_token();
+        return oauthTokenClient.getJwtToken().accessToken();
     }
 }
 

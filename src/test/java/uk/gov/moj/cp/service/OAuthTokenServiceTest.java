@@ -39,11 +39,11 @@ class OAuthTokenServiceTest {
 
     @Test
     void shouldPropagateExceptionFromTokenClient() {
-        when(oauthTokenClient.getJwtToken()).thenThrow(new RuntimeException("Token retrieval failed"));
+        when(oauthTokenClient.getJwtToken()).thenThrow(new RuntimeException("accessToken retrieval failed"));
 
         org.assertj.core.api.Assertions.assertThatThrownBy(oauthTokenService::getJwtToken)
             .isInstanceOf(RuntimeException.class)
-            .hasMessage("Token retrieval failed");
+            .hasMessage("accessToken retrieval failed");
 
         verify(oauthTokenClient, times(1)).getJwtToken();
     }

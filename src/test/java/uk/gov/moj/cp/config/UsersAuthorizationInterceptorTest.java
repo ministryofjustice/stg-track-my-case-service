@@ -36,8 +36,8 @@ class UsersAuthorizationInterceptorTest {
     private StringWriter responseWriter;
     private PrintWriter printWriter;
 
-    private static final String VALID_TOKEN = "valid-token-123";
-    private static final String INVALID_TOKEN = "invalid-token-456";
+    private static final String VALID_TOKEN = "valid-accessToken-123";
+    private static final String INVALID_TOKEN = "invalid-accessToken-456";
     private static final String NON_USERS_ENDPOINT = "/api/other";
     private static final String message = "{\"message\":\"You are not allowed to access this resource\"}";
 
@@ -50,7 +50,7 @@ class UsersAuthorizationInterceptorTest {
     }
 
     @Test
-    @DisplayName("Should allow requests to users endpoints with valid Bearer token")
+    @DisplayName("Should allow requests to users endpoints with valid Bearer accessToken")
     void testPreHandle_UsersEndpoint_ValidBearerToken_ShouldAllow() throws Exception {
         // Given
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER_TOKEN_PREFIX + VALID_TOKEN);
@@ -63,7 +63,7 @@ class UsersAuthorizationInterceptorTest {
     }
 
     @Test
-    @DisplayName("Should reject requests to users endpoints with invalid Bearer token")
+    @DisplayName("Should reject requests to users endpoints with invalid Bearer accessToken")
     void testPreHandle_UsersEndpoint_InvalidBearerToken_ShouldReject() throws Exception {
         // Given
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER_TOKEN_PREFIX + INVALID_TOKEN);
@@ -153,7 +153,7 @@ class UsersAuthorizationInterceptorTest {
     }
 
     @Test
-    @DisplayName("Should reject requests to users endpoints with Bearer token but no actual token")
+    @DisplayName("Should reject requests to users endpoints with Bearer accessToken but no actual accessToken")
     void testPreHandle_UsersEndpoint_BearerOnlyNoToken_ShouldReject() throws Exception {
         // Given
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER_TOKEN_PREFIX);
@@ -171,7 +171,7 @@ class UsersAuthorizationInterceptorTest {
     }
 
     @Test
-    @DisplayName("Should reject requests to users endpoints with Bearer token and extra whitespace")
+    @DisplayName("Should reject requests to users endpoints with Bearer accessToken and extra whitespace")
     void testPreHandle_UsersEndpoint_BearerTokenWithWhitespace_ShouldReject() throws Exception {
         // Given
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER_TOKEN_PREFIX + " " + VALID_TOKEN);
@@ -189,7 +189,7 @@ class UsersAuthorizationInterceptorTest {
     }
 
     @Test
-    @DisplayName("Should reject requests to users endpoints with Bearer token and leading/trailing whitespace")
+    @DisplayName("Should reject requests to users endpoints with Bearer accessToken and leading/trailing whitespace")
     void testPreHandle_UsersEndpoint_BearerTokenWithLeadingTrailingWhitespace_ShouldReject() throws Exception {
         // Given
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(" " + BEARER_TOKEN_PREFIX + VALID_TOKEN + " ");
@@ -207,7 +207,7 @@ class UsersAuthorizationInterceptorTest {
     }
 
     @Test
-    @DisplayName("Should handle case sensitivity in Bearer token prefix")
+    @DisplayName("Should handle case sensitivity in Bearer accessToken prefix")
     void testPreHandle_UsersEndpoint_LowercaseBearerPrefix_ShouldReject() throws Exception {
         // Given
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("bearer " + VALID_TOKEN);
@@ -225,7 +225,7 @@ class UsersAuthorizationInterceptorTest {
     }
 
     @Test
-    @DisplayName("Should allow requests to users sub-endpoints with valid token")
+    @DisplayName("Should allow requests to users sub-endpoints with valid accessToken")
     void testPreHandle_UsersSubEndpoint_ValidToken_ShouldAllow() throws Exception {
         // Given
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER_TOKEN_PREFIX + VALID_TOKEN);
@@ -238,7 +238,7 @@ class UsersAuthorizationInterceptorTest {
     }
 
     @Test
-    @DisplayName("Should reject requests to users sub-endpoints with invalid token")
+    @DisplayName("Should reject requests to users sub-endpoints with invalid accessToken")
     void testPreHandle_UsersSubEndpoint_InvalidToken_ShouldReject() throws Exception {
         // Given
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER_TOKEN_PREFIX + INVALID_TOKEN);
@@ -313,7 +313,7 @@ class UsersAuthorizationInterceptorTest {
     }
 
     @Test
-    @DisplayName("Should handle exact token match - case sensitive")
+    @DisplayName("Should handle exact accessToken match - case sensitive")
     void testPreHandle_UsersEndpoint_CaseSensitiveTokenMatch_ShouldReject() throws Exception {
         // Given
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER_TOKEN_PREFIX + VALID_TOKEN.toUpperCase());
@@ -331,10 +331,10 @@ class UsersAuthorizationInterceptorTest {
     }
 
     @Test
-    @DisplayName("Should handle token with special characters")
+    @DisplayName("Should handle accessToken with special characters")
     void testPreHandle_UsersEndpoint_TokenWithSpecialCharacters_ShouldAllow() throws Exception {
         // Given
-        String specialToken = "token-with-special.chars_123!@#";
+        String specialToken = "accessToken-with-special.chars_123!@#";
         UsersAuthorizationInterceptor interceptorWithSpecialToken = new UsersAuthorizationInterceptor(specialToken);
         when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(BEARER_TOKEN_PREFIX + specialToken);
 
@@ -346,7 +346,7 @@ class UsersAuthorizationInterceptorTest {
     }
 
     @Test
-    @DisplayName("Should handle very long token")
+    @DisplayName("Should handle very long accessToken")
     void testPreHandle_UsersEndpoint_VeryLongToken_ShouldReject() throws Exception {
         // Given
         String veryLongToken = "a".repeat(1000);
@@ -365,7 +365,7 @@ class UsersAuthorizationInterceptorTest {
     }
 
     @Test
-    @DisplayName("Should handle empty token")
+    @DisplayName("Should handle empty accessToken")
     void testPreHandle_UsersEndpoint_EmptyToken_ShouldReject() throws Exception {
         // Given
         when(response.getWriter()).thenReturn(printWriter);
