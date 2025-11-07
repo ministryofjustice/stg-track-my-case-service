@@ -24,10 +24,10 @@ public class CaseDetailsService {
     private CourtHouseService courtHouseService;
 
     @Autowired
-    private TokenService tokenService;
+    private OAuthTokenService oauthTokenService;
 
     public CaseDetailsDto getCaseDetailsByCaseUrn(String caseUrn) {
-        String token = tokenService.getJwtToken();
+        String token = oauthTokenService.getJwtToken();
         List<CourtScheduleDto> courtSchedule = courtScheduleService.getCourtScheduleByCaseUrn(token, caseUrn);
 
         CaseDetailsDto caseDetails = new CaseDetailsDto(

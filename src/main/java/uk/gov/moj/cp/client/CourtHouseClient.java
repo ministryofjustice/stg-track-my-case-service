@@ -61,8 +61,7 @@ public class CourtHouseClient {
     protected HttpEntity<String> getRequestEntity(String accessToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-        //headers.setBearerAuth(accessToken);
-        headers.setBearerAuth("accessToken");
+        headers.setBearerAuth(accessToken);
         headers.set("Ocp-Apim-Subscription-Key", getAmpSubscriptionKey());
         return new HttpEntity<>(headers);
     }

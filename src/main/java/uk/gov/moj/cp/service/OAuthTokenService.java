@@ -3,17 +3,17 @@ package uk.gov.moj.cp.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import uk.gov.moj.cp.client.TokenClient;
+import uk.gov.moj.cp.client.OAuthTokenClient;
 
 @Service
 @Slf4j
-public class TokenService {
+public class OAuthTokenService {
 
     @Autowired
-    private TokenClient tokenClient;
+    private OAuthTokenClient oauthTokenClient;
 
     public String getJwtToken() {
-        return tokenClient.getJwtToken().access_token();
+        return oauthTokenClient.getJwtToken().access_token();
     }
 }
 

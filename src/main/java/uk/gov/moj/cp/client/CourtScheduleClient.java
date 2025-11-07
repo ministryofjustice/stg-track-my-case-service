@@ -60,8 +60,7 @@ public class CourtScheduleClient {
     protected HttpEntity<String> getRequestEntity(String token) {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-        //headers.setBearerAuth(token);
-        headers.setBearerAuth("token");
+        headers.setBearerAuth(token);
         headers.set("Ocp-Apim-Subscription-Key", getAmpSubscriptionKey());
         return new HttpEntity<>(headers);
     }

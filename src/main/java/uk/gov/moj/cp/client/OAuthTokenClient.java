@@ -13,12 +13,12 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import uk.gov.moj.cp.model.TokenResponse;
+import uk.gov.moj.cp.model.OAuthTokenResponse;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class TokenClient {
+public class OAuthTokenClient {
 
     private final RestTemplate restTemplate;
 
@@ -59,11 +59,11 @@ public class TokenClient {
             .toUriString();
     }
 
-    public TokenResponse getJwtToken() {
+    public OAuthTokenResponse getJwtToken() {
         HttpEntity<MultiValueMap<String, String>> request = getHttpEntity();
-        ResponseEntity<TokenResponse> response = restTemplate.postForEntity(
+        ResponseEntity<OAuthTokenResponse> response = restTemplate.postForEntity(
             buildTokenPathUrl(getTenantId(), getVersion()),
-            request, TokenResponse.class
+            request, OAuthTokenResponse.class
         );
         if (response.getStatusCode().is2xxSuccessful()) {
             return response.getBody();

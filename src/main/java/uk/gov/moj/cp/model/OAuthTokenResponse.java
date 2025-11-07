@@ -1,6 +1,6 @@
 package uk.gov.moj.cp.model;
 
-public record TokenResponse(
+public record OAuthTokenResponse(
     String token_type,
     int expires_in,
     int ext_expires_in,
