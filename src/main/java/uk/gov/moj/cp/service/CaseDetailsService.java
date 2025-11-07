@@ -23,20 +23,23 @@ public class CaseDetailsService {
     @Autowired
     private CourtHouseService courtHouseService;
 
+    @Autowired
+    private TokenService tokenService;
 
     public CaseDetailsDto getCaseDetailsByCaseUrn(String caseUrn) {
-        List<CourtScheduleDto> courtSchedule = courtScheduleService.getCourtScheduleByCaseUrn(caseUrn);
+        String token = tokenService.getJwtToken();
+        List<CourtScheduleDto> courtSchedule = courtScheduleService.getCourtScheduleByCaseUrn(token, caseUrn);
 
         CaseDetailsDto caseDetails = new CaseDetailsDto(
             caseUrn,
             courtSchedule.stream()
                 .map(schedule -> new CaseDetailsDto.CaseDetailsCourtScheduleDto(
                     schedule.hearingDtos().stream()
-                        .map(this::getHearingDetails)
+                        .map(t -> getHearingDetails(token,t))
                         .filter(Objects::nonNull)
-                        .collect(Collectors.toList())
+                        .toList()
                 ))
-                .collect(Collectors.toList())
+                .toList()
         );
         String courtHouseAndRoomIds = caseDetails.courtSchedule().stream()
             .flatMap(a -> a.hearings().stream()
@@ -50,11 +53,11 @@ public class CaseDetailsService {
 
     }
 
-    private CaseDetailsHearingDto getHearingDetails(CourtScheduleDto.HearingDto hearing) {
+    private CaseDetailsHearingDto getHearingDetails(String token, CourtScheduleDto.HearingDto hearing) {
         List<CaseDetailsCourtSittingDto> futureSittings = hearing.courtSittingDtos().stream()
             .filter(sitting -> validateSittingDateNotInPast(sitting.sittingStart()))
-            .map(this::getHearingSchedule)
-            .collect(Collectors.toList());
+            .map(a -> getHearingSchedule(token, a))
+            .toList();
 
         if (futureSittings.isEmpty()) {
             return null;
@@ -71,12 +74,12 @@ public class CaseDetailsService {
 
 
     private CaseDetailsCourtSittingDto getHearingSchedule(
-        CourtScheduleDto.HearingDto.CourtSittingDto sitting) {
+        String token, CourtScheduleDto.HearingDto.CourtSittingDto sitting) {
         return new CaseDetailsCourtSittingDto(
             sitting.judiciaryId(),
             sitting.sittingStart(),
             sitting.sittingEnd(),
-            courtHouseService.getCourtHouseById(sitting.courtHouse(), sitting.courtRoom())
+            courtHouseService.getCourtHouseById(token, sitting.courtHouse(), sitting.courtRoom())
         );
     }
 

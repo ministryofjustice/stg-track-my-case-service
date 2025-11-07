@@ -24,8 +24,8 @@ public class CourtScheduleService {
     @Autowired
     private CourtScheduleClient courtScheduleClient;
 
-    public List<CourtScheduleDto> getCourtScheduleByCaseUrn(String caseUrn) {
-        ResponseEntity<CourtScheduleSchema> result = courtScheduleClient.getCourtScheduleByCaseUrn(caseUrn);
+    public List<CourtScheduleDto> getCourtScheduleByCaseUrn(String token, String caseUrn) {
+        ResponseEntity<CourtScheduleSchema> result = courtScheduleClient.getCourtScheduleByCaseUrn(token, caseUrn);
         if (result == null || result.getBody() == null) {
             throw new RuntimeException("Response body is null or empty for caseUrn: " + caseUrn);
         }

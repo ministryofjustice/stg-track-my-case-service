@@ -30,6 +30,7 @@ class CourtScheduleServiceTest {
 
     @InjectMocks
     private CourtScheduleService courtScheduleService;
+    private final String token = "testToken";
 
 
     @Test
@@ -81,9 +82,9 @@ class CourtScheduleServiceTest {
         final CourtScheduleSchema schema = new CourtScheduleSchema(List.of(courtSchedule));
         final ResponseEntity<CourtScheduleSchema> response = ResponseEntity.ok(schema);
 
-        when(courtScheduleClient.getCourtScheduleByCaseUrn(caseUrn)).thenReturn(response);
+        when(courtScheduleClient.getCourtScheduleByCaseUrn(token, caseUrn)).thenReturn(response);
 
-        List<CourtScheduleDto> result = courtScheduleService.getCourtScheduleByCaseUrn(caseUrn);
+        List<CourtScheduleDto> result = courtScheduleService.getCourtScheduleByCaseUrn(token, caseUrn);
 
         assertNotNull(result);
         assertEquals(1, result.size());
@@ -121,9 +122,9 @@ class CourtScheduleServiceTest {
         final CourtScheduleSchema schema = new CourtScheduleSchema(List.of(courtSchedule));
         final ResponseEntity<CourtScheduleSchema> response = ResponseEntity.ok(schema);
 
-        when(courtScheduleClient.getCourtScheduleByCaseUrn(caseUrn)).thenReturn(response);
+        when(courtScheduleClient.getCourtScheduleByCaseUrn(token, caseUrn)).thenReturn(response);
 
-        List<CourtScheduleDto> result = courtScheduleService.getCourtScheduleByCaseUrn(caseUrn);
+        List<CourtScheduleDto> result = courtScheduleService.getCourtScheduleByCaseUrn(token, caseUrn);
 
         assertNotNull(result);
         assertEquals(1, result.size());
