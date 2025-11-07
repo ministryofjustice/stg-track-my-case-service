@@ -148,7 +148,7 @@ public class CaseDetailsControllerTest {
                             .contentType(MediaType.APPLICATION_JSON))
                             .andExpect(status().isNotFound())
                             .andExpect(content().string(
-                                "An error occurred while processing the request either caseUrn is not available. "
+                                "An error occurred while processing the request either caseUrn is not available,"
                                     + "or see the logs for more details."
                             ));
     }
@@ -165,7 +165,7 @@ public class CaseDetailsControllerTest {
                             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isNotFound())
             .andExpect(content().string(
-                "An error occurred while processing the request either caseUrn is not available. "
+                "An error occurred while processing the request either caseUrn is not available,"
                     + "or see the logs for more details."
             ));
     }
