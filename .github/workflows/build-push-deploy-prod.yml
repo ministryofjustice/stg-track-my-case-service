@@ -133,17 +133,21 @@ jobs:
             key=$(echo "$row" | base64 --decode | jq -r '.key')
             value=$(echo "$row" | base64 --decode | jq -r '.value')
 
-            if [[ $key == XXX* ]]; then
-              custom_key=$(echo "$key" | sed 's/^XXX_/Secrets.WebApp.Parameters./')
+            if [[ $key == TMC_* ]]; then
+              custom_key="Secrets.WebApp.Parameters.${key}"
 
-              # Robustly trim whitespace
-              value_trimmed=$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+              # Trim spaces from both ends
+              safe_value="$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
 
-              # Escape commas and equals (but not slashes)
-              safe_value=$(printf '%s' "$value_trimmed" | sed 's/,/\\,/g; s/=/\\=/g')
+              # Compare raw vs. trimmed
+              if [[ "$value" != "$safe_value" ]]; then
+                echo "ERROR: Value for key '${custom_key}' has leading/trailing whitespace"
+                exit 1
+              fi
 
-              custom_variables_array+=("--set" "${custom_key}=${safe_value}")
-            fi
+              # Wrap in quotes to keep value intact for Helm/YAML
+              custom_variables_array+=("--set-string" "${custom_key}=${safe_value}")
+             fi
           done
 
           # Debug
