@@ -42,4 +42,3 @@ services:
     client-id: client-id
     client-secret: client-secret
     scope: api://scope/.default
-
