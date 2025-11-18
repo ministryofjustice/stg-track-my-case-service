@@ -10,7 +10,7 @@ spring:
       ddl-auto: create-drop
     show-sql: false
   flyway:
-    enabled: false
+    enabled: true
   main:
     web-application-type: servlet
 
@@ -27,13 +27,13 @@ services:
   amp-url: https://dummy
   amp-subscription-key: dummy-key
   api-cp-crime-schedulingandlisting-courtschedule:
-    path: /dummy
+    path: /some-api-cp-crime-schedulingandlisting-courtschedule
   api-cp-refdata-courthearing-courthouses:
-    path: /dummy
+    path: /some-api-cp-refdata-courthearing-courthouses
   users:
     authorization-header: test-token
-    aes-encryption-secret: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
-    hmac-encryption-secret: BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=
+    aes-encryption-secret: FmkCWyCPfsuVD3r1SHqS3BFtB4YI1i7QdiZrfGKjv4k=
+    hmac-encryption-secret: oUO29pYYc9n4XlvAbPt8B0ncfadyqnI8C63tKCWKuao=
   oauth-token:
     url: https://login.microsoftonline.com
     path: /{tenant}/oauth2/{version}/token
