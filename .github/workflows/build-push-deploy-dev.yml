@@ -3,7 +3,7 @@ name: CI/CD dev
 on:
   push:
     branches:
-      - main
+      - develop
   workflow_dispatch:
 
 permissions: {}
@@ -203,6 +203,7 @@ jobs:
           --set WebApp.Image.Repository=$ECR_REPO_WEBAPP \
           --set WebApp.Image.Tag=$NEW_TAG_V \
           --set WebApp.Name=$KUBE_NAMESPACE \
+          --set Ingress.ModSec.Enabled=true \
           --set securityContext.allowPrivilegeEscalation=false \
           --set securityContext.capabilities.drop=["ALL"] \
           --set securityContext.runAsNonRoot=true \
@@ -234,8 +235,42 @@ jobs:
           --set WebApp.Image.Repository=$ECR_REPO_WEBAPP \
           --set WebApp.Image.Tag=$NEW_TAG_V \
           --set WebApp.Name=$KUBE_NAMESPACE \
+          --set Ingress.ModSec.Enabled=true \
           --set securityContext.allowPrivilegeEscalation=false \
           --set securityContext.capabilities.drop=["ALL"] \
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
           "${custom_variables_array[@]}"
+
+      - name: Extract deployed service values for monitoring
+        id: extract-values
+        env:
+          RELEASE_NAME: ${{ github.event.repository.name }}-dev
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+        run: |
+          echo "Extracting deployed Helm values..."
+
+          SERVICE_NAME=$(helm get values "$RELEASE_NAME" -n "$KUBE_NAMESPACE" -o json | jq -r '.WebApp.Name')
+          SERVICE_PORT=$(helm get values "$RELEASE_NAME" -n "$KUBE_NAMESPACE" -o json | jq -r '.Ingress.Port')
+          TARGET_PORT=$(helm get values "$RELEASE_NAME" -n "$KUBE_NAMESPACE" -o json | jq -r '.AuthProxy.containerPort')
+
+          echo "ServiceName=$SERVICE_NAME"
+          echo "ServicePort=$SERVICE_PORT"
+          echo "TargetPort=$TARGET_PORT"
+
+          # Export them to the next step
+          echo "service_name=$SERVICE_NAME" >> $GITHUB_OUTPUT
+          echo "service_port=$SERVICE_PORT" >> $GITHUB_OUTPUT
+          echo "target_port=$TARGET_PORT" >> $GITHUB_OUTPUT          
+
+      - name: Deploy Monitoring Helm chart
+        env:
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+        run: |
+          helm upgrade --install monitoring-helmcharts ./monitoring-helmcharts \
+            --namespace $KUBE_NAMESPACE \
+            --set serviceName=${{ steps.extract-values.outputs.service_name }} \
+            --set namespace=$KUBE_NAMESPACE \
+            --set servicePort=${{ steps.extract-values.outputs.service_port }} \
+            --set targetPort=${{ steps.extract-values.outputs.target_port }} \
+            --set monitoring.interval="15s"         
