@@ -2,11 +2,11 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-prometheus-scraping
-  namespace: {{ .Values.namespace }}
+  namespace: { { .Values.namespace } }
 spec:
   podSelector:
     matchLabels:
-      app: {{ .Values.serviceName }}
+      app: { { .Values.serviceName } }
   policyTypes:
     - Ingress
   ingress:
@@ -15,5 +15,5 @@ spec:
             matchLabels:
               component: monitoring
       ports:
-        - port: {{ .Values.targetPort }}
+        - port: { { .Values.targetPort } }
           protocol: TCP

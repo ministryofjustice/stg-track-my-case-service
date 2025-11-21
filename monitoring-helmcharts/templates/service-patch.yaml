@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.serviceName }}
-  namespace: {{ .Values.namespace }}
+  name: { { .Values.serviceName } }
+  namespace: { { .Values.namespace } }
   annotations:
     monitoring-addon/port-patched: "true"
 spec:
   ports:
     - name: http
-      port: {{ .Values.servicePort }}
-      targetPort: {{ .Values.targetPort }}
+      port: { { .Values.servicePort } }
+      targetPort: { { .Values.targetPort } }
   selector:
-    app: {{ .Values.serviceName }}
+    app: { { .Values.serviceName } }
