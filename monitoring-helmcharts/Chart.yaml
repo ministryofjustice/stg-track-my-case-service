@@ -1,0 +1,4 @@
+apiVersion: v2
+name: monitoring-addon
+version: 0.1.0
+description: Adds ServiceMonitor + NetworkPolicy + Service patch for WebApp
