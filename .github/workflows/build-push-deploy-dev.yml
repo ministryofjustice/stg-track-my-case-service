@@ -3,7 +3,7 @@ name: CI/CD dev
 on:
   push:
     branches:
-      - main
+      - develop
   workflow_dispatch:
 
 permissions: {}
@@ -203,6 +203,7 @@ jobs:
           --set WebApp.Image.Repository=$ECR_REPO_WEBAPP \
           --set WebApp.Image.Tag=$NEW_TAG_V \
           --set WebApp.Name=$KUBE_NAMESPACE \
+          --set Ingress.ModSec.Enabled=true \
           --set securityContext.allowPrivilegeEscalation=false \
           --set securityContext.capabilities.drop=["ALL"] \
           --set securityContext.runAsNonRoot=true \
@@ -234,6 +235,7 @@ jobs:
           --set WebApp.Image.Repository=$ECR_REPO_WEBAPP \
           --set WebApp.Image.Tag=$NEW_TAG_V \
           --set WebApp.Name=$KUBE_NAMESPACE \
+          --set Ingress.ModSec.Enabled=true \
           --set securityContext.allowPrivilegeEscalation=false \
           --set securityContext.capabilities.drop=["ALL"] \
           --set securityContext.runAsNonRoot=true \
