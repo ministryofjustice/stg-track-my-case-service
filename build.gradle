@@ -130,6 +130,10 @@ tasks.named('processPactContractTestResources') {
   duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
+tasks.named('processIntegrationTestResources') {
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 jacocoTestReport {
   executionData(test, integration)
   reports {
