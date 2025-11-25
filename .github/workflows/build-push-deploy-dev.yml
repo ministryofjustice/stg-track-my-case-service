@@ -267,6 +267,10 @@ jobs:
         env:
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
         run: |
+          echo "current working dir"
+          pwd 
+          echo "list all files"
+          ls -lR
           helm upgrade --install monitoring-helmcharts ./monitoring-helmcharts \
             --namespace $KUBE_NAMESPACE \
             --set serviceName=${{ steps.extract-values.outputs.service_name }} \
