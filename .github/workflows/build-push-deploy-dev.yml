@@ -270,7 +270,9 @@ jobs:
           echo "current working dir"
           pwd 
           echo "list all files"
-          ls -lR
+          ls -lRt
+          echo "checking build path"
+          echo ${GITHUB_WORKSPACE}
           helm upgrade --install monitoring-helmcharts ./monitoring-helmcharts \
             --namespace $KUBE_NAMESPACE \
             --set serviceName=${{ steps.extract-values.outputs.service_name }} \
