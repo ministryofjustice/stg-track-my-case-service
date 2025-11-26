@@ -1,12 +1,12 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: { { .Values.serviceName } }
-  namespace: { { .Values.namespace } }
+  name: stg-track-my-case-service-dev
+  namespace: stg-track-my-case-service-dev
 spec:
   selector:
     matchLabels:
-      app: { { .Values.serviceName } }
+      app: stg-track-my-case-service-dev
   endpoints:
     - port: http
-      interval: { { .Values.monitoring.interval } }
+      interval: 15s
