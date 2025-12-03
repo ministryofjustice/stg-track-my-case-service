@@ -82,7 +82,7 @@ jobs:
 
       - name: Authenticate to the cluster
         env:
-          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}_staging
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
           KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
         run: |
           echo "${{ secrets.KUBE_CERT }}" > ca.crt
@@ -91,15 +91,18 @@ jobs:
           kubectl config set-context ${KUBE_CLUSTER} --cluster=${KUBE_CLUSTER} --user=deploy-user --namespace=${{ secrets.KUBE_NAMESPACE }}
           kubectl config use-context ${KUBE_CLUSTER}
 
-      - name: add helm repo
-        continue-on-error: true
-        run: |
-          helm repo add mojanalytics http://moj-analytics-helm-repo.s3-website-eu-west-1.amazonaws.com/
+      # - name: add helm repo
+      #   continue-on-error: true
+      #   run: |
+      #     helm repo add mojanalytics http://moj-analytics-helm-repo.s3-website-eu-west-1.amazonaws.com/
 
-      - name: update helm repo
-        continue-on-error: true
-        run: |
-          helm repo update mojanalytics
+      # - name: update helm repo
+      #   continue-on-error: true
+      #   run: |
+      #     helm repo update mojanalytics
+
+      - name: Clone Helm chart repo
+        run: git clone https://github.com/ministryofjustice/track-my-case-cloud-platform.git    
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v5
@@ -125,7 +128,7 @@ jobs:
           ECR_REPO_AUTH0: ${{ steps.login-ecr.outputs.registry }}/analytical-platform/ap-auth-proxy-prod-ecr
           ECR_REPO_WEBAPP: ${{ steps.login-ecr.outputs.registry }}/${{ vars.STAGING_ECR_REPOSITORY }}
           IP_RANGES: ${{ secrets.IP_RANGES }}
-          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}_staging
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
           NEW_TAG_V: ${{ needs.build-push-staging.outputs.new_tag }}
           RELEASE_NAME: ${{ github.event.repository.name }}-staging
           SECRETS_CONTEXT:  ${{ toJson(secrets) }}
@@ -190,7 +193,8 @@ jobs:
           echo "=== DEBUG: Helm command ==="
           set -x
 
-          helm upgrade --install --dry-run --debug --namespace $KUBE_NAMESPACE $RELEASE_NAME mojanalytics/webapp-cp \
+          # helm upgrade --install --dry-run --debug --namespace $KUBE_NAMESPACE $RELEASE_NAME mojanalytics/webapp-cp \
+          helm upgrade --install --dry-run --debug --namespace $KUBE_NAMESPACE $RELEASE_NAME ./track-my-case-cloud-platform/charts/webapp-cp
           --set AuthProxy.Env.Auth0Domain=$AUTH0_DOMAIN \
           --set AuthProxy.Env.Auth0Passwordless=$AUTH0_PASSWORDLESS \
           --set AuthProxy.Env.Auth0TokenAlg=$AUTH0_TOKEN_ALG \
@@ -221,9 +225,11 @@ jobs:
           # | sed -n '1,/^- name:/p'
 
           echo "=== Chart values: WebApp section ==="
-          helm show values mojanalytics/webapp-cp | sed -n '/^WebApp:/,/^[A-Za-z]/p'
+          # helm show values mojanalytics/webapp-cp | sed -n '/^WebApp:/,/^[A-Za-z]/p'
+          helm show values ./track-my-case-cloud-platform/charts/webapp-cp | sed -n '/^WebApp:/,/^[A-Za-z]/p'
 
-          helm upgrade --install --atomic --wait --timeout 10m0s --namespace $KUBE_NAMESPACE $RELEASE_NAME mojanalytics/webapp-cp \
+          # helm upgrade --install --atomic --wait --timeout 10m0s --namespace $KUBE_NAMESPACE $RELEASE_NAME mojanalytics/webapp-cp \
+          helm upgrade --install --atomic --wait --timeout 10m0s --namespace $KUBE_NAMESPACE $RELEASE_NAME ./track-my-case-cloud-platform/charts/webapp-cp \
           --set AuthProxy.Env.Auth0Domain=$AUTH0_DOMAIN \
           --set AuthProxy.Env.Auth0Passwordless=$AUTH0_PASSWORDLESS \
           --set AuthProxy.Env.Auth0TokenAlg=$AUTH0_TOKEN_ALG \
@@ -251,7 +257,7 @@ jobs:
         id: extract-values
         env:
           RELEASE_NAME: ${{ github.event.repository.name }}-staging
-          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}_staging
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
         run: |
           echo "Extracting deployed Helm values..."
 
@@ -264,7 +270,7 @@ jobs:
 
       - name: Deploy Monitoring Helm chart
         env:
-          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}_staging
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
         run: |
           helm upgrade --install monitoring-helmcharts ./monitoring-helmcharts \
             --namespace $KUBE_NAMESPACE \
