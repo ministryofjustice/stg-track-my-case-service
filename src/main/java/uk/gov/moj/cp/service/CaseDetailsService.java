@@ -7,6 +7,7 @@ import uk.gov.moj.cp.dto.CaseDetailsDto;
 import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto.CaseDetailsHearingDto;
 import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto.CaseDetailsHearingDto.CaseDetailsCourtSittingDto;
 import uk.gov.moj.cp.dto.CourtScheduleDto;
+import uk.gov.moj.cp.metrics.TrackMyCaseMetricsService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,6 +26,9 @@ public class CaseDetailsService {
 
     @Autowired
     private OAuthTokenService oauthTokenService;
+
+    @Autowired
+    private TrackMyCaseMetricsService trackMyCaseMetricsService;
 
     public CaseDetailsDto getCaseDetailsByCaseUrn(String caseUrn) {
         String accessToken = oauthTokenService.getJwtToken();
@@ -49,6 +53,7 @@ public class CaseDetailsService {
 
         log.atInfo().log("caseUrn : {} -> Received CourtHouse Id and courtRoomId :{}",
                          caseUrn, courtHouseAndRoomIds);
+        trackMyCaseMetricsService.incrementCaseDetailsCount(caseUrn);
         return caseDetails;
 
     }

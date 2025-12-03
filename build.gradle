@@ -229,6 +229,12 @@ dependencies {
   implementation 'javax.validation:validation-api:2.0.1.Final'
   implementation("org.json:json:20210307")
 
+  // Metrics
+  implementation 'org.springframework.boot:spring-boot-starter-actuator'
+  implementation 'io.micrometer:micrometer-registry-prometheus'
+  implementation 'io.prometheus:prometheus-metrics-tracer-initializer'
+  
+
   testImplementation(platform('org.junit:junit-bom:5.12.2'))
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: springBootVersion, {
