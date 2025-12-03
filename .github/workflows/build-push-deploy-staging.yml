@@ -102,12 +102,7 @@ jobs:
       #     helm repo update mojanalytics
 
       - name: Clone Helm chart repo
-        run: git clone https://github.com/ministryofjustice/track-my-case-cloud-platform.git
-        
-      - name: Debug Folder Paths
-        run: |
-          pwd
-          ls -R  
+        run: git clone --branch move-webapp-cp-1 https://github.com/ministryofjustice/track-my-case-cloud-platform.git
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v5
