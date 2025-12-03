@@ -3,7 +3,7 @@ name: CI/CD staging
 on:
   push:
     branches:
-      - staging
+      - move-webapp-cp-3
   workflow_dispatch:
 
 permissions: {}
