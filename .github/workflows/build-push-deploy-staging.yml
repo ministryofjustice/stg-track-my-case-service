@@ -16,7 +16,7 @@ jobs:
     permissions:
       id-token: write # This is required for requesting the JWT
       contents: write # This is required for actions/checkout
-    environment: dev
+    environment: staging
     outputs:
       new_tag: ${{ steps.set-version-tag-output.outputs.new_tag }}
     steps:
@@ -51,7 +51,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v5
         with:
-          role-to-assume: ${{ secrets.DEV_ECR_ROLE_TO_ASSUME }}
+          role-to-assume: ${{ secrets.STAGING_ECR_ROLE_TO_ASSUME }}
           aws-region: ${{ vars.STAGING_ECR_REGION }}
 
       - name: Login to Amazon ECR
@@ -75,7 +75,7 @@ jobs:
     permissions:
       contents: write # This is required for actions/checkout
       id-token: write # This is required for requesting the JWT
-    environment: dev
+    environment: staging
     steps:
       - name: Checkout
         uses: actions/checkout@v5
