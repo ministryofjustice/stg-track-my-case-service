@@ -1,16 +1,16 @@
 package uk.gov.moj.cp.metrics;
 
-import lombok.extern.slf4j.Slf4j;
 import io.prometheus.metrics.core.metrics.Counter;
 import io.prometheus.metrics.model.registry.PrometheusRegistry;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @Slf4j
-@Getter
 @Service
 public class TrackMyCaseMetricsService {
 
+    @Getter
     private final Counter caseDetailsCounter;
 
     public TrackMyCaseMetricsService(PrometheusRegistry meterRegistry) {

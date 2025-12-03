@@ -47,7 +47,7 @@ class TrackMyCaseMetricsServiceTest {
         String caseReference2 = "CASE456";
         String caseReference3 = "CASE789";
         Counter counter = trackMyCaseMetricsService.getCaseDetailsCounter();
-        double initialCount = counter.get();
+        final double initialCount = counter.get();
 
         trackMyCaseMetricsService.incrementCaseDetailsCount(caseReference1);
         trackMyCaseMetricsService.incrementCaseDetailsCount(caseReference2);
@@ -108,7 +108,7 @@ class TrackMyCaseMetricsServiceTest {
         String caseReference2 = "case_456";
         String caseReference3 = "Case789";
         Counter counter = trackMyCaseMetricsService.getCaseDetailsCounter();
-        double initialCount = counter.get();
+        final double initialCount = counter.get();
 
         trackMyCaseMetricsService.incrementCaseDetailsCount(caseReference1);
         trackMyCaseMetricsService.incrementCaseDetailsCount(caseReference2);
