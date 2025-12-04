@@ -1,32 +1,21 @@
 package uk.gov.moj.cp.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import uk.gov.moj.cp.model.UserStatus;
+import uk.gov.moj.cp.model.UserRole;
+
+import java.time.LocalDateTime;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@Getter
+@AllArgsConstructor
+@Builder
 public class UserResponseDto {
     private String email;
-    private String status;
-    private String reason;
-
-    public UserResponseDto(final String email, final String status, final String reason) {
-        this.email = email;
-        this.status = status;
-        this.reason = reason;
-    }
-
-    public UserResponseDto(final String email, final String status) {
-        this(email, status, null);
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public String getReason() {
-        return reason;
-    }
+    private UserRole role;
+    private UserStatus status;
+    private LocalDateTime updated;
 }

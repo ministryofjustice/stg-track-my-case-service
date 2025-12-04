@@ -1,25 +1,25 @@
 package uk.gov.moj.cp.service;
 
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import uk.gov.moj.cp.dto.UpdateUserDto;
+import uk.gov.moj.cp.dto.UserCreationResponseDto;
+import uk.gov.moj.cp.dto.UserDto;
 import uk.gov.moj.cp.dto.UserResponseDto;
-import uk.gov.moj.cp.model.ActiveStatus;
-import uk.gov.moj.cp.model.Roles;
-import uk.gov.moj.cp.model.User;
+import uk.gov.moj.cp.entity.User;
+import uk.gov.moj.cp.model.UserCreationStatus;
+import uk.gov.moj.cp.model.UserRole;
+import uk.gov.moj.cp.model.UserStatus;
 import uk.gov.moj.cp.repository.UserRepository;
-
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -41,151 +41,236 @@ public class UserServiceTest {
     @Test
     @DisplayName("Should create user successfully")
     void testCreateUser_Success() {
-        User user = new User();
-        user.setEmail("test@example.com");
-        user.setRole(Roles.ADMIN.name());
-        user.setActive(Boolean.valueOf(ActiveStatus.TRUE.name()));
+        final UserDto userDto = UserDto.builder()
+            .email("test@example.com")
+            .build();
 
-        when(userRepository.save(any(User.class))).thenReturn(user);
+        User savedUser = new User("test@example.com");
+        savedUser.setRole(UserRole.USER);
+        savedUser.setStatus(UserStatus.ACTIVE);
 
-        User result = userService.createUser(user);
+        when(userRepository.findByEmailLookup("test@example.com")).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
 
-        assertThat(result).isNotNull();
-        assertThat(result.getEmail()).isEqualTo("test@example.com");
+        List<UserCreationResponseDto> result = userService.addUsers(List.of(userDto));
+
+        assertThat(!result.isEmpty()).isTrue();
+        assertThat(result.getFirst().getEmail()).isEqualTo("test@example.com");
+        assertThat(result.getFirst().getStatus()).isEqualTo(UserCreationStatus.CREATED);
         verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
-    @DisplayName("Should throw exception for invalid role")
-    void testCreateUser_InvalidRole() {
-        User user = new User();
-        user.setEmail("invalid@example.com");
-        user.setRole("INVALID_ROLE"); // invalid
-        user.setActive(Boolean.valueOf(ActiveStatus.TRUE.name()));
+    @DisplayName("Should return failed response for invalid email")
+    void testCreateUser_InvalidEmail() {
+        UserDto userDto = UserDto.builder()
+            .email("invalid-email") // invalid email format
+            .build();
 
-        assertThatThrownBy(() -> userService.createUser(user))
-            .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Invalid role");
+        List<UserCreationResponseDto> result = userService.addUsers(List.of(userDto));
+
+        assertThat(!result.isEmpty()).isTrue();
+        assertThat(result.getFirst().getEmail()).isEqualTo("invalid-email");
+        assertThat(result.getFirst().getStatus()).isEqualTo(UserCreationStatus.FAILED);
+        assertThat(result.getFirst().getReason()).isEqualTo("User email validation failed");
+    }
+
+    @Test
+    @DisplayName("Should return failed response for duplicate email")
+    void testCreateUser_DuplicateEmail() {
+        UserDto userDto = UserDto.builder()
+            .email("existing@example.com")
+            .build();
+
+        User existingUser = new User("existing@example.com");
+        when(userRepository.findByEmailLookup("existing@example.com")).thenReturn(Optional.of(existingUser));
+
+        List<UserCreationResponseDto> results = userService.addUsers(List.of(userDto));
+
+        assertThat(!results.isEmpty()).isTrue();
+        UserCreationResponseDto result = results.getFirst();
+        assertThat(result.getEmail()).isEqualTo("existing@example.com");
+        assertThat(result.getStatus()).isEqualTo(UserCreationStatus.FAILED);
+        assertThat(result.getReason()).isEqualTo("Email already exists");
+        verify(userRepository, times(0)).save(any(User.class));
     }
 
     @Test
     @DisplayName("Should update existing user")
     void testUpdateUser_Success() {
-        final UUID id = UUID.randomUUID();
-        User existingUser = new User();
-        //existingUser.setId(id);
-        existingUser.setEmail("old@example.com");
-        existingUser.setRole(Roles.USER.name());
-        existingUser.setActive(Boolean.valueOf(ActiveStatus.TRUE.name()));
+        final UpdateUserDto updateUserDto = UpdateUserDto.builder()
+            .email("test@example.com")
+            .role(UserRole.ADMIN)
+            .status(UserStatus.DELETED)
+            .build();
 
-        User updatedUser = new User();
-        updatedUser.setEmail("new@example.com");
-        updatedUser.setRole(Roles.ADMIN.name());
-        updatedUser.setActive(Boolean.valueOf(ActiveStatus.FALSE.name()));
+        User existingUser = new User("test@example.com");
+        existingUser.setRole(UserRole.USER);
+        existingUser.setStatus(UserStatus.ACTIVE);
 
-        when(userRepository.findById(id)).thenReturn(Optional.of(existingUser));
-        when(userRepository.save(any(User.class))).thenReturn(existingUser);
+        User updatedUser = new User("test@example.com");
+        updatedUser.setRole(UserRole.ADMIN);
+        updatedUser.setStatus(UserStatus.DELETED);
 
-        User result = userService.updateUser(id, updatedUser);
+        when(userRepository.findByEmailLookup("test@example.com")).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(User.class))).thenReturn(updatedUser);
 
-        assertThat(result.getEmail()).isEqualTo("new@example.com");
-        assertThat(result.getRole()).isEqualTo("ADMIN");
-        assertThat(result.isActive()).isFalse();
+        UserResponseDto result = userService.updateUser(updateUserDto);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getEmail()).isEqualTo("test@example.com");
+        assertThat(result.getRole()).isEqualTo(UserRole.ADMIN);
+        assertThat(result.getStatus()).isEqualTo(UserStatus.DELETED);
         verify(userRepository).save(existingUser);
     }
 
     @Test
-    @DisplayName("Should throw exception when updating non-existent user")
+    @DisplayName("Should return null when updating non-existent user")
     void testUpdateUser_NotFound() {
-        final UUID id = UUID.randomUUID();
-        User updatedUser = new User();
-        updatedUser.setEmail("new@example.com");
-        updatedUser.setRole(Roles.ADMIN.name());
-        updatedUser.setActive(Boolean.valueOf(ActiveStatus.TRUE.name()));
+        UpdateUserDto updateUserDto = UpdateUserDto.builder()
+            .email("missing@example.com")
+            .role(UserRole.ADMIN)
+            .status(UserStatus.ACTIVE)
+            .build();
 
-        when(userRepository.findById(id)).thenReturn(Optional.empty());
+        when(userRepository.findByEmailLookup("missing@example.com")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> userService.updateUser(id, updatedUser))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("User not found");
+        UserResponseDto result = userService.updateUser(updateUserDto);
+
+        assertThat(result).isNull();
+        verify(userRepository, times(0)).save(any(User.class));
     }
 
     @Test
-    @DisplayName("Should deactivate user on delete")
+    @DisplayName("Should mark user as deleted on delete")
     void testDeleteUser() {
-        UUID id = UUID.randomUUID();
-        User user = new User();
-        user.setId(id);
-        user.setActive(Boolean.valueOf(ActiveStatus.TRUE.name()));
+        final UserDto userDto = UserDto.builder()
+            .email("test@example.com")
+            .build();
 
-        when(userRepository.findById(id)).thenReturn(Optional.of(user));
+        User existingUser = new User("test@example.com");
+        existingUser.setStatus(UserStatus.ACTIVE);
 
-        userService.deleteUser(id);
+        User deletedUser = new User("test@example.com");
+        deletedUser.setStatus(UserStatus.DELETED);
 
-        assertThat(user.isActive()).isFalse();
-        verify(userRepository).save(user);
+        when(userRepository.findByEmailLookup("test@example.com")).thenReturn(Optional.of(existingUser));
+        when(userRepository.save(any(User.class))).thenReturn(deletedUser);
+
+        UserResponseDto result = userService.deleteUser(userDto);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getEmail()).isEqualTo("test@example.com");
+        assertThat(result.getStatus()).isEqualTo(UserStatus.DELETED);
+        verify(userRepository).save(existingUser);
     }
 
+    @Test
+    @DisplayName("Should return null when deleting non-existent user")
+    void testDeleteUser_NotFound() {
+        UserDto userDto = UserDto.builder()
+            .email("missing@example.com")
+            .build();
+
+        when(userRepository.findByEmailLookup("missing@example.com")).thenReturn(Optional.empty());
+
+        UserResponseDto result = userService.deleteUser(userDto);
+
+        assertThat(result).isNull();
+        verify(userRepository, times(0)).save(any(User.class));
+    }
 
     @Test
     @DisplayName("Should return all users")
     void testGetAllUsers() {
-        List<User> users = List.of(new User(), new User());
+        User user1 = new User("user1@example.com");
+        user1.setRole(UserRole.USER);
+        user1.setStatus(UserStatus.ACTIVE);
+
+        User user2 = new User("user2@example.com");
+        user2.setRole(UserRole.ADMIN);
+        user2.setStatus(UserStatus.ACTIVE);
+
+        List<User> users = List.of(user1, user2);
         when(userRepository.findAll()).thenReturn(users);
 
-        List<User> result = userService.getAllUsers();
+        List<UserResponseDto> result = userService.getAllUsers();
 
         assertThat(result).hasSize(2);
+        assertThat(result.get(0).getEmail()).isEqualTo("user1@example.com");
+        assertThat(result.get(0).getRole()).isEqualTo(UserRole.USER);
+        assertThat(result.get(1).getEmail()).isEqualTo("user2@example.com");
+        assertThat(result.get(1).getRole()).isEqualTo(UserRole.ADMIN);
         verify(userRepository).findAll();
     }
 
     @Test
     @DisplayName("Should get user by email")
     void testGetUserByEmail() {
-        User user = new User();
-        user.setEmail("test@example.com");
-        user.setRole(Roles.ADMIN.name());
-        user.setActive(Boolean.valueOf(ActiveStatus.TRUE.name()));
+        User user = new User("test@example.com");
+        user.setRole(UserRole.ADMIN);
+        user.setStatus(UserStatus.ACTIVE);
 
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailLookup("test@example.com")).thenReturn(Optional.of(user));
 
-        User result = userService.getUser("test@example.com");
+        UserResponseDto result = userService.getUser("test@example.com");
 
         assertThat(result).isNotNull();
         assertThat(result.getEmail()).isEqualTo("test@example.com");
+        assertThat(result.getRole()).isEqualTo(UserRole.ADMIN);
+        assertThat(result.getStatus()).isEqualTo(UserStatus.ACTIVE);
     }
 
     @Test
-    @DisplayName("Should throw exception when user not found by email")
+    @DisplayName("Should return null when user not found by email")
     void testGetUserByEmail_NotFound() {
-        when(userRepository.findByEmail("missing@example.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmailLookup("missing@example.com")).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> userService.getUser("missing@example.com"))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("User not found with email");
+        UserResponseDto result = userService.getUser("missing@example.com");
+
+        assertThat(result).isNull();
+    }
+
+    @Test
+    @DisplayName("Should return null for invalid email in getUser")
+    void testGetUserByEmail_InvalidEmail() {
+        UserResponseDto result = userService.getUser("invalid-email");
+
+        assertThat(result).isNull();
+        verify(userRepository, times(0)).findByEmailLookup(any());
     }
 
     @Test
     @DisplayName("Should add users and return response list")
     void testAddUsers() {
-        User user1 = new User();
-        user1.setEmail("user1@example.com");
-        user1.setRole(Roles.ADMIN.name());
-        user1.setActive(Boolean.valueOf(ActiveStatus.TRUE.name()));
+        final UserDto userDto1 = UserDto.builder()
+            .email("user1@example.com")
+            .build();
 
-        User user2 = new User();
-        user2.setEmail("user2@example.com");
-        user2.setRole(Roles.USER.name());
-        user2.setActive(Boolean.valueOf(ActiveStatus.TRUE.name()));
+        final UserDto userDto2 = UserDto.builder()
+            .email("user2@example.com")
+            .build();
 
+        User savedUser1 = new User("user1@example.com");
+        savedUser1.setRole(UserRole.USER);
+        savedUser1.setStatus(UserStatus.ACTIVE);
+
+        User savedUser2 = new User("user2@example.com");
+        savedUser2.setRole(UserRole.USER);
+        savedUser2.setStatus(UserStatus.ACTIVE);
+
+        when(userRepository.findByEmailLookup("user1@example.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmailLookup("user2@example.com")).thenReturn(Optional.empty());
         when(userRepository.save(any(User.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
 
-        List<UserResponseDto> response = userService.addUsers(List.of(user1, user2));
+        List<UserCreationResponseDto> response = userService.addUsers(List.of(userDto1, userDto2));
 
         assertThat(response).hasSize(2);
-        assertThat(response.get(0).getStatus()).isEqualTo("CREATED");
-        assertThat(response.get(1).getStatus()).isEqualTo("CREATED");
+        assertThat(response.get(0).getStatus()).isEqualTo(UserCreationStatus.CREATED);
+        assertThat(response.get(0).getEmail()).isEqualTo("user1@example.com");
+        assertThat(response.get(1).getStatus()).isEqualTo(UserCreationStatus.CREATED);
+        assertThat(response.get(1).getEmail()).isEqualTo("user2@example.com");
     }
 
 }

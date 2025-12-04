@@ -43,12 +43,12 @@ public class CourtHouseClient {
             .toUriString();
     }
 
-    public ResponseEntity<CourtHouse> getCourtHouseById(String courtId, String courtRoomId) {
+    public ResponseEntity<CourtHouse> getCourtHouseById(String accessToken, String courtId, String courtRoomId) {
         try {
             ResponseEntity<CourtHouse> responseEntity = restTemplate.exchange(
                 buildCourthearingCourthousesByIdUrl(courtId, courtRoomId),
                 HttpMethod.GET,
-                getRequestEntity(),
+                getRequestEntity(accessToken),
                 CourtHouse.class
             );
             return responseEntity;
@@ -58,9 +58,10 @@ public class CourtHouseClient {
         return null;
     }
 
-    protected HttpEntity<String> getRequestEntity() {
+    protected HttpEntity<String> getRequestEntity(String accessToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+        headers.setBearerAuth(accessToken);
         headers.set("Ocp-Apim-Subscription-Key", getAmpSubscriptionKey());
         return new HttpEntity<>(headers);
     }

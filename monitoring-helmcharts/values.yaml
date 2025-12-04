@@ -1,0 +1,7 @@
+serviceName: stg-track-my-case-service-dev
+namespace: stg-track-my-case-service-dev
+
+servicePort: http
+
+monitoring:
+  interval: 15s

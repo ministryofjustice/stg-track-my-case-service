@@ -29,6 +29,7 @@ class CourtScheduleClientTest {
     private final String ampUrl = "https://some.dev.environment.com";
     private final String ampSubscriptionKey = "some-amp-subscription-key";
     private final String apiCpCrimeSchedulingandlistingCourtschedulePath = "/case/{case_urn}/courtschedule";
+    private final String accessToken = "testToken";
 
     @BeforeEach
     public void setUp() {
@@ -86,11 +87,12 @@ class CourtScheduleClientTest {
         when(restTemplate.exchange(
             eq(expectedUrl),
             eq(HttpMethod.GET),
-            eq(courtScheduleClient.getRequestEntity()),
+            eq(courtScheduleClient.getRequestEntity(accessToken)),
             eq(CourtScheduleSchema.class)
         )).thenReturn(response);
 
-        ResponseEntity<CourtScheduleSchema> actual = courtScheduleClient.getCourtScheduleByCaseUrn(caseUrn);
+        ResponseEntity<CourtScheduleSchema> actual = courtScheduleClient.getCourtScheduleByCaseUrn(accessToken,
+                                                                                                   caseUrn);
 
         assertThat(actual).isNotNull();
         assertThat(courtScheduleSchema).isEqualTo(actual.getBody());
@@ -104,11 +106,12 @@ class CourtScheduleClientTest {
         when(restTemplate.exchange(
             eq(expectedUrl),
             eq(HttpMethod.GET),
-            eq(courtScheduleClient.getRequestEntity()),
+            eq(courtScheduleClient.getRequestEntity(accessToken)),
             eq(CourtScheduleSchema.class)
         )).thenThrow(new RestClientException("Service unavailable"));
 
-        ResponseEntity<CourtScheduleSchema> response = courtScheduleClient.getCourtScheduleByCaseUrn(caseUrn);
+        ResponseEntity<CourtScheduleSchema> response = courtScheduleClient.getCourtScheduleByCaseUrn(accessToken,
+                                                                                                     caseUrn);
         assertThat(response).isNull();
     }
 }
