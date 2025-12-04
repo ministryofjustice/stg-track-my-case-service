@@ -112,7 +112,7 @@ jobs:
 
       - name: Validate KUBE_NAMESPACE
         run: |
-          if [ -z "${{ secrets.KUBE_NAMESPACE" }} ]; then
+          if [ -z "${{ secrets.KUBE_NAMESPACE }}" ]; then
             echo "Namespace is empty"
           else
             echo "Namespace is "$KUBE_NAMESPACE"
