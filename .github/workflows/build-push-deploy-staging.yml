@@ -115,7 +115,7 @@ jobs:
           if [ -z "${{ secrets.KUBE_NAMESPACE }}" ]; then
             echo "Namespace is empty"
           else
-            echo "Namespace is "$KUBE_NAMESPACE"
+            echo "Namespace is ${{ secrets.KUBE_NAMESPACE }}"
             
 
       - name: Configure AWS credentials
