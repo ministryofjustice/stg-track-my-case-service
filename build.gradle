@@ -130,6 +130,10 @@ tasks.named('processPactContractTestResources') {
   duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
+tasks.named('processIntegrationTestResources') {
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
 jacocoTestReport {
   executionData(test, integration)
   reports {
@@ -164,6 +168,8 @@ dependencyUpdates {
 // https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/configuration.html
 dependencyCheck {
   suppressionFile = 'config/owasp/suppressions.xml'
+  nvd.datafeedUrl = "file:///opt/vulnz/cache"
+  failBuildOnCVSS = 5.0
 }
 
 repositories {
@@ -176,7 +182,7 @@ repositories {
 
 ext {
   log4JVersion = "2.24.3"
-  logbackVersion = "1.5.18"
+  logbackVersion = "1.5.21"
   lombokVersion = "1.18.38"
   springBootVersion = "3.4.4"
   flywaydbVersion = "10.18.2"
@@ -208,7 +214,10 @@ dependencies {
   implementation 'org.postgresql:postgresql'
   testImplementation 'com.h2database:h2:2.2.224'
 
-  implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.8.6'
+  implementation (group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.8.14') {
+    exclude group: 'org.apache.commons', module: 'commons-lang3'
+  }
+  implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.20.0'
 
   implementation group: 'com.github.hmcts.java-logging', name: 'logging', version: '6.1.8'
 
@@ -223,7 +232,12 @@ dependencies {
 
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
   implementation 'javax.validation:validation-api:2.0.1.Final'
-  implementation("org.json:json:20210307")
+  implementation('org.json:json:20231013')
+
+  // Metrics
+  implementation 'org.springframework.boot:spring-boot-starter-actuator'
+  implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus', version: '1.16.0'
+  implementation group: 'io.prometheus', name: 'prometheus-metrics-tracer-initializer', version: '1.4.3'
 
   testImplementation(platform('org.junit:junit-bom:5.12.2'))
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
@@ -235,8 +249,12 @@ dependencies {
   compileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion
   annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
 
-  testImplementation 'au.com.dius.pact.consumer:junit5:4.6.4'
-
+  testImplementation (group: 'au.com.dius.pact.consumer', name: 'junit5', version: '4.6.18') {
+    exclude group: 'org.apache.httpcomponents.client5', module: 'httpclient5'
+    exclude group: 'org.apache.httpcomponents.client5', module: 'httpclient5-fluent'
+  }
+  implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.4.4'
+  implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5-fluent', version: '5.4.4'
 }
 
 application {
