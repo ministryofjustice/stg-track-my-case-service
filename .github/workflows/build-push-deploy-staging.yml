@@ -142,7 +142,7 @@ jobs:
           ECR_REPO_AUTH0: ${{ steps.login-ecr.outputs.registry }}/analytical-platform/ap-auth-proxy-prod-ecr
           ECR_REPO_WEBAPP: ${{ steps.login-ecr.outputs.registry }}/${{ vars.STAGING_ECR_REPOSITORY }}
           IP_RANGES: ${{ secrets.IP_RANGES }}
-          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+          KUBE_NAMESPACE: "stg-track-my-case-service-staging"
           NEW_TAG_V: ${{ needs.build-push-staging.outputs.new_tag }}
           RELEASE_NAME: ${{ github.event.repository.name }}-staging
           SECRETS_CONTEXT:  ${{ toJson(secrets) }}
