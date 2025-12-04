@@ -1,12 +1,11 @@
-{{- define "monitoring-helmchart.grafana-dashboard" -}}
-  {{- if .Values.metrics.grafana_dashboard.enabled }}
+{{- if .Values.metrics.grafana_dashboard.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ .Release.Name }}-{{ .Chart.Name }}-dashboard
   namespace: {{ .Release.Namespace }}
   labels:
-    grafana_dashboard: ""
+    grafana_dashboard: "1"
     app.kubernetes.io/managed-by: {{ .Release.Service | quote }}
   annotations:
     meta.helm.sh/release-name: {{ .Release.Name | quote }}
@@ -16,5 +15,4 @@ data:
   {{ include "monitoring-helmcharts.grafana-dashboard-template" . | quote | indent 4 }}
 
 
-  {{- end }}
-  {{- end -}}
+{{- end }}
