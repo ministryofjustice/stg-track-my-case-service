@@ -8,7 +8,7 @@ monitoring:
 
 metrics:
   enabled: true
-  actuator_endpoint: /actuator/prometheus
+  actuator_endpoint: prometheus
   grafana_dashboard:
     enabled: true
     name: Track My Case Service
