@@ -10,4 +10,4 @@ spec:
   endpoints:
     - port: {{ .Values.servicePort }}
       interval: 15s
-      path: /metrics
+      path: /prometheus
