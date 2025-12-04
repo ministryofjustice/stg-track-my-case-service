@@ -144,8 +144,8 @@
         "targets": [
           {
             "editorMode": "code",
-            "expr": "max(up{namespace='stg-track-my-case-service-dev', container='$container'})",
-            "legendFormat": "{{container}}",
+            "expr": "max(up{namespace='{{ .Release.Namespace }}', container='$container'})",
+            "legendFormat": "{{ .Release.Names }}",
             "range": true,
             "refId": "A"
           }
