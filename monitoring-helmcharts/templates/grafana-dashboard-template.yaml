@@ -408,7 +408,7 @@
               "uid": "prometheus"
             },
             "editorMode": "code",
-            "expr": "sum by(application) (increase(http_server_requests_seconds_count{namespace='{{ .Release.Namespace }}', service='$service', status='401'}[$__rate_interval]))",
+            "expr": "sum by(application) (increase(http_server_requests_seconds_count{namespace='{{ .Release.Namespace }}', service='$service', status='401'}[$__rate_interval])) or vector(0)",
             "legendFormat": "__auto",
             "range": true,
             "refId": "A"
