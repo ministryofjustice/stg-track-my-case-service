@@ -104,6 +104,9 @@ jobs:
       - name: Clone Helm chart repo
         run: git clone https://github.com/ministryofjustice/track-my-case-cloud-platform.git
 
+      - name: List chart
+        run: ls -l ./track-my-case-cloud-platform/charts/webapp-cp
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v5
         with:
