@@ -110,6 +110,14 @@ jobs:
       - name: List chart
         run: ls -l ./track-my-case-cloud-platform/charts/webapp-cp
 
+      - name: Validate KUBE_NAMESPACE
+        run: |
+          if [ -z "${{ secrets.KUBE_NAMESPACE" }} ]; then
+            echo "Namespace is empty"
+          else
+            echo "Namespace is "$KUBE_NAMESPACE"
+            
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v5
         with:
