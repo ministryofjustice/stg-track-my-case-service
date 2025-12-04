@@ -190,6 +190,8 @@ jobs:
            echo "Release '$RELEASE_NAME' not found in namespace '$KUBE_NAMESPACE' — first install. Skipping history/rollback."
           fi
 
+          echo "=== FETCH: Namespace $KUBE_NAMESPACE ==="
+
           echo "=== DEBUG: Helm command ==="
           set -x
 
