@@ -207,6 +207,9 @@ jobs:
           echo "=== FETCH: Namespace $KUBE_NAMESPACE ==="
 
           echo "=== DEBUG: Helm command ==="
+
+          # Debug: print the custom variables array
+          echo "Helm custom variables: ${custom_variables_array[@]}"
           set -x
 
           # helm upgrade --install --dry-run --debug --namespace $KUBE_NAMESPACE $RELEASE_NAME mojanalytics/webapp-cp \
