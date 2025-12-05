@@ -7,11 +7,10 @@ on:
 jobs:
   format-code:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v5
       - uses: ministryofjustice/github-actions/code-formatter@v14
         with:
           ignore-files: "networkpolicy.yaml,servicemonitor.yaml"
-
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
