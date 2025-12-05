@@ -210,7 +210,7 @@ jobs:
           set -x
 
           # helm upgrade --install --dry-run --debug --namespace $KUBE_NAMESPACE $RELEASE_NAME mojanalytics/webapp-cp \
-          helm upgrade --install --dry-run --debug --namespace "stg-track-my-case-service-staging" $RELEASE_NAME ./track-my-case-cloud-platform/charts/webapp-cp
+          helm upgrade --install --dry-run --debug --namespace "stg-track-my-case-service-staging" $RELEASE_NAME ./track-my-case-cloud-platform/charts/webapp-cp \
           --set AuthProxy.Env.Auth0Domain=$AUTH0_DOMAIN \
           --set AuthProxy.Env.Auth0Passwordless=$AUTH0_PASSWORDLESS \
           --set AuthProxy.Env.Auth0TokenAlg=$AUTH0_TOKEN_ALG \
