@@ -2,6 +2,7 @@ package uk.gov.moj.cp.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static java.util.UUID.randomUUID;
 
@@ -18,6 +19,7 @@ import uk.gov.moj.cp.dto.CourtHouseDto.CourtRoomDto.AddressDto;
 import uk.gov.moj.cp.dto.CourtScheduleDto.HearingDto.CourtSittingDto;
 import uk.gov.moj.cp.dto.CourtScheduleDto.HearingDto;
 import uk.gov.moj.cp.dto.CourtHouseDto.CourtRoomDto;
+import uk.gov.moj.cp.metrics.TrackMyCaseMetricsService;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -34,6 +36,8 @@ class CaseDetailsServiceTest {
     @Mock
     private OAuthTokenService oauthTokenService;
 
+    @Mock
+    private TrackMyCaseMetricsService trackMyCaseMetricsService;
 
     @InjectMocks
     private CaseDetailsService caseDetailsService;
@@ -111,6 +115,8 @@ class CaseDetailsServiceTest {
 
         assertEquals(123, schedule.courtHouse().courtRoomDtoList().get(0).courtRoomId());
         assertEquals("CourtRoom 01", schedule.courtHouse().courtRoomDtoList().get(0).courtRoomName());
+
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
 
 
@@ -147,6 +153,8 @@ class CaseDetailsServiceTest {
         assertEquals(caseUrn, caseDetails.caseUrn());
         assertEquals(1, caseDetails.courtSchedule().size());
         assertEquals(0, caseDetails.courtSchedule().get(0).hearings().size());
+
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
 
 
@@ -240,6 +248,8 @@ class CaseDetailsServiceTest {
 
         assertEquals(123, schedule.courtHouse().courtRoomDtoList().get(0).courtRoomId());
         assertEquals("CourtRoom 01", schedule.courtHouse().courtRoomDtoList().get(0).courtRoomName());
+
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
 
 
@@ -316,6 +326,8 @@ class CaseDetailsServiceTest {
 
         assertEquals(123, schedule.courtHouse().courtRoomDtoList().get(0).courtRoomId());
         assertEquals("CourtRoom 01", schedule.courtHouse().courtRoomDtoList().get(0).courtRoomName());
+
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
 
     @Test
@@ -391,5 +403,7 @@ class CaseDetailsServiceTest {
 
         assertEquals(123, schedule.courtHouse().courtRoomDtoList().get(0).courtRoomId());
         assertEquals("CourtRoom 01", schedule.courtHouse().courtRoomDtoList().get(0).courtRoomName());
+
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
 }
