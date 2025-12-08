@@ -245,6 +245,9 @@ jobs:
           --set securityContext.seccompProfile.type="RuntimeDefault" \
           "${custom_variables_array[@]}"
 
+          echo "Labeling the service"
+          kubectl label service --overwrite=true $KUBE_NAMESPACE app=$KUBE_NAMESPACE
+
       - name: Extract deployed service values for monitoring
         id: extract-values
         env:
