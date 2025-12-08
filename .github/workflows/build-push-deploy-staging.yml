@@ -91,16 +91,6 @@ jobs:
           kubectl config set-context ${KUBE_CLUSTER} --cluster=${KUBE_CLUSTER} --user=deploy-user --namespace=${{ secrets.KUBE_NAMESPACE }}
           kubectl config use-context ${KUBE_CLUSTER}
 
-      # - name: add helm repo
-      #   continue-on-error: true
-      #   run: |
-      #     helm repo add mojanalytics http://moj-analytics-helm-repo.s3-website-eu-west-1.amazonaws.com/
-
-      # - name: update helm repo
-      #   continue-on-error: true
-      #   run: |
-      #     helm repo update mojanalytics
-
       - name: Clone Helm chart repo
         run: git clone https://github.com/ministryofjustice/track-my-case-cloud-platform.git
 
@@ -131,14 +121,14 @@ jobs:
       - name: Upgrade the Helm chart
         env:
           APP_ROLE_ARN: ${{ secrets.APP_ROLE_ARN }}
-          AUTH0_CALLBACK_URL: ${{ vars.AUTH0_CALLBACK_URL }}
+          # AUTH0_CALLBACK_URL: ${{ vars.AUTH0_CALLBACK_URL }}
           AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
           AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
           AUTH0_DOMAIN: ${{ vars.AUTH0_DOMAIN }}
           AUTH0_PASSWORDLESS: ${{ vars.AUTH0_PASSWORDLESS }}
           AUTH0_TOKEN_ALG: ${{ vars.AUTH0_TOKEN_ALG }}
           AUTHENTICATION_REQUIRED: ${{ vars.AUTHENTICATION_REQUIRED }}
-          COOKIE_SECRET: "${{ secrets.XXX_COOKIE_SECRET }}"
+          # COOKIE_SECRET: "${{ secrets.XXX_COOKIE_SECRET }}"
           ECR_REPO_AUTH0: ${{ steps.login-ecr.outputs.registry }}/analytical-platform/ap-auth-proxy-prod-ecr
           ECR_REPO_WEBAPP: ${{ steps.login-ecr.outputs.registry }}/${{ vars.STAGING_ECR_REPOSITORY }}
           IP_RANGES: ${{ secrets.IP_RANGES }}
