@@ -203,13 +203,18 @@ tasks.withType(Checkstyle).configureEach {
 }
 
 dependencies {
-  implementation 'org.springframework.boot:spring-boot-starter-web'
+  implementation (group: 'org.springframework.boot', name: 'spring-boot-starter-web') {
+    exclude group: 'org.apache.tomcat.embed', module: 'tomcat-embed-core'
+    exclude group: 'org.apache.tomcat.embed', module: 'tomcat-embed-websocket'
+    exclude group: 'org.apache.tomcat.embed', module: 'tomcat-embed-el'
+  }
+
+  implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: '11.0.15'
+  implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: '11.0.15'
+  implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-el', version: '11.0.15'
+
   implementation 'org.springframework.boot:spring-boot-starter-aop'
   implementation 'org.springframework.boot:spring-boot-starter-json'
-
-  implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-core', version: '11.0.11'
-  implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-websocket', version: '11.0.11'
-  implementation group: 'org.apache.tomcat.embed', name: 'tomcat-embed-el', version: '11.0.11'
 
   implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
   implementation group: 'org.flywaydb', name: 'flyway-core', version: flywaydbVersion
@@ -253,12 +258,7 @@ dependencies {
   compileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion
   annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
 
-  testImplementation (group: 'au.com.dius.pact.consumer', name: 'junit5', version: '4.6.18') {
-    exclude group: 'org.apache.httpcomponents.client5', module: 'httpclient5'
-    exclude group: 'org.apache.httpcomponents.client5', module: 'httpclient5-fluent'
-  }
-  implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5', version: '5.4.4'
-  implementation group: 'org.apache.httpcomponents.client5', name: 'httpclient5-fluent', version: '5.4.4'
+  testImplementation group: 'au.com.dius.pact.consumer', name: 'junit5', version: '4.6.19'
 }
 
 application {
