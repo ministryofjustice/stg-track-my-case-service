@@ -1,5 +1,5 @@
 # Use Amazon Corretto for building the application
-FROM amazoncorretto:21-alpine AS builder
+FROM amazoncorretto:25-alpine AS builder
 
 # Set the working directory
 WORKDIR /app
@@ -12,7 +12,7 @@ COPY . .
 RUN ./gradlew assemble -Dorg.gradle.daemon=false
 
 # Use Eclipse Temurin JRE for running the application
-FROM eclipse-temurin:21-jre-jammy
+FROM eclipse-temurin:25-jre-jammy
 
 # Set the maintainer label
 LABEL maintainer="MOJ Strategic Service Transformation Team <STGTransformationTeam@justice.gov.uk>"
