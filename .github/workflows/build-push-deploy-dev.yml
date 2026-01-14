@@ -188,9 +188,9 @@ jobs:
           --set securityContext.capabilities.drop=["ALL"] \
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
-          "${custom_variables_array[@]}"
           --set Networkpolicy.Ingress="tmc-ui-dev" \
           --set Ingress.Enabled=false \
+          "${custom_variables_array[@]}"
           # > rendered.yaml
 
           # echo "=== DEBUG: webapp container only ==="
