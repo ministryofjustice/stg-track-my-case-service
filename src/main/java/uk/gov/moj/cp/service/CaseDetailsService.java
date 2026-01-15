@@ -7,8 +7,12 @@ import uk.gov.moj.cp.dto.CaseDetailsDto;
 import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto.CaseDetailsHearingDto;
 import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto.CaseDetailsHearingDto.CaseDetailsCourtSittingDto;
 import uk.gov.moj.cp.dto.CourtScheduleDto;
+import uk.gov.moj.cp.metrics.TrackMyCaseMetricsService;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,19 +24,26 @@ public class CaseDetailsService {
     @Autowired
     private CourtHouseService courtHouseService;
 
+    @Autowired
+    private OAuthTokenService oauthTokenService;
+
+    @Autowired
+    private TrackMyCaseMetricsService trackMyCaseMetricsService;
 
     public CaseDetailsDto getCaseDetailsByCaseUrn(String caseUrn) {
-        List<CourtScheduleDto> courtSchedule = courtScheduleService.getCourtScheduleByCaseUrn(caseUrn);
+        String accessToken = oauthTokenService.getJwtToken();
+        List<CourtScheduleDto> courtSchedule = courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn);
 
         CaseDetailsDto caseDetails = new CaseDetailsDto(
             caseUrn,
             courtSchedule.stream()
                 .map(schedule -> new CaseDetailsDto.CaseDetailsCourtScheduleDto(
                     schedule.hearingDtos().stream()
-                        .map(this::getCaseDetailsHearingDto)
-                        .collect(Collectors.toList())
+                        .map(t -> getHearingDetails(accessToken,t))
+                        .filter(Objects::nonNull)
+                        .toList()
                 ))
-                .collect(Collectors.toList())
+                .toList()
         );
         String courtHouseAndRoomIds = caseDetails.courtSchedule().stream()
             .flatMap(a -> a.hearings().stream()
@@ -42,15 +53,23 @@ public class CaseDetailsService {
 
         log.atInfo().log("caseUrn : {} -> Received CourtHouse Id and courtRoomId :{}",
                          caseUrn, courtHouseAndRoomIds);
+        trackMyCaseMetricsService.incrementCaseDetailsCount(caseUrn);
         return caseDetails;
 
     }
 
-    private CaseDetailsHearingDto getCaseDetailsHearingDto(CourtScheduleDto.HearingDto hearing) {
+    private CaseDetailsHearingDto getHearingDetails(String accessToken, CourtScheduleDto.HearingDto hearing) {
+        List<CaseDetailsCourtSittingDto> futureSittings = hearing.courtSittingDtos().stream()
+            .filter(sitting -> validateSittingDateNotInPast(sitting.sittingStart()))
+            .map(a -> getHearingSchedule(accessToken, a))
+            .toList();
+
+        if (futureSittings.isEmpty()) {
+            return null;
+        }
+
         return new CaseDetailsHearingDto(
-            hearing.courtSittingDtos().stream()
-                .map(this::getCaseDetailsCourtSittingDto)
-                .collect(Collectors.toList()),
+            futureSittings,
             hearing.hearingId(),
             hearing.hearingType(),
             hearing.hearingDescription(),
@@ -59,14 +78,19 @@ public class CaseDetailsService {
     }
 
 
-    private CaseDetailsCourtSittingDto getCaseDetailsCourtSittingDto(
-        CourtScheduleDto.HearingDto.CourtSittingDto sitting) {
+    private CaseDetailsCourtSittingDto getHearingSchedule(
+        String accessToken, CourtScheduleDto.HearingDto.CourtSittingDto sitting) {
         return new CaseDetailsCourtSittingDto(
             sitting.judiciaryId(),
             sitting.sittingStart(),
             sitting.sittingEnd(),
-            courtHouseService.getCourtHouseById(sitting.courtHouse(), sitting.courtRoom())
+            courtHouseService.getCourtHouseById(accessToken, sitting.courtHouse(), sitting.courtRoom())
         );
+    }
+
+    private boolean validateSittingDateNotInPast(String dateTimeString) {
+        LocalDate sittingDate = LocalDateTime.parse(dateTimeString).toLocalDate();
+        return !sittingDate.isBefore(LocalDate.now());
     }
 }
 

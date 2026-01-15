@@ -28,6 +28,7 @@ class CourtHouseClientTest {
     private final String ampUrl = "https://some.dev.environment.com";
     private final String ampSubscriptionKey = "some-amp-subscription-key";
     private final String apiCpRefdataCourthearingCourthousesPath = "/courthouses/{court_id}/courtrooms/{court_room_id}";
+    private final String accessToken = "testToken";
 
     @BeforeEach
     public void setUp() {
@@ -77,10 +78,10 @@ class CourtHouseClientTest {
         when(restTemplate.exchange(
             eq(expectedUrl),
             eq(HttpMethod.GET),
-            eq(courtHouseClient.getRequestEntity()),
+            eq(courtHouseClient.getRequestEntity(accessToken)),
             eq(CourtHouse.class)
         )).thenReturn(response);
-        ResponseEntity<CourtHouse> actual = courtHouseClient.getCourtHouseById(courtId, courtRoomId);
+        ResponseEntity<CourtHouse> actual = courtHouseClient.getCourtHouseById(accessToken, courtId, courtRoomId);
 
         assertThat(actual).isNotNull();
         assertThat(courtHouse).isEqualTo(actual.getBody());
@@ -95,11 +96,11 @@ class CourtHouseClientTest {
         when(restTemplate.exchange(
             eq(expectedUrl),
             eq(HttpMethod.GET),
-            eq(courtHouseClient.getRequestEntity()),
+            eq(courtHouseClient.getRequestEntity(accessToken)),
             eq(CourtHouse.class)
         )).thenThrow(new RestClientException("Timeout"));
 
-        HttpEntity<CourtHouse> result = courtHouseClient.getCourtHouseById(courtId, courtRoomId);
+        HttpEntity<CourtHouse> result = courtHouseClient.getCourtHouseById(accessToken, courtId, courtRoomId);
         assertThat(result).isNull();
     }
 }
