@@ -17,7 +17,7 @@ jobs:
       new_tag: ${{ steps.set-version-tag-output.outputs.new_tag }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Bump version and push tag
         uses: anothrNick/github-tag-action@1.75.0
@@ -30,15 +30,16 @@ jobs:
         id: set-version-tag-output
         run: echo "new_tag=${{ steps.bump-id.outputs.new_tag }}" >> $GITHUB_OUTPUT
 
-      - name: Checkout
-        uses: actions/checkout@v5
-
       - name: Build
         env:
           NEW_TAG_V: ${{ steps.set-version-tag-output.outputs.new_tag }}
         shell: bash
         run: |
-          docker build . -t working_image:$NEW_TAG_V
+          docker build . \
+            --build-arg BUILD_NUMBER=$NEW_TAG_V \
+            --build-arg GIT_REF=${{ github.sha }} \
+            --build-arg GIT_BRANCH=${{ github.ref_name }} \
+            -t working_image:$NEW_TAG_V
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v5
@@ -110,7 +111,7 @@ jobs:
           AUTH0_PASSWORDLESS: ${{ vars.AUTH0_PASSWORDLESS }}
           AUTH0_TOKEN_ALG: ${{ vars.AUTH0_TOKEN_ALG }}
           AUTHENTICATION_REQUIRED: ${{ vars.AUTHENTICATION_REQUIRED }}
-          COOKIE_SECRET: ${{ secrets.COOKIE_SECRET }}
+          COOKIE_SECRET: "${{ secrets.XXX_COOKIE_SECRET }}"
           ECR_REPO_AUTH0: ${{ steps.login-ecr.outputs.registry }}/analytical-platform/ap-auth-proxy-prod-ecr
           ECR_REPO_WEBAPP: ${{ steps.login-ecr.outputs.registry }}/${{ vars.PROD_ECR_REPOSITORY }}
           IP_RANGES: ${{ secrets.IP_RANGES }}
@@ -127,32 +128,108 @@ jobs:
               --argjson vars_json "$VARS_CONTEXT" \
               '$secrets_json + $vars_json')
 
-          custom_variables=""
-          for row in $(echo "${combined_json}" | jq -r 'to_entries[] | @base64'); do
-            key=$(echo ${row} | base64 --decode | jq -r '.key')
-            value=$(echo ${row} | base64 --decode | jq -r '.value')
-            if [[ $key == XXX* ]]; then
-                custom_key=$(echo $key | sed 's/^XXX_/Secrets.WebApp.Parameters./')
-                custom_variables="$custom_variables --set $custom_key=$value"
-            fi
+          custom_variables_array=()
+          for row in $(echo "$combined_json" | jq -r 'to_entries[] | @base64'); do
+            key=$(echo "$row" | base64 --decode | jq -r '.key')
+            value=$(echo "$row" | base64 --decode | jq -r '.value')
+
+            if [[ $key == TMC_* ]]; then
+              custom_key="Secrets.WebApp.Parameters.${key}"
+
+              # Trim spaces from both ends
+              safe_value="$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+
+              # Compare raw vs. trimmed
+              if [[ "$value" != "$safe_value" ]]; then
+                echo "ERROR: Value for key '${custom_key}' has leading/trailing whitespace"
+                exit 1
+              fi
+
+              # Wrap in quotes to keep value intact for Helm/YAML
+              custom_variables_array+=("--set-string" "${custom_key}=${safe_value}")
+             fi
           done
 
-          helm upgrade --install --wait --timeout 10m0s --namespace $KUBE_NAMESPACE $RELEASE_NAME mojanalytics/webapp-cp \
+          # Debug
+          echo "=== DEBUG: custom_variables_array ==="
+          printf '%s\n' "${custom_variables_array[@]}"
+
+          if helm status "$RELEASE_NAME" -n "$KUBE_NAMESPACE" >/dev/null 2>&1; then
+            helm status  "$RELEASE_NAME" -n "$KUBE_NAMESPACE" || true
+            helm history "$RELEASE_NAME" -n "$KUBE_NAMESPACE" || true
+
+            # safe to inspect history / rollback / clear pending
+            state=$(helm status "$RELEASE_NAME" -n "$KUBE_NAMESPACE" -o json 2>/dev/null | jq -r '.info.status | select(.!=null)')
+            # Auto-clear pending-* for the current release
+            if [[ "$state" == pending-* ]]; then
+              latest=$(helm history "$RELEASE_NAME" -n "$KUBE_NAMESPACE" -o json | jq '.[-1].revision')
+              echo "Helm release is $state at revision $latest — clearing it"
+              # Try rollback to previous deployed if exists
+              prev=$(helm history "$RELEASE_NAME" -n "$KUBE_NAMESPACE" -o json | jq '[.[] | select(.status=="deployed")][-1].revision')
+              if [[ -n "$prev" ]]; then
+                echo "Rolling back to deployed revision $prev..."
+                helm rollback "$RELEASE_NAME" "$prev" -n "$KUBE_NAMESPACE" || true
+              else
+                echo "No deployed revision to roll back to (first install or all failed)."
+              fi
+            fi
+          else
+           echo "Release '$RELEASE_NAME' not found in namespace '$KUBE_NAMESPACE' — first install. Skipping history/rollback."
+          fi
+
+          echo "=== DEBUG: Helm command ==="
+          set -x
+
+
+          helm upgrade --install --dry-run --debug --namespace $KUBE_NAMESPACE $RELEASE_NAME mojanalytics/webapp-cp \
           --set AuthProxy.Env.Auth0Domain=$AUTH0_DOMAIN \
           --set AuthProxy.Env.Auth0Passwordless=$AUTH0_PASSWORDLESS \
           --set AuthProxy.Env.Auth0TokenAlg=$AUTH0_TOKEN_ALG \
           --set AuthProxy.Env.AuthenticationRequired=$AUTHENTICATION_REQUIRED \
+          --set AuthProxy.Env.CookieSecret=$COOKIE_SECRET \
           --set AuthProxy.Env.IPRanges=$process_ip_range \
           --set AuthProxy.Image.Repository=$ECR_REPO_AUTH0 \
           --set AuthProxy.Image.Tag="latest" \
           --set Namespace=$KUBE_NAMESPACE \
           --set Secrets.Auth0.ClientId=$AUTH0_CLIENT_ID \
           --set Secrets.Auth0.ClientSecret=$AUTH0_CLIENT_SECRET \
-          --set Secrets.Auth0.CookieSecret=$COOKIE_SECRET \
           --set ServiceAccount.RoleARN=$APP_ROLE_ARN \
           --set WebApp.Image.Repository=$ECR_REPO_WEBAPP \
           --set WebApp.Image.Tag=$NEW_TAG_V \
           --set WebApp.Name=$KUBE_NAMESPACE \
-          --set WebApp.AlternativeHealthCheck.enabled="true" \
-          --set WebApp.AlternativeHealthCheck.port=9999 \
-          $custom_variables
+          --set securityContext.allowPrivilegeEscalation=false \
+          --set securityContext.capabilities.drop=["ALL"] \
+          --set securityContext.runAsNonRoot=true \
+          --set securityContext.seccompProfile.type="RuntimeDefault" \
+          "${custom_variables_array[@]}"
+          # > rendered.yaml
+
+          # echo "=== DEBUG: webapp container only ==="
+          # sed -n '/containers:/,/imagePullPolicy:/p' rendered.yaml \
+          # | sed -n '/name: webapp/,$p' \
+          # | sed -n '1,/^- name:/p'
+
+          echo "=== Chart values: WebApp section ==="
+          helm show values mojanalytics/webapp-cp | sed -n '/^WebApp:/,/^[A-Za-z]/p'
+
+          helm upgrade --install --atomic --wait --timeout 10m0s --namespace $KUBE_NAMESPACE $RELEASE_NAME mojanalytics/webapp-cp \
+          --set AuthProxy.Env.Auth0Domain=$AUTH0_DOMAIN \
+          --set AuthProxy.Env.Auth0Passwordless=$AUTH0_PASSWORDLESS \
+          --set AuthProxy.Env.Auth0TokenAlg=$AUTH0_TOKEN_ALG \
+          --set AuthProxy.Env.AuthenticationRequired=$AUTHENTICATION_REQUIRED \
+          --set AuthProxy.Env.CookieSecret=$COOKIE_SECRET \
+          --set AuthProxy.Env.IPRanges=$process_ip_range \
+          --set AuthProxy.Image.Repository=$ECR_REPO_AUTH0 \
+          --set AuthProxy.Image.Tag="latest" \
+          --set Namespace=$KUBE_NAMESPACE \
+          --set Secrets.Auth0.ClientId=$AUTH0_CLIENT_ID \
+          --set Secrets.Auth0.ClientSecret=$AUTH0_CLIENT_SECRET \
+          --set ServiceAccount.RoleARN=$APP_ROLE_ARN \
+          --set WebApp.Image.Repository=$ECR_REPO_WEBAPP \
+          --set WebApp.Image.Tag=$NEW_TAG_V \
+          --set WebApp.Name=$KUBE_NAMESPACE \
+          --set securityContext.allowPrivilegeEscalation=false \
+          --set securityContext.capabilities.drop=["ALL"] \
+          --set securityContext.runAsNonRoot=true \
+          --set securityContext.seccompProfile.type="RuntimeDefault" \
+          "${custom_variables_array[@]}"

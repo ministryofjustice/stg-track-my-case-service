@@ -4,6 +4,7 @@ import com.moj.generated.hmcts.CourtSchedule;
 import com.moj.generated.hmcts.CourtScheduleSchema;
 import com.moj.generated.hmcts.CourtSitting;
 import com.moj.generated.hmcts.Hearing;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -17,20 +18,30 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class CourtScheduleService {
 
     @Autowired
     private CourtScheduleClient courtScheduleClient;
 
-    public List<CourtScheduleDto> getCourtScheduleByCaseUrn(String caseUrn) {
-        ResponseEntity<CourtScheduleSchema> result = courtScheduleClient.getCourtScheduleByCaseUrn(caseUrn);
+    public List<CourtScheduleDto> getCourtScheduleByCaseUrn(String accessToken, String caseUrn) {
+        ResponseEntity<CourtScheduleSchema> result = courtScheduleClient.getCourtScheduleByCaseUrn(accessToken,
+                                                                                                   caseUrn);
         if (result == null || result.getBody() == null) {
-            throw new RuntimeException("Response body is null or empty");
+            throw new RuntimeException("Response body is null or empty for caseUrn: " + caseUrn);
         }
-        return convertToCourtScheduleResult(result.getBody().getCourtSchedule());
+        return convertToCourtScheduleResult(caseUrn, result.getBody().getCourtSchedule());
     }
 
-    private List<CourtScheduleDto> convertToCourtScheduleResult(List<CourtSchedule> courtScheduleResultList) {
+    private List<CourtScheduleDto> convertToCourtScheduleResult(String caseUrn,
+                                                                List<CourtSchedule> courtScheduleResultList) {
+        String hearingIdList = courtScheduleResultList.stream().map(a ->
+                                                                        a.getHearings().stream().map(
+                                                                            b -> b.getHearingId()).collect(
+                                                                            Collectors.joining(",")))
+                        .collect(Collectors.joining(","));
+
+        log.atInfo().log("Received Hearing Ids : {} for caseUrn : {} ", hearingIdList, caseUrn);
         return courtScheduleResultList.stream().map(a ->
             new CourtScheduleDto(
                 a.getHearings().stream().map(this::getHearings).collect(Collectors.toUnmodifiableList())
