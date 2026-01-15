@@ -3,6 +3,8 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "45 4 * * MON-FRI" # MON-FRI at 04:45 UTC
+  pull_request:
+
 jobs:
   security-kotlin-trivy-check:
     permissions:
