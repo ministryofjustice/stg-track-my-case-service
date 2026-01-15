@@ -10,8 +10,6 @@ plugins {
 
   id 'com.diffplug.spotless' version '7.0.3'
   id 'org.owasp.dependencycheck' version '12.1.9'
-
-  id "au.com.dius.pact" version "4.6.17"
 }
 
 group = 'uk.gov.moj.cp'
@@ -51,15 +49,6 @@ sourceSets {
     }
     resources.srcDir file('src/integrationTest/resources')
   }
-
-  pactContractTest {
-    java {
-      compileClasspath += main.output
-      runtimeClasspath += main.output
-      srcDir file('src/pactContractTest/java')
-    }
-    resources.srcDir file('src/pactContractTest/resources')
-  }
 }
 
 configurations {
@@ -68,9 +57,6 @@ configurations {
 
   integrationTestImplementation.extendsFrom testImplementation
   integrationTestRuntimeOnly.extendsFrom runtimeOnly
-
-  pactContractTestImplementation.extendsFrom testImplementation
-  pactContractTestRuntimeOnly.extendsFrom testRuntimeOnly
 }
 
 tasks.withType(JavaCompile) {
@@ -107,23 +93,6 @@ task integration(type: Test) {
   testClassesDirs = sourceSets.integrationTest.output.classesDirs
   classpath = sourceSets.integrationTest.runtimeClasspath
   failFast = true
-}
-
-task pactContractTest(type: Test) {
-  description = "Runs Pact consumer contract tests"
-  group = "Verification"
-  testClassesDirs = sourceSets.pactContractTest.output.classesDirs
-  classpath = sourceSets.pactContractTest.runtimeClasspath
-  shouldRunAfter test
-  useJUnitPlatform()
-}
-
-tasks.named('check') {
-  dependsOn tasks.named('pactContractTest')
-}
-
-tasks.named('processPactContractTestResources') {
-  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 tasks.named('processIntegrationTestResources') {
@@ -253,8 +222,6 @@ dependencies {
 
   compileOnly group: 'org.projectlombok', name: 'lombok', version: lombokVersion
   annotationProcessor group: 'org.projectlombok', name: 'lombok', version: lombokVersion
-
-  testImplementation group: 'au.com.dius.pact.consumer', name: 'junit5', version: '4.6.19'
 }
 
 application {
@@ -289,15 +256,5 @@ sourceSets {
 
 wrapper {
   distributionType = Wrapper.DistributionType.ALL
-}
-
-pact {
-  publish {
-    pactBrokerUrl = 'https://hmcts-dts.pactflow.io'
-    pactBrokerToken = project.findProperty('PACT_BROKER_TOKEN') ?: System.getenv('PACT_BROKER_TOKEN')
-    consumerVersion = project.findProperty('GIT_COMMIT') ?: System.getenv('GIT_COMMIT') ?: 'dev'
-    tags = [System.getenv('PACT_ENV') ?: 'dev']
-    consumerBranch = System.getenv('GIT_BRANCH') ?: 'dev'
-  }
 }
 
