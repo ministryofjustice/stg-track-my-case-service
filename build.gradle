@@ -2,14 +2,14 @@ plugins {
   id 'application'
   id 'java'
   id 'jacoco'
-  id("org.jsonschema2pojo") version "1.2.2"
+  id 'org.jsonschema2pojo' version '1.2.2'
   id 'io.spring.dependency-management' version '1.1.7'
-  id 'org.springframework.boot' version '3.5.8'
-  id 'com.github.ben-manes.versions' version '0.52.0'
-  id 'org.sonarqube' version '6.1.0.5360'
+  id 'org.springframework.boot' version '3.5.9'
+  id 'com.github.ben-manes.versions' version '0.53.0'
+  id 'org.sonarqube' version '7.2.2.6593'
 
-  id 'com.diffplug.spotless' version '7.0.3'
-  id 'org.owasp.dependencycheck' version '12.1.9'
+  id 'com.diffplug.spotless' version '8.1.0'
+  id 'org.owasp.dependencycheck' version '12.2.0'
 }
 
 group = 'uk.gov.moj.cp'
@@ -148,8 +148,8 @@ repositories {
 ext {
   log4JVersion = "2.24.3"
   logbackVersion = "1.5.21"
-  lombokVersion = "1.18.38"
-  springBootVersion = "3.5.8"
+  lombokVersion = "1.18.42"
+  springBootVersion = "3.5.9"
   flywaydbVersion = "10.18.2"
 }
 
@@ -206,7 +206,7 @@ dependencies {
 
   implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
   implementation 'javax.validation:validation-api:2.0.1.Final'
-  implementation('org.json:json:20231013')
+  implementation 'org.json:json:20251224'
 
   // Metrics
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
