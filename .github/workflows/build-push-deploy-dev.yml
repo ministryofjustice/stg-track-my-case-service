@@ -95,6 +95,7 @@ jobs:
         run: |
           git clone https://github.com/ministryofjustice/track-my-case-cloud-platform.git
           git  -C track-my-case-cloud-platform checkout main
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v5
         with:
@@ -109,7 +110,6 @@ jobs:
         env:
           APP_ROLE_ARN: ${{ secrets.APP_ROLE_ARN }}
           AUTHENTICATION_REQUIRED: ${{ vars.AUTHENTICATION_REQUIRED }}
-          COOKIE_SECRET: "${{ secrets.XXX_COOKIE_SECRET }}"
           ECR_REPO_WEBAPP: ${{ steps.login-ecr.outputs.registry }}/${{ vars.DEV_ECR_REPOSITORY }}
           IP_RANGES: ${{ secrets.IP_RANGES }}
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
@@ -187,7 +187,7 @@ jobs:
           --set securityContext.capabilities.drop=["ALL"] \
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
-          --set Networkpolicy.Ingress="tmc-ui-dev" \
+          --set Networkpolicy.Ingress="track-my-case-dev" \
           --set Ingress.Enabled=false \
           "${custom_variables_array[@]}"
           # > rendered.yaml
@@ -200,7 +200,7 @@ jobs:
           echo "=== Chart values: WebApp section ==="
           helm show values mojanalytics/webapp-cp | sed -n '/^WebApp:/,/^[A-Za-z]/p'
 
-          helm upgrade --install --atomic --wait --timeout 10m0s --namespace $KUBE_NAMESPACE $RELEASE_NAME ./track-my-case-cloud-platform/charts/webapp-cp \
+          helm upgrade --install --atomic --wait --timeout 5m0s --namespace $KUBE_NAMESPACE $RELEASE_NAME ./track-my-case-cloud-platform/charts/webapp-cp \
           --set Namespace=$KUBE_NAMESPACE \
           --set WebApp.Image.Repository=$ECR_REPO_WEBAPP \
           --set WebApp.Image.Tag=$NEW_TAG_V \
@@ -210,7 +210,7 @@ jobs:
           --set securityContext.capabilities.drop=["ALL"] \
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
-          --set Networkpolicy.Ingress="tmc-ui-dev" \
+          --set Networkpolicy.Ingress="track-my-case-dev" \
           --set Ingress.Enabled=false \
           "${custom_variables_array[@]}"
 
