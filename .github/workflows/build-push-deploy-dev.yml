@@ -200,7 +200,7 @@ jobs:
           echo "=== Chart values: WebApp section ==="
           helm show values mojanalytics/webapp-cp | sed -n '/^WebApp:/,/^[A-Za-z]/p'
 
-          helm upgrade --install --atomic --wait --timeout 5m0s --namespace $KUBE_NAMESPACE $RELEASE_NAME ./track-my-case-cloud-platform/charts/webapp-cp \
+          helm upgrade --install --atomic --wait --timeout 10m0s --namespace $KUBE_NAMESPACE $RELEASE_NAME ./track-my-case-cloud-platform/charts/webapp-cp \
           --set Namespace=$KUBE_NAMESPACE \
           --set WebApp.Image.Repository=$ECR_REPO_WEBAPP \
           --set WebApp.Image.Tag=$NEW_TAG_V \
