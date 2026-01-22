@@ -73,6 +73,9 @@ jobs:
       id-token: write # This is required for requesting the JWT
     environment: test
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
       - name: Authenticate to the cluster
         env:
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
@@ -234,4 +237,4 @@ jobs:
             --namespace $KUBE_NAMESPACE \
             --set serviceName=${{ steps.extract-values.outputs.service_name }} \
             --set namespace=$KUBE_NAMESPACE \
-            --set monitoring.interval="15s"         
+            --set monitoring.interval="15s"
