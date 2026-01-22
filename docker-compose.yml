@@ -15,7 +15,7 @@ services:
         AMP_SUBSCRIPTION_KEY: ${AMP_SUBSCRIPTION_KEY}
         DB_URL: ${DB_URL}
         DB_USERNAME: ${DB_USERNAME}
-        DB_PASSWD: ${DB_PASSWD}
+        TMC_DB_PASSWORD: ${TMC_DB_PASSWORD}
     environment:
       # these environment variables are used by java-logging library
       - ROOT_APPENDER

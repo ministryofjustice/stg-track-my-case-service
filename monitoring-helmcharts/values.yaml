@@ -1,0 +1,14 @@
+serviceName: stg-track-my-case-service-dev
+namespace: stg-track-my-case-service-dev
+
+servicePort: http
+
+monitoring:
+  interval: 15s
+
+metrics:
+  enabled: true
+  actuator_endpoint: prometheus
+  grafana_dashboard:
+    enabled: true
+    name: Track My Case Service

@@ -2,19 +2,17 @@ server:
   port: 9999
   shutdown: "graceful"
 
-# If you use a database then uncomment the `group:, readiness: and include: "db"` lines in the health probes and uncomment the datasource section
 management:
   endpoint:
     health:
-      show-details: "always"
-      # group:
-      #  readiness:
-      #   include: "db"
+      show-details: "never"
+    prometheus:
+      access: read_only
   endpoints:
     web:
       base-path: /
       exposure:
-        include: health, info, prometheus
+        include: health, prometheus
 
 springdoc:
   packagesToScan: uk.gov.moj.cp.controllers

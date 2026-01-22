@@ -17,7 +17,7 @@ jobs:
       new_tag: ${{ steps.set-version-tag-output.outputs.new_tag }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Bump version and push tag
         uses: anothrNick/github-tag-action@1.75.0
@@ -81,15 +81,10 @@ jobs:
           kubectl config set-context ${KUBE_CLUSTER} --cluster=${KUBE_CLUSTER} --user=deploy-user --namespace=${{ secrets.KUBE_NAMESPACE }}
           kubectl config use-context ${KUBE_CLUSTER}
 
-      - name: add helm repo
-        continue-on-error: true
+      - name: Clone Helm chart repo
         run: |
-          helm repo add mojanalytics http://moj-analytics-helm-repo.s3-website-eu-west-1.amazonaws.com/
-
-      - name: update helm repo
-        continue-on-error: true
-        run: |
-          helm repo update mojanalytics
+          git clone https://github.com/ministryofjustice/track-my-case-cloud-platform.git
+          git  -C track-my-case-cloud-platform checkout main
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v5
@@ -104,15 +99,7 @@ jobs:
       - name: Upgrade the Helm chart
         env:
           APP_ROLE_ARN: ${{ secrets.APP_ROLE_ARN }}
-          AUTH0_CALLBACK_URL: ${{ vars.AUTH0_CALLBACK_URL }}
-          AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
-          AUTH0_CLIENT_SECRET: ${{ secrets.AUTH0_CLIENT_SECRET }}
-          AUTH0_DOMAIN: ${{ vars.AUTH0_DOMAIN }}
-          AUTH0_PASSWORDLESS: ${{ vars.AUTH0_PASSWORDLESS }}
-          AUTH0_TOKEN_ALG: ${{ vars.AUTH0_TOKEN_ALG }}
           AUTHENTICATION_REQUIRED: ${{ vars.AUTHENTICATION_REQUIRED }}
-          COOKIE_SECRET: "${{ secrets.XXX_COOKIE_SECRET }}"
-          ECR_REPO_AUTH0: ${{ steps.login-ecr.outputs.registry }}/analytical-platform/ap-auth-proxy-prod-ecr
           ECR_REPO_WEBAPP: ${{ steps.login-ecr.outputs.registry }}/${{ vars.PROD_ECR_REPOSITORY }}
           IP_RANGES: ${{ secrets.IP_RANGES }}
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
@@ -180,27 +167,18 @@ jobs:
           echo "=== DEBUG: Helm command ==="
           set -x
 
-
-          helm upgrade --install --dry-run --debug --namespace $KUBE_NAMESPACE $RELEASE_NAME mojanalytics/webapp-cp \
-          --set AuthProxy.Env.Auth0Domain=$AUTH0_DOMAIN \
-          --set AuthProxy.Env.Auth0Passwordless=$AUTH0_PASSWORDLESS \
-          --set AuthProxy.Env.Auth0TokenAlg=$AUTH0_TOKEN_ALG \
-          --set AuthProxy.Env.AuthenticationRequired=$AUTHENTICATION_REQUIRED \
-          --set AuthProxy.Env.CookieSecret=$COOKIE_SECRET \
-          --set AuthProxy.Env.IPRanges=$process_ip_range \
-          --set AuthProxy.Image.Repository=$ECR_REPO_AUTH0 \
-          --set AuthProxy.Image.Tag="latest" \
+          helm upgrade --install --dry-run --debug --namespace $KUBE_NAMESPACE $RELEASE_NAME ./track-my-case-cloud-platform/charts/webapp-cp \
           --set Namespace=$KUBE_NAMESPACE \
-          --set Secrets.Auth0.ClientId=$AUTH0_CLIENT_ID \
-          --set Secrets.Auth0.ClientSecret=$AUTH0_CLIENT_SECRET \
-          --set ServiceAccount.RoleARN=$APP_ROLE_ARN \
           --set WebApp.Image.Repository=$ECR_REPO_WEBAPP \
           --set WebApp.Image.Tag=$NEW_TAG_V \
           --set WebApp.Name=$KUBE_NAMESPACE \
+          --set Ingress.ModSec.Enabled=true \
           --set securityContext.allowPrivilegeEscalation=false \
           --set securityContext.capabilities.drop=["ALL"] \
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
+          --set Networkpolicy.Ingress="track-my-case-prod" \
+          --set Ingress.Enabled=false \
           "${custom_variables_array[@]}"
           # > rendered.yaml
 
@@ -212,24 +190,44 @@ jobs:
           echo "=== Chart values: WebApp section ==="
           helm show values mojanalytics/webapp-cp | sed -n '/^WebApp:/,/^[A-Za-z]/p'
 
-          helm upgrade --install --atomic --wait --timeout 10m0s --namespace $KUBE_NAMESPACE $RELEASE_NAME mojanalytics/webapp-cp \
-          --set AuthProxy.Env.Auth0Domain=$AUTH0_DOMAIN \
-          --set AuthProxy.Env.Auth0Passwordless=$AUTH0_PASSWORDLESS \
-          --set AuthProxy.Env.Auth0TokenAlg=$AUTH0_TOKEN_ALG \
-          --set AuthProxy.Env.AuthenticationRequired=$AUTHENTICATION_REQUIRED \
-          --set AuthProxy.Env.CookieSecret=$COOKIE_SECRET \
-          --set AuthProxy.Env.IPRanges=$process_ip_range \
-          --set AuthProxy.Image.Repository=$ECR_REPO_AUTH0 \
-          --set AuthProxy.Image.Tag="latest" \
+          helm upgrade --install --atomic --wait --timeout 10m0s --namespace $KUBE_NAMESPACE $RELEASE_NAME ./track-my-case-cloud-platform/charts/webapp-cp \
           --set Namespace=$KUBE_NAMESPACE \
-          --set Secrets.Auth0.ClientId=$AUTH0_CLIENT_ID \
-          --set Secrets.Auth0.ClientSecret=$AUTH0_CLIENT_SECRET \
-          --set ServiceAccount.RoleARN=$APP_ROLE_ARN \
           --set WebApp.Image.Repository=$ECR_REPO_WEBAPP \
           --set WebApp.Image.Tag=$NEW_TAG_V \
           --set WebApp.Name=$KUBE_NAMESPACE \
+          --set Ingress.ModSec.Enabled=true \
           --set securityContext.allowPrivilegeEscalation=false \
           --set securityContext.capabilities.drop=["ALL"] \
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
+          --set Networkpolicy.Ingress="track-my-case-prod" \
+          --set Ingress.Enabled=false \
           "${custom_variables_array[@]}"
+
+          echo "Labeling the service"
+          kubectl label service --overwrite=true $KUBE_NAMESPACE app=$KUBE_NAMESPACE
+
+      - name: Extract deployed service values for monitoring
+        id: extract-values
+        env:
+          RELEASE_NAME: ${{ github.event.repository.name }}-dev
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+        run: |
+          echo "Extracting deployed Helm values..."
+
+          SERVICE_NAME=$(helm get values "$RELEASE_NAME" -n "$KUBE_NAMESPACE" -o json | jq -r '.WebApp.Name')
+
+          echo "ServiceName=$SERVICE_NAME"
+
+          # Export them to the next step
+          echo "service_name=$SERVICE_NAME" >> $GITHUB_OUTPUT
+
+      - name: Deploy Monitoring Helm chart
+        env:
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+        run: |
+          helm upgrade --install monitoring-helmcharts ./monitoring-helmcharts \
+            --namespace $KUBE_NAMESPACE \
+            --set serviceName=${{ steps.extract-values.outputs.service_name }} \
+            --set namespace=$KUBE_NAMESPACE \
+            --set monitoring.interval="15s"     
