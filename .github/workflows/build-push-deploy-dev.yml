@@ -94,7 +94,7 @@ jobs:
       - name: Clone Helm chart repo
         run: |
           git clone https://github.com/ministryofjustice/track-my-case-cloud-platform.git
-          git  -C track-my-case-cloud-platform checkout main
+          git  -C track-my-case-cloud-platform checkout feature/VP-459-promote-monitoring-higher-env
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v5
