@@ -293,4 +293,3 @@ jobs:
             ./track-my-case-cloud-platform/charts/stg-track-my-case-monitoring \
             -f ./track-my-case-cloud-platform/charts/stg-track-my-case-monitoring/values-dev.yaml \
             --namespace $KUBE_NAMESPACE --wait
-
