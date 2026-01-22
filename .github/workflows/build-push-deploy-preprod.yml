@@ -73,6 +73,9 @@ jobs:
       id-token: write # This is required for requesting the JWT
     environment: preprod
     steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
       - name: Authenticate to the cluster
         env:
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
@@ -213,7 +216,7 @@ jobs:
       - name: Extract deployed service values for monitoring
         id: extract-values
         env:
-          RELEASE_NAME: ${{ github.event.repository.name }}-dev
+          RELEASE_NAME: ${{ github.event.repository.name }}-preprod
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
         run: |
           echo "Extracting deployed Helm values..."
@@ -233,4 +236,4 @@ jobs:
             --namespace $KUBE_NAMESPACE \
             --set serviceName=${{ steps.extract-values.outputs.service_name }} \
             --set namespace=$KUBE_NAMESPACE \
-            --set monitoring.interval="15s"     
+            --set monitoring.interval="15s"
