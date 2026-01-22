@@ -23,7 +23,7 @@ psql -h localhost -U <username> -d <database>
 
 ### Available Rollback Scripts
 
-- `rollback_v2_remove_phone_number.sql` - Rollback for V2__add_phone_number_to_tmc_user.sql
+- `rollback_v2_remove_phone_number.sql` - Rollback for V2\_\_add_phone_number_to_tmc_user.sql
   - Removes the `phone_number` column from `tmc_user` table
   - **WARNING**: This permanently deletes the column and all its data
 
@@ -39,4 +39,3 @@ psql -h localhost -U <username> -d <database>
 - Test rollback scripts in a development environment first
 - Document any data that will be lost during rollback
 - Consider data migration strategies if you need to preserve data
-
