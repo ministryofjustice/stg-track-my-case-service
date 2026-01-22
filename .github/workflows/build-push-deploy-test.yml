@@ -217,7 +217,7 @@ jobs:
       - name: Extract deployed service values for monitoring
         id: extract-values
         env:
-          RELEASE_NAME: ${{ github.event.repository.name }}-dev
+          RELEASE_NAME: ${{ github.event.repository.name }}-test
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
         run: |
           echo "Extracting deployed Helm values..."
