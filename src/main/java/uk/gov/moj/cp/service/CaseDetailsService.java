@@ -86,7 +86,6 @@ public class CaseDetailsService {
         );
     }
 
-
     private CaseDetailsCourtSittingDto getHearingSchedule(
         String accessToken, CourtScheduleDto.HearingDto.CourtSittingDto sitting) {
         return new CaseDetailsCourtSittingDto(

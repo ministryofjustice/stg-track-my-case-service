@@ -437,6 +437,475 @@ class CaseDetailsServiceTest {
             List.of(futureSittingDto)
         );
 
+        final CourtSittingDto currentSittingDto = new CourtSittingDto(
+            currentSittingStartDate,
+            currentSittingEndDate,
+            judgeId,
+            courtHouseId,
+            courtRoomId
+        );
+        final HearingDto hearingDto1 = new HearingDto(
+            hearingId,
+            "First Hearing",
+            "First Hearing",
+            "Note1",
+            List.of(currentSittingDto)
+        );
+
+
+        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto, hearingDto1));
+
+        final CourtRoomDto courtRoomDto = new CourtRoomDto(123, "CourtRoom 01");
+        final AddressDto addressDto = new AddressDto("53", "Court Street",
+                                                     "London", null, "CB4 3MX", null);
+
+        final CourtHouseDto courtHouseDto = new CourtHouseDto(
+            courtHouseId,
+            courtRoomId,
+            "CROWN",
+            "123",
+            "Lavender Hill",
+            addressDto,
+            Arrays.asList(courtRoomDto)
+        );
+
+        when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
+        when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
+        when(courtHouseService.getCourtHouseById(any(), any(), any())).thenReturn(courtHouseDto);
+
+        CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
+
+        assertEquals(caseUrn, caseDetails.caseUrn());
+        assertEquals(1, caseDetails.courtSchedule().size());
+        assertEquals(2, caseDetails.courtSchedule().getFirst().hearings().size());
+
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
+    }
+
+    @Test
+    @DisplayName("should not includes  hearings that have only past sitting")
+    void testGetCaseDetailsByCaseUrnWithNoHearingScheduleWithMultipleHearingWithPastSittings() {
+        final String caseUrn = "CASE123";
+        final String courtHouseId = randomUUID().toString();
+        final String courtRoomId = randomUUID().toString();
+        final String judgeId = randomUUID().toString();
+        final String hearingId = randomUUID().toString();
+        final String pastSittingStartDate = LocalDateTime.now().minusDays(1).toString();
+        final String pastSittingEndDate = LocalDateTime.now().minusDays(1).plusHours(2).toString();
+
+        final CourtSittingDto pastSittingDto = new CourtSittingDto(
+            pastSittingStartDate,
+            pastSittingEndDate,
+            judgeId,
+            courtHouseId,
+            courtRoomId
+        );
+
+        final HearingDto hearingDto = new HearingDto(
+            hearingId,
+            "First Hearing",
+            "First Hearing",
+            "Note1",
+            List.of(pastSittingDto)
+        );
+
+        final HearingDto hearingDto1 = new HearingDto(
+            hearingId,
+            "First Hearing",
+            "First Hearing",
+            "Note1",
+            List.of(pastSittingDto)
+        );
+
+
+        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto, hearingDto1));
+
+        final CourtRoomDto courtRoomDto = new CourtRoomDto(123, "CourtRoom 01");
+        final AddressDto addressDto = new AddressDto("53", "Court Street",
+                                                     "London", null, "CB4 3MX", null);
+
+        final CourtHouseDto courtHouseDto = new CourtHouseDto(
+            courtHouseId,
+            courtRoomId,
+            "CROWN",
+            "123",
+            "Lavender Hill",
+            addressDto,
+            Arrays.asList(courtRoomDto)
+        );
+
+        when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
+        when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
+        //when(courtHouseService.getCourtHouseById(any(), any(), any())).thenReturn(courtHouseDto);
+
+        CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
+
+        assertEquals(caseUrn, caseDetails.caseUrn());
+        assertEquals(1, caseDetails.courtSchedule().size());
+        assertEquals(0, caseDetails.courtSchedule().getFirst().hearings().size());
+
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
+    }
+
+    @DisplayName("should  includes  hearings that have only future sitting and should not include hearing that has past sitting")
+    void testGetCaseDetailsByCaseUrnWithHearingScheduleWithMultipleHearingWithPastAndFutureHearing() {
+        final String caseUrn = "CASE123";
+        final String courtHouseId = randomUUID().toString();
+        final String courtRoomId = randomUUID().toString();
+        final String judgeId = randomUUID().toString();
+        final String hearingId = randomUUID().toString();
+        final String pastSittingStartDate = LocalDateTime.now().minusDays(1).toString();
+        final String pastSittingEndDate = LocalDateTime.now().minusDays(1).plusHours(2).toString();
+
+        final String futureSittingStartDate = LocalDateTime.now().plusDays(1).toString();
+        final String futureSittingEndDate = LocalDateTime.now().plusDays(1).plusHours(2).toString();
+
+        final CourtSittingDto pastSittingDto = new CourtSittingDto(
+            pastSittingStartDate,
+            pastSittingEndDate,
+            judgeId,
+            courtHouseId,
+            courtRoomId
+        );
+
+        final HearingDto hearingDto = new HearingDto(
+            hearingId,
+            "First Hearing",
+            "First Hearing",
+            "Note1",
+            List.of(pastSittingDto)
+        );
+
+        final CourtSittingDto futureSittingDto = new CourtSittingDto(
+            futureSittingStartDate,
+            futureSittingEndDate,
+            judgeId,
+            courtHouseId,
+            courtRoomId
+        );
+
+        final HearingDto hearingDto1 = new HearingDto(
+            hearingId,
+            "First Hearing",
+            "First Hearing",
+            "Note1",
+            List.of(futureSittingDto)
+        );
+
+
+        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto, hearingDto1));
+
+        final CourtRoomDto courtRoomDto = new CourtRoomDto(123, "CourtRoom 01");
+        final AddressDto addressDto = new AddressDto("53", "Court Street",
+                                                     "London", null, "CB4 3MX", null);
+
+        final CourtHouseDto courtHouseDto = new CourtHouseDto(
+            courtHouseId,
+            courtRoomId,
+            "CROWN",
+            "123",
+            "Lavender Hill",
+            addressDto,
+            Arrays.asList(courtRoomDto)
+        );
+
+        when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
+        when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
+        when(courtHouseService.getCourtHouseById(any(), any(), any())).thenReturn(courtHouseDto);
+
+        CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
+
+        assertEquals(caseUrn, caseDetails.caseUrn());
+        assertEquals(1, caseDetails.courtSchedule().size());
+        assertEquals(1, caseDetails.courtSchedule().getFirst().hearings().size());
+
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
+    }
+
+    @Test
+    @DisplayName("includes only hearings that multiday hearing with current and future date sittings")
+    void testGetCaseDetailsByCaseUrnWithValidMultiDayHearingScheduleWithCurrentAndFutureSitting() {
+        final String caseUrn = "CASE123";
+        final String courtHouseId = randomUUID().toString();
+        final String courtRoomId = randomUUID().toString();
+        final String judgeId = randomUUID().toString();
+        final String hearingId = randomUUID().toString();
+        final String futureSittingStartDate = LocalDateTime.now().plusDays(1).toString();
+        final String futureSittingEndDate = LocalDateTime.now().plusDays(1).plusHours(2).toString();
+        final String currentSittingStartDate = LocalDateTime.now().toString();
+        final String currentSittingEndDate = LocalDateTime.now().plusHours(2).toString();
+
+        final CourtSittingDto futureSittingDto = new CourtSittingDto(
+            futureSittingStartDate,
+            futureSittingEndDate,
+            judgeId,
+            courtHouseId,
+            courtRoomId
+        );
+
+        final CourtSittingDto currentSittingDto = new CourtSittingDto(
+            currentSittingStartDate,
+            currentSittingEndDate,
+            judgeId,
+            courtHouseId,
+            courtRoomId
+        );
+
+        final HearingDto hearingDto = new HearingDto(
+            hearingId,
+            "First Hearing",
+            "First Hearing",
+            "Note1",
+            List.of(futureSittingDto, currentSittingDto)
+        );
+
+
+
+
+        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto));
+
+        final CourtRoomDto courtRoomDto = new CourtRoomDto(123, "CourtRoom 01");
+        final AddressDto addressDto = new AddressDto("53", "Court Street",
+                                                     "London", null, "CB4 3MX", null);
+
+        final CourtHouseDto courtHouseDto = new CourtHouseDto(
+            courtHouseId,
+            courtRoomId,
+            "CROWN",
+            "123",
+            "Lavender Hill",
+            addressDto,
+            Arrays.asList(courtRoomDto)
+        );
+
+        when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
+        when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
+        when(courtHouseService.getCourtHouseById(any(), any(), any())).thenReturn(courtHouseDto);
+
+        CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
+
+        assertEquals(caseUrn, caseDetails.caseUrn());
+        assertEquals(1, caseDetails.courtSchedule().size());
+        assertEquals(1, caseDetails.courtSchedule().getFirst().hearings().size());
+        assertEquals(2, caseDetails.courtSchedule().getFirst().hearings().getFirst().courtSittings().size());
+
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
+    }
+
+    @Test
+    @DisplayName("includes only hearings that multiday hearing with future date sittings")
+    void testGetCaseDetailsByCaseUrnWithValidMultiDayHearingScheduleWithPastAndFutureSitting() {
+        final String caseUrn = "CASE123";
+        final String courtHouseId = randomUUID().toString();
+        final String courtRoomId = randomUUID().toString();
+        final String judgeId = randomUUID().toString();
+        final String hearingId = randomUUID().toString();
+        final String futureSittingStartDate = LocalDateTime.now().plusDays(1).toString();
+        final String futureSittingEndDate = LocalDateTime.now().plusDays(1).plusHours(2).toString();
+
+        final CourtSittingDto futureSittingDto = new CourtSittingDto(
+            futureSittingStartDate,
+            futureSittingEndDate,
+            judgeId,
+            courtHouseId,
+            courtRoomId
+        );
+
+        final HearingDto hearingDto = new HearingDto(
+            hearingId,
+            "First Hearing",
+            "First Hearing",
+            "Note1",
+            List.of(futureSittingDto, futureSittingDto)
+        );
+
+
+        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto));
+
+        final CourtRoomDto courtRoomDto = new CourtRoomDto(123, "CourtRoom 01");
+        final AddressDto addressDto = new AddressDto("53", "Court Street",
+                                                     "London", null, "CB4 3MX", null);
+
+        final CourtHouseDto courtHouseDto = new CourtHouseDto(
+            courtHouseId,
+            courtRoomId,
+            "CROWN",
+            "123",
+            "Lavender Hill",
+            addressDto,
+            Arrays.asList(courtRoomDto)
+        );
+
+        when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
+        when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
+        when(courtHouseService.getCourtHouseById(any(), any(), any())).thenReturn(courtHouseDto);
+
+        CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
+
+        assertEquals(caseUrn, caseDetails.caseUrn());
+        assertEquals(1, caseDetails.courtSchedule().size());
+        assertEquals(1, caseDetails.courtSchedule().getFirst().hearings().size());
+        assertEquals(2, caseDetails.courtSchedule().getFirst().hearings().getFirst().courtSittings().size());
+
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
+    }
+
+    @Test
+    @DisplayName("includes only hearings that multiday hearing with past date sittings")
+    void testGetCaseDetailsByCaseUrnWithNoHearingScheduleWithPastMultiDaySitting() {
+        final String caseUrn = "CASE123";
+        final String courtHouseId = randomUUID().toString();
+        final String courtRoomId = randomUUID().toString();
+        final String judgeId = randomUUID().toString();
+        final String hearingId = randomUUID().toString();
+        final String pastSittingStartDate = LocalDateTime.now().minusDays(1).toString();
+        final String pastSittingEndDate = LocalDateTime.now().minusDays(1).plusHours(2).toString();
+
+
+        final CourtSittingDto pastSittingDto = new CourtSittingDto(
+            pastSittingStartDate,
+            pastSittingEndDate,
+            judgeId,
+            courtHouseId,
+            courtRoomId
+        );
+
+        final HearingDto hearingDto = new HearingDto(
+            hearingId,
+            "First Hearing",
+            "First Hearing",
+            "Note1",
+            List.of(pastSittingDto, pastSittingDto)
+        );
+
+
+        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto));
+
+        final CourtRoomDto courtRoomDto = new CourtRoomDto(123, "CourtRoom 01");
+        final AddressDto addressDto = new AddressDto("53", "Court Street",
+                                                     "London", null, "CB4 3MX", null);
+
+        final CourtHouseDto courtHouseDto = new CourtHouseDto(
+            courtHouseId,
+            courtRoomId,
+            "CROWN",
+            "123",
+            "Lavender Hill",
+            addressDto,
+            Arrays.asList(courtRoomDto)
+        );
+
+        when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
+        when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
+
+        CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
+
+        assertEquals(caseUrn, caseDetails.caseUrn());
+        assertEquals(1, caseDetails.courtSchedule().size());
+        assertEquals(0, caseDetails.courtSchedule().getFirst().hearings().size());
+
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
+    }
+
+    @Test
+    @DisplayName("includes only hearings that multiday hearing with past and future date sittings")
+    void testGetCaseDetailsByCaseUrnWithMultiDayHearingScheduleWithPastAndFutureSitting() {
+        final String caseUrn = "CASE123";
+        final String courtHouseId = randomUUID().toString();
+        final String courtRoomId = randomUUID().toString();
+        final String judgeId = randomUUID().toString();
+        final String hearingId = randomUUID().toString();
+        final String pastSittingStartDate = LocalDateTime.now().minusDays(1).toString();
+        final String pastSittingEndDate = LocalDateTime.now().minusDays(1).plusHours(2).toString();
+        final String futureSittingStartDate = LocalDateTime.now().plusDays(1).toString();
+        final String futureSittingEndDate = LocalDateTime.now().plusDays(1).plusHours(2).toString();
+
+
+        final CourtSittingDto pastSittingDto = new CourtSittingDto(
+            pastSittingStartDate,
+            pastSittingEndDate,
+            judgeId,
+            courtHouseId,
+            courtRoomId
+        );
+
+        final CourtSittingDto futureSittingDto = new CourtSittingDto(
+            futureSittingStartDate,
+            futureSittingEndDate,
+            judgeId,
+            courtHouseId,
+            courtRoomId
+        );
+
+        final HearingDto hearingDto = new HearingDto(
+            hearingId,
+            "First Hearing",
+            "First Hearing",
+            "Note1",
+            List.of(pastSittingDto, futureSittingDto)
+        );
+
+
+        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto));
+
+        final CourtRoomDto courtRoomDto = new CourtRoomDto(123, "CourtRoom 01");
+        final AddressDto addressDto = new AddressDto("53", "Court Street",
+                                                     "London", null, "CB4 3MX", null);
+
+        final CourtHouseDto courtHouseDto = new CourtHouseDto(
+            courtHouseId,
+            courtRoomId,
+            "CROWN",
+            "123",
+            "Lavender Hill",
+            addressDto,
+            Arrays.asList(courtRoomDto)
+        );
+
+        when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
+        when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
+        when(courtHouseService.getCourtHouseById(any(), any(), any())).thenReturn(courtHouseDto);
+
+        CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
+
+        assertEquals(caseUrn, caseDetails.caseUrn());
+        assertEquals(1, caseDetails.courtSchedule().size());
+        assertEquals(1, caseDetails.courtSchedule().getFirst().hearings().size());
+        assertEquals(2, caseDetails.courtSchedule().getFirst().hearings().getFirst().courtSittings().size());
+
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
+    }
+
+
+    @Test
+    @DisplayName("includes only hearings that have at least one future sitting")
+    void testGetCaseDetailsByCaseUrnWithHearingScheduleWithMultipleHearingOneWithSingleDayAndAnotherWithMultiDay() {
+        final String caseUrn = "CASE123";
+        final String courtHouseId = randomUUID().toString();
+        final String courtRoomId = randomUUID().toString();
+        final String judgeId = randomUUID().toString();
+        final String hearingId = randomUUID().toString();
+        final String futureSittingStartDate = LocalDateTime.now().plusDays(1).toString();
+        final String futureSittingEndDate = LocalDateTime.now().plusDays(1).plusHours(2).toString();
+        final String currentSittingStartDate = LocalDateTime.now().toString();
+        final String currentSittingEndDate = LocalDateTime.now().plusHours(2).toString();
+
+        final CourtSittingDto futureSittingDto = new CourtSittingDto(
+            futureSittingStartDate,
+            futureSittingEndDate,
+            judgeId,
+            courtHouseId,
+            courtRoomId
+        );
+
+        final HearingDto hearingDto = new HearingDto(
+            hearingId,
+            "First Hearing",
+            "First Hearing",
+            "Note1",
+            List.of(futureSittingDto)
+        );
+
         final CourtSittingDto pastSittingDto = new CourtSittingDto(
             currentSittingStartDate,
             currentSittingEndDate,
@@ -449,7 +918,7 @@ class CaseDetailsServiceTest {
             "First Hearing",
             "First Hearing",
             "Note1",
-            List.of(pastSittingDto)
+            List.of(pastSittingDto, futureSittingDto)
         );
 
 
