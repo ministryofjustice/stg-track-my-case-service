@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import uk.gov.moj.cp.dto.CaseDetailsDto;
 import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto.CaseDetailsHearingDto;
 import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto.CaseDetailsHearingDto.CaseDetailsCourtSittingDto;
+import uk.gov.moj.cp.dto.CourtScheduleDto.HearingDto.CourtSittingDto;
 import uk.gov.moj.cp.dto.CourtScheduleDto;
 import uk.gov.moj.cp.metrics.TrackMyCaseMetricsService;
 
@@ -59,17 +60,25 @@ public class CaseDetailsService {
     }
 
     private CaseDetailsHearingDto getHearingDetails(String accessToken, CourtScheduleDto.HearingDto hearing) {
-        List<CaseDetailsCourtSittingDto> futureSittings = hearing.courtSittingDtos().stream()
-            .filter(sitting -> validateSittingDateNotInPast(sitting.sittingStart()))
-            .map(a -> getHearingSchedule(accessToken, a))
-            .toList();
 
-        if (futureSittings.isEmpty()) {
+        List<CourtSittingDto> sittings = hearing.courtSittingDtos();
+        if (sittings == null || sittings.isEmpty()) {
             return null;
         }
 
+        boolean hasAnyCurrentOrFutureSitting = sittings.stream()
+            .anyMatch(s -> validateSittingDateNotInPast(s.sittingStart()));
+
+        if (!hasAnyCurrentOrFutureSitting) {
+            return null;
+        }
+
+        List<CaseDetailsCourtSittingDto> mappedSittings = sittings.stream()
+            .map(s -> getHearingSchedule(accessToken, s))
+            .toList();
+
         return new CaseDetailsHearingDto(
-            futureSittings,
+            mappedSittings,
             hearing.hearingId(),
             hearing.hearingType(),
             hearing.hearingDescription(),
@@ -93,4 +102,3 @@ public class CaseDetailsService {
         return !sittingDate.isBefore(LocalDate.now());
     }
 }
-

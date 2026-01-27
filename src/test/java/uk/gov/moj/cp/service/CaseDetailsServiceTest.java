@@ -96,13 +96,13 @@ class CaseDetailsServiceTest {
         assertEquals(caseUrn, caseDetails.caseUrn());
         assertEquals(1, caseDetails.courtSchedule().size());
 
-        var caseHearingDetails = caseDetails.courtSchedule().get(0).hearings().get(0);
+        var caseHearingDetails = caseDetails.courtSchedule().getFirst().hearings().getFirst();
         assertEquals(hearingId, caseHearingDetails.hearingId());
         assertEquals("First Hearing", caseHearingDetails.hearingType());
         assertEquals("First Hearing", caseHearingDetails.hearingDescription());
         assertEquals("Note1", caseHearingDetails.listNote());
 
-        var schedule = caseHearingDetails.courtSittings().get(0);
+        var schedule = caseHearingDetails.courtSittings().getFirst();
         assertEquals(judgeId, schedule.judiciaryId());
         assertEquals(courtHouseId, schedule.courtHouse().courtHouseId());
         assertEquals(courtRoomId, schedule.courtHouse().courtRoomId());
@@ -113,8 +113,8 @@ class CaseDetailsServiceTest {
         assertEquals("Court Street", schedule.courtHouse().address().address2());
         assertEquals("London", schedule.courtHouse().address().address3());
 
-        assertEquals(123, schedule.courtHouse().courtRoomDtoList().get(0).courtRoomId());
-        assertEquals("CourtRoom 01", schedule.courtHouse().courtRoomDtoList().get(0).courtRoomName());
+        assertEquals(123, schedule.courtHouse().courtRoomDtoList().getFirst().courtRoomId());
+        assertEquals("CourtRoom 01", schedule.courtHouse().courtRoomDtoList().getFirst().courtRoomName());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -152,7 +152,7 @@ class CaseDetailsServiceTest {
 
         assertEquals(caseUrn, caseDetails.caseUrn());
         assertEquals(1, caseDetails.courtSchedule().size());
-        assertEquals(0, caseDetails.courtSchedule().get(0).hearings().size());
+        assertEquals(0, caseDetails.courtSchedule().getFirst().hearings().size());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -227,15 +227,15 @@ class CaseDetailsServiceTest {
 
         assertEquals(caseUrn, caseDetails.caseUrn());
         assertEquals(1, caseDetails.courtSchedule().size());
-        assertEquals(1, caseDetails.courtSchedule().get(0).hearings().size());
+        assertEquals(1, caseDetails.courtSchedule().getFirst().hearings().size());
 
-        var caseHearingDetails = caseDetails.courtSchedule().get(0).hearings().get(0);
+        var caseHearingDetails = caseDetails.courtSchedule().getFirst().hearings().getFirst();
         assertEquals(hearingId, caseHearingDetails.hearingId());
         assertEquals("First Hearing", caseHearingDetails.hearingType());
         assertEquals("First Hearing", caseHearingDetails.hearingDescription());
         assertEquals("Note1", caseHearingDetails.listNote());
 
-        var schedule = caseHearingDetails.courtSittings().get(0);
+        var schedule = caseHearingDetails.courtSittings().getFirst();
         assertEquals(judgeId, schedule.judiciaryId());
         assertEquals(courtHouseId, schedule.courtHouse().courtHouseId());
         assertEquals(courtRoomId, schedule.courtHouse().courtRoomId());
@@ -246,8 +246,8 @@ class CaseDetailsServiceTest {
         assertEquals("Court Street", schedule.courtHouse().address().address2());
         assertEquals("London", schedule.courtHouse().address().address3());
 
-        assertEquals(123, schedule.courtHouse().courtRoomDtoList().get(0).courtRoomId());
-        assertEquals("CourtRoom 01", schedule.courtHouse().courtRoomDtoList().get(0).courtRoomName());
+        assertEquals(123, schedule.courtHouse().courtRoomDtoList().getFirst().courtRoomId());
+        assertEquals("CourtRoom 01", schedule.courtHouse().courtRoomDtoList().getFirst().courtRoomName());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -255,7 +255,8 @@ class CaseDetailsServiceTest {
 
     @Test
     @DisplayName("includes hearings when sitting date is today")
-    void testGetCaseDetailsByCaseUrnWithValidMultipleHearingScheduleForFutureSittingDate() {
+    void testGetCaseDetailsByCaseUrnWithValidHearingScheduleDetailsForCurrentDate()
+    {
         final String caseUrn = "CASE123";
         final String courtHouseId = randomUUID().toString();
         final String courtRoomId = randomUUID().toString();
@@ -305,15 +306,15 @@ class CaseDetailsServiceTest {
 
         assertEquals(caseUrn, caseDetails.caseUrn());
         assertEquals(1, caseDetails.courtSchedule().size());
-        assertEquals(1, caseDetails.courtSchedule().get(0).hearings().size());
+        assertEquals(1, caseDetails.courtSchedule().getFirst().hearings().size());
 
-        var caseHearingDetails = caseDetails.courtSchedule().get(0).hearings().get(0);
+        var caseHearingDetails = caseDetails.courtSchedule().getFirst().hearings().getFirst();
         assertEquals(hearingId, caseHearingDetails.hearingId());
         assertEquals("First Hearing", caseHearingDetails.hearingType());
         assertEquals("First Hearing", caseHearingDetails.hearingDescription());
         assertEquals("Note1", caseHearingDetails.listNote());
 
-        var schedule = caseHearingDetails.courtSittings().get(0);
+        var schedule = caseHearingDetails.courtSittings().getFirst();
         assertEquals(judgeId, schedule.judiciaryId());
         assertEquals(courtHouseId, schedule.courtHouse().courtHouseId());
         assertEquals(courtRoomId, schedule.courtHouse().courtRoomId());
@@ -324,15 +325,15 @@ class CaseDetailsServiceTest {
         assertEquals("Court Street", schedule.courtHouse().address().address2());
         assertEquals("London", schedule.courtHouse().address().address3());
 
-        assertEquals(123, schedule.courtHouse().courtRoomDtoList().get(0).courtRoomId());
-        assertEquals("CourtRoom 01", schedule.courtHouse().courtRoomDtoList().get(0).courtRoomName());
+        assertEquals(123, schedule.courtHouse().courtRoomDtoList().getFirst().courtRoomId());
+        assertEquals("CourtRoom 01", schedule.courtHouse().courtRoomDtoList().getFirst().courtRoomName());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
 
     @Test
     @DisplayName("includes hearings when sitting date is today, but before now")
-    void testGetCaseDetailsByCaseUrnWithValidMultipleHearingScheduleForFutureSittingDateBeforeNow() {
+    void testGetCaseDetailsByCaseUrnWithValidHearingScheduleDetailsForCurrentDateButBeforeCurrentTime() {
         final String caseUrn = "CASE123";
         final String courtHouseId = randomUUID().toString();
         final String courtRoomId = randomUUID().toString();
@@ -382,15 +383,15 @@ class CaseDetailsServiceTest {
 
         assertEquals(caseUrn, caseDetails.caseUrn());
         assertEquals(1, caseDetails.courtSchedule().size());
-        assertEquals(1, caseDetails.courtSchedule().get(0).hearings().size());
+        assertEquals(1, caseDetails.courtSchedule().getFirst().hearings().size());
 
-        var caseHearingDetails = caseDetails.courtSchedule().get(0).hearings().get(0);
+        var caseHearingDetails = caseDetails.courtSchedule().getFirst().hearings().getFirst();
         assertEquals(hearingId, caseHearingDetails.hearingId());
         assertEquals("First Hearing", caseHearingDetails.hearingType());
         assertEquals("First Hearing", caseHearingDetails.hearingDescription());
         assertEquals("Note1", caseHearingDetails.listNote());
 
-        var schedule = caseHearingDetails.courtSittings().get(0);
+        var schedule = caseHearingDetails.courtSittings().getFirst();
         assertEquals(judgeId, schedule.judiciaryId());
         assertEquals(courtHouseId, schedule.courtHouse().courtHouseId());
         assertEquals(courtRoomId, schedule.courtHouse().courtRoomId());
@@ -403,6 +404,80 @@ class CaseDetailsServiceTest {
 
         assertEquals(123, schedule.courtHouse().courtRoomDtoList().get(0).courtRoomId());
         assertEquals("CourtRoom 01", schedule.courtHouse().courtRoomDtoList().get(0).courtRoomName());
+
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
+    }
+
+    @Test
+    @DisplayName("includes only hearings that have at least one future sitting")
+    void testGetCaseDetailsByCaseUrnWithValidMultipleHearingSchedule() {
+        final String caseUrn = "CASE123";
+        final String courtHouseId = randomUUID().toString();
+        final String courtRoomId = randomUUID().toString();
+        final String judgeId = randomUUID().toString();
+        final String hearingId = randomUUID().toString();
+        final String futureSittingStartDate = LocalDateTime.now().plusDays(1).toString();
+        final String futureSittingEndDate = LocalDateTime.now().plusDays(1).plusHours(2).toString();
+        final String currentSittingStartDate = LocalDateTime.now().toString();
+        final String currentSittingEndDate = LocalDateTime.now().plusHours(2).toString();
+
+        final CourtSittingDto futureSittingDto = new CourtSittingDto(
+            futureSittingStartDate,
+            futureSittingEndDate,
+            judgeId,
+            courtHouseId,
+            courtRoomId
+        );
+
+        final HearingDto hearingDto = new HearingDto(
+            hearingId,
+            "First Hearing",
+            "First Hearing",
+            "Note1",
+            List.of(futureSittingDto)
+        );
+
+        final CourtSittingDto pastSittingDto = new CourtSittingDto(
+            currentSittingStartDate,
+            currentSittingEndDate,
+            judgeId,
+            courtHouseId,
+            courtRoomId
+        );
+        final HearingDto hearingDto1 = new HearingDto(
+            hearingId,
+            "First Hearing",
+            "First Hearing",
+            "Note1",
+            List.of(pastSittingDto)
+        );
+
+
+        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto, hearingDto1));
+
+        final CourtRoomDto courtRoomDto = new CourtRoomDto(123, "CourtRoom 01");
+        final AddressDto addressDto = new AddressDto("53", "Court Street",
+                                                     "London", null, "CB4 3MX", null);
+
+        final CourtHouseDto courtHouseDto = new CourtHouseDto(
+            courtHouseId,
+            courtRoomId,
+            "CROWN",
+            "123",
+            "Lavender Hill",
+            addressDto,
+            Arrays.asList(courtRoomDto)
+        );
+
+        when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
+        when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
+        when(courtHouseService.getCourtHouseById(any(), any(), any())).thenReturn(courtHouseDto);
+
+        CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
+
+        assertEquals(caseUrn, caseDetails.caseUrn());
+        assertEquals(1, caseDetails.courtSchedule().size());
+        assertEquals(2, caseDetails.courtSchedule().getFirst().hearings().size());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
