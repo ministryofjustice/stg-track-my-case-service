@@ -9,12 +9,16 @@ import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto.CaseDetailsH
 import uk.gov.moj.cp.dto.CourtScheduleDto.HearingDto.CourtSittingDto;
 import uk.gov.moj.cp.dto.CourtScheduleDto;
 import uk.gov.moj.cp.metrics.TrackMyCaseMetricsService;
+import uk.gov.moj.cp.model.HearingType;
+
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static java.util.Objects.isNull;
 
 @Service
 @Slf4j
@@ -61,8 +65,14 @@ public class CaseDetailsService {
 
     private CaseDetailsHearingDto getHearingDetails(String accessToken, CourtScheduleDto.HearingDto hearing) {
 
+        if (isNull(hearing.hearingType()) ||
+            !(HearingType.TRIAL.getType().equalsIgnoreCase(hearing.hearingType())
+                || HearingType.SENTENCE.getType().equalsIgnoreCase(hearing.hearingType()))) {
+            return null;
+        }
+
         List<CourtSittingDto> sittings = hearing.courtSittingDtos();
-        if (sittings == null || sittings.isEmpty()) {
+        if (isNull(sittings) || sittings.isEmpty()) {
             return null;
         }
 

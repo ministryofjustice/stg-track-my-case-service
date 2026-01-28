@@ -65,8 +65,8 @@ class CaseDetailsServiceTest {
 
         final HearingDto hearingDto = new HearingDto(
                 hearingId,
-                "First Hearing",
-                "First Hearing",
+                "Trial",
+                "Trial",
                 "Note1",
                 List.of(sittingDto)
         );
@@ -98,8 +98,8 @@ class CaseDetailsServiceTest {
 
         var caseHearingDetails = caseDetails.courtSchedule().getFirst().hearings().getFirst();
         assertEquals(hearingId, caseHearingDetails.hearingId());
-        assertEquals("First Hearing", caseHearingDetails.hearingType());
-        assertEquals("First Hearing", caseHearingDetails.hearingDescription());
+        assertEquals("Trial", caseHearingDetails.hearingType());
+        assertEquals("Trial", caseHearingDetails.hearingDescription());
         assertEquals("Note1", caseHearingDetails.listNote());
 
         var schedule = caseHearingDetails.courtSittings().getFirst();
@@ -137,8 +137,8 @@ class CaseDetailsServiceTest {
 
         final HearingDto hearingDto = new HearingDto(
                 randomUUID().toString(),
-                "First Hearing",
-                "First Hearing",
+                "Sentence",
+                "Sentence",
                 "Note1",
                 List.of(sittingDto)
         );
@@ -181,8 +181,8 @@ class CaseDetailsServiceTest {
 
         final HearingDto hearingDto = new HearingDto(
                 hearingId,
-                "First Hearing",
-                "First Hearing",
+                "Trial",
+                "Trial",
                 "Note1",
                 List.of(futureSittingDto)
         );
@@ -196,8 +196,8 @@ class CaseDetailsServiceTest {
         );
         final HearingDto hearingDto1 = new HearingDto(
                 hearingId,
-                "First Hearing",
-                "First Hearing",
+                "Sentence",
+                "Sentence",
                 "Note1",
                 List.of(pastSittingDto)
         );
@@ -231,8 +231,8 @@ class CaseDetailsServiceTest {
 
         var caseHearingDetails = caseDetails.courtSchedule().getFirst().hearings().getFirst();
         assertEquals(hearingId, caseHearingDetails.hearingId());
-        assertEquals("First Hearing", caseHearingDetails.hearingType());
-        assertEquals("First Hearing", caseHearingDetails.hearingDescription());
+        assertEquals("Trial", caseHearingDetails.hearingType());
+        assertEquals("Trial", caseHearingDetails.hearingDescription());
         assertEquals("Note1", caseHearingDetails.listNote());
 
         var schedule = caseHearingDetails.courtSittings().getFirst();
@@ -276,8 +276,8 @@ class CaseDetailsServiceTest {
 
         final HearingDto hearingDto = new HearingDto(
                 hearingId,
-                "First Hearing",
-                "First Hearing",
+                "Trial",
+                "Trial",
                 "Note1",
                 List.of(todaySittingDto)
         );
@@ -310,8 +310,8 @@ class CaseDetailsServiceTest {
 
         var caseHearingDetails = caseDetails.courtSchedule().getFirst().hearings().getFirst();
         assertEquals(hearingId, caseHearingDetails.hearingId());
-        assertEquals("First Hearing", caseHearingDetails.hearingType());
-        assertEquals("First Hearing", caseHearingDetails.hearingDescription());
+        assertEquals("Trial", caseHearingDetails.hearingType());
+        assertEquals("Trial", caseHearingDetails.hearingDescription());
         assertEquals("Note1", caseHearingDetails.listNote());
 
         var schedule = caseHearingDetails.courtSittings().getFirst();
@@ -353,8 +353,8 @@ class CaseDetailsServiceTest {
 
         final HearingDto hearingDto = new HearingDto(
                 hearingId,
-                "First Hearing",
-                "First Hearing",
+                "Sentence",
+                "Sentence",
                 "Note1",
                 List.of(todaySittingDto)
         );
@@ -387,8 +387,8 @@ class CaseDetailsServiceTest {
 
         var caseHearingDetails = caseDetails.courtSchedule().getFirst().hearings().getFirst();
         assertEquals(hearingId, caseHearingDetails.hearingId());
-        assertEquals("First Hearing", caseHearingDetails.hearingType());
-        assertEquals("First Hearing", caseHearingDetails.hearingDescription());
+        assertEquals("Sentence", caseHearingDetails.hearingType());
+        assertEquals("Sentence", caseHearingDetails.hearingDescription());
         assertEquals("Note1", caseHearingDetails.listNote());
 
         var schedule = caseHearingDetails.courtSittings().getFirst();
@@ -431,8 +431,8 @@ class CaseDetailsServiceTest {
 
         final HearingDto hearingDto = new HearingDto(
             hearingId,
-            "First Hearing",
-            "First Hearing",
+            "Trial",
+            "Trial",
             "Note1",
             List.of(futureSittingDto)
         );
@@ -446,8 +446,8 @@ class CaseDetailsServiceTest {
         );
         final HearingDto hearingDto1 = new HearingDto(
             hearingId,
-            "First Hearing",
-            "First Hearing",
+            "Sentence",
+            "Sentence",
             "Note1",
             List.of(currentSittingDto)
         );
@@ -503,16 +503,16 @@ class CaseDetailsServiceTest {
 
         final HearingDto hearingDto = new HearingDto(
             hearingId,
-            "First Hearing",
-            "First Hearing",
+            "Trial",
+            "Trial",
             "Note1",
             List.of(pastSittingDto)
         );
 
         final HearingDto hearingDto1 = new HearingDto(
             hearingId,
-            "First Hearing",
-            "First Hearing",
+            "Sentence",
+            "Sentence",
             "Note1",
             List.of(pastSittingDto)
         );
@@ -570,8 +570,8 @@ class CaseDetailsServiceTest {
 
         final HearingDto hearingDto = new HearingDto(
             hearingId,
-            "First Hearing",
-            "First Hearing",
+            "Trial",
+            "Trial",
             "Note1",
             List.of(pastSittingDto)
         );
@@ -586,8 +586,8 @@ class CaseDetailsServiceTest {
 
         final HearingDto hearingDto1 = new HearingDto(
             hearingId,
-            "First Hearing",
-            "First Hearing",
+            "Sentence",
+            "Sentence",
             "Note1",
             List.of(futureSittingDto)
         );
@@ -653,8 +653,8 @@ class CaseDetailsServiceTest {
 
         final HearingDto hearingDto = new HearingDto(
             hearingId,
-            "First Hearing",
-            "First Hearing",
+            "Trial",
+            "Trial",
             "Note1",
             List.of(futureSittingDto, currentSittingDto)
         );
@@ -713,8 +713,8 @@ class CaseDetailsServiceTest {
 
         final HearingDto hearingDto = new HearingDto(
             hearingId,
-            "First Hearing",
-            "First Hearing",
+            "Trial",
+            "Trial",
             "Note1",
             List.of(futureSittingDto, futureSittingDto)
         );
@@ -772,8 +772,8 @@ class CaseDetailsServiceTest {
 
         final HearingDto hearingDto = new HearingDto(
             hearingId,
-            "First Hearing",
-            "First Hearing",
+            "Trial",
+            "Trial",
             "Note1",
             List.of(pastSittingDto, pastSittingDto)
         );
@@ -839,8 +839,8 @@ class CaseDetailsServiceTest {
 
         final HearingDto hearingDto = new HearingDto(
             hearingId,
-            "First Hearing",
-            "First Hearing",
+            "Trial",
+            "Trial",
             "Note1",
             List.of(pastSittingDto, futureSittingDto)
         );
@@ -900,8 +900,8 @@ class CaseDetailsServiceTest {
 
         final HearingDto hearingDto = new HearingDto(
             hearingId,
-            "First Hearing",
-            "First Hearing",
+            "Trial",
+            "Trial",
             "Note1",
             List.of(futureSittingDto)
         );
@@ -915,14 +915,87 @@ class CaseDetailsServiceTest {
         );
         final HearingDto hearingDto1 = new HearingDto(
             hearingId,
-            "First Hearing",
-            "First Hearing",
+            "Sentence",
+            "Sentence",
             "Note1",
             List.of(pastSittingDto, futureSittingDto)
         );
 
 
         final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto, hearingDto1));
+
+        final CourtRoomDto courtRoomDto = new CourtRoomDto(123, "CourtRoom 01");
+        final AddressDto addressDto = new AddressDto("53", "Court Street",
+                                                     "London", null, "CB4 3MX", null);
+
+        final CourtHouseDto courtHouseDto = new CourtHouseDto(
+            courtHouseId,
+            courtRoomId,
+            "CROWN",
+            "123",
+            "Lavender Hill",
+            addressDto,
+            Arrays.asList(courtRoomDto)
+        );
+
+        when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
+        when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
+        when(courtHouseService.getCourtHouseById(any(), any(), any())).thenReturn(courtHouseDto);
+
+        CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
+
+        assertEquals(caseUrn, caseDetails.caseUrn());
+        assertEquals(1, caseDetails.courtSchedule().size());
+        assertEquals(2, caseDetails.courtSchedule().getFirst().hearings().size());
+
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
+    }
+
+    @Test
+    @DisplayName("includes hearing of types Trial or Sentence")
+    void testGetCaseDetailsByCaseUrnWithHearingScheduleWithHearingTypeSentenceOrTrial() {
+        final String caseUrn = "CASE123";
+        final String courtHouseId = randomUUID().toString();
+        final String courtRoomId = randomUUID().toString();
+        final String judgeId = randomUUID().toString();
+        final String hearingId = randomUUID().toString();
+        final String futureSittingStartDate = LocalDateTime.now().plusDays(1).toString();
+        final String futureSittingEndDate = LocalDateTime.now().plusDays(1).plusHours(2).toString();
+
+        final CourtSittingDto futureSittingDto = new CourtSittingDto(
+            futureSittingStartDate,
+            futureSittingEndDate,
+            judgeId,
+            courtHouseId,
+            courtRoomId
+        );
+
+        final HearingDto hearingDto = new HearingDto(
+            hearingId,
+            "Trial",
+            "Trial",
+            "Note1",
+            List.of(futureSittingDto)
+        );
+
+        final HearingDto hearingDto1 = new HearingDto(
+            hearingId,
+            "Sentence",
+            "Sentence",
+            "Note1",
+            List.of(futureSittingDto, futureSittingDto)
+        );
+
+        final HearingDto hearingDto2 = new HearingDto(
+            hearingId,
+            "Invalid Type",
+            "Invalid",
+            "Note1",
+            List.of(futureSittingDto, futureSittingDto)
+        );
+
+
+        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto, hearingDto1, hearingDto2));
 
         final CourtRoomDto courtRoomDto = new CourtRoomDto(123, "CourtRoom 01");
         final AddressDto addressDto = new AddressDto("53", "Court Street",
