@@ -4,13 +4,13 @@ public enum HearingType {
     TRIAL("Trial"),
     SENTENCE("Sentence");
 
-    private final String type;
+    private final String value;
 
     HearingType(String type) {
-        this.type = type;
+        this.value = type;
     }
 
-    public String getType() {
-        return type;
+    public String getValue() {
+        return value;
     }
 }
