@@ -14,6 +14,7 @@ import uk.gov.moj.cp.model.HearingType;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -44,12 +45,23 @@ public class CaseDetailsService {
             courtSchedule.stream()
                 .map(schedule -> new CaseDetailsDto.CaseDetailsCourtScheduleDto(
                     schedule.hearingDtos().stream()
-                        .map(t -> getHearingDetails(accessToken,t))
+                        .map(t -> getHearingDetails(accessToken, t))
                         .filter(Objects::nonNull)
+                        .sorted(Comparator.comparing(
+                            h -> h.courtSittings() == null ? null :
+                                h.courtSittings().stream()
+                                    .filter(Objects::nonNull)
+                                    .map(CaseDetailsCourtSittingDto::sittingStart)
+                                    .filter(Objects::nonNull)
+                                    .min(Comparator.naturalOrder())
+                                    .orElse(null),
+                            Comparator.nullsLast(Comparator.naturalOrder())
+                        ))
                         .toList()
                 ))
                 .toList()
         );
+
         String courtHouseAndRoomIds = caseDetails.courtSchedule().stream()
             .flatMap(a -> a.hearings().stream()
                 .flatMap(b -> b.courtSittings().stream()
@@ -65,25 +77,23 @@ public class CaseDetailsService {
 
     private CaseDetailsHearingDto getHearingDetails(String accessToken, CourtScheduleDto.HearingDto hearing) {
 
-        if (isNull(hearing.hearingType()) ||
-            !(HearingType.TRIAL.getType().equalsIgnoreCase(hearing.hearingType())
-                || HearingType.SENTENCE.getType().equalsIgnoreCase(hearing.hearingType()))) {
+        if (isNull(hearing) || !isTrailOrSentenceHearing(hearing.hearingType())){
             return null;
         }
 
-        List<CourtSittingDto> sittings = hearing.courtSittingDtos();
+        final List<CourtSittingDto> sittings = hearing.courtSittingDtos();
         if (isNull(sittings) || sittings.isEmpty()) {
             return null;
         }
 
-        boolean hasAnyCurrentOrFutureSitting = sittings.stream()
+        final boolean hasAnyCurrentOrFutureSitting = sittings.stream()
             .anyMatch(s -> validateSittingDateNotInPast(s.sittingStart()));
 
         if (!hasAnyCurrentOrFutureSitting) {
             return null;
         }
 
-        List<CaseDetailsCourtSittingDto> mappedSittings = sittings.stream()
+        final List<CaseDetailsCourtSittingDto> mappedSittings = sittings.stream()
             .map(s -> getHearingSchedule(accessToken, s))
             .toList();
 
@@ -109,5 +119,10 @@ public class CaseDetailsService {
     private boolean validateSittingDateNotInPast(String dateTimeString) {
         LocalDate sittingDate = LocalDateTime.parse(dateTimeString).toLocalDate();
         return !sittingDate.isBefore(LocalDate.now());
+    }
+
+    private boolean isTrailOrSentenceHearing(final String hearingType){
+        return HearingType.TRIAL.getType().equalsIgnoreCase(hearingType)
+            || HearingType.SENTENCE.getType().equalsIgnoreCase(hearingType);
     }
 }
