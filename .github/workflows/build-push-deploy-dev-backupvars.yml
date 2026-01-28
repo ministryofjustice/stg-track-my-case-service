@@ -1,0 +1,62 @@
+name: CI/CD dev
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+permissions: {}
+concurrency: dev
+
+jobs:
+  backup-vars-dev:
+    name: Backup variables
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # This is required for actions/checkout
+      id-token: write # This is required for requesting the JWT
+    environment: dev
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Authenticate to the cluster
+        env:
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+          KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
+        run: |
+          echo "${{ secrets.KUBE_CERT }}" > ca.crt
+          kubectl config set-cluster ${KUBE_CLUSTER} --certificate-authority=./ca.crt --server=https://${KUBE_CLUSTER}
+          kubectl config set-credentials deploy-user --token=${{ secrets.KUBE_TOKEN }}
+          kubectl config set-context ${KUBE_CLUSTER} --cluster=${KUBE_CLUSTER} --user=deploy-user --namespace=${{ secrets.KUBE_NAMESPACE }}
+          kubectl config use-context ${KUBE_CLUSTER}
+
+      - name: Backup variables
+        env:
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+          SECRETS_CONTEXT:  ${{ toJson(secrets) }}
+          VARS_CONTEXT:  ${{ toJson(vars) }}
+        run: |
+
+          gh_vars_json=$(jq -n \
+              --argjson vars_json "$VARS_CONTEXT" \
+              '$vars_json')
+
+          gh_secrets_json=$(jq -n \
+              --argjson secrets_json "$SECRETS_CONTEXT" \
+              '$secrets_json')
+
+
+          for row in $(echo "$gh_vars_json" | jq -r 'to_entries[] | @base64'); do
+            key=$(echo "$row" | base64 --decode | jq -r '.key')
+            value=$(echo "$row" | base64 --decode | jq -r '.value')
+            configmap_data+=("--from-literal=${custom_key}=${safe_value} "
+          done
+
+          echo "Creating configmap for environment variables "
+          echo "$configmap_data"
+          kubectl create configmap github-environment-variables $configmap_data
+          #echo "Creating secret for secret variables"
+          #kubectl label service --overwrite=true $KUBE_NAMESPACE app=$KUBE_NAMESPACE
+
