@@ -122,7 +122,7 @@ public class CaseDetailsService {
     }
 
     private boolean isTrailOrSentenceHearing(final String hearingType){
-        return HearingType.TRIAL.getType().equalsIgnoreCase(hearingType)
-            || HearingType.SENTENCE.getType().equalsIgnoreCase(hearingType);
+        return HearingType.TRIAL.getValue().equalsIgnoreCase(hearingType)
+            || HearingType.SENTENCE.getValue().equalsIgnoreCase(hearingType);
     }
 }
