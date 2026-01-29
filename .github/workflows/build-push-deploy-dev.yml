@@ -1,5 +1,7 @@
 name: CI/CD dev
 
+on:
+  workflow_dispatch:
 permissions: {}
 concurrency: dev
 
