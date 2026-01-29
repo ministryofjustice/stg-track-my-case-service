@@ -46,3 +46,44 @@ jobs:
 
           echo "Creating secret for secret variables "
           kubectl create secret generic github-secret-variables --from-file=github-secrets -n $KUBE_NAMESPACE
+
+  backup-vars-test:
+    name: Backup variables
+    runs-on: ubuntu-latest
+    environment: test
+    steps:
+      - name: Authenticate to the cluster
+        env:
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+          KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
+        run: |
+          echo "${{ secrets.KUBE_CERT }}" > ca.crt
+          kubectl config set-cluster ${KUBE_CLUSTER} --certificate-authority=./ca.crt --server=https://${KUBE_CLUSTER}
+          kubectl config set-credentials deploy-user --token=${{ secrets.KUBE_TOKEN }}
+          kubectl config set-context ${KUBE_CLUSTER} --cluster=${KUBE_CLUSTER} --user=deploy-user --namespace=${{ secrets.KUBE_NAMESPACE }}
+          kubectl config use-context ${KUBE_CLUSTER}
+
+      - name: Backup variables
+        env:
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+          SECRETS_CONTEXT:  ${{ toJson(secrets) }}
+          VARS_CONTEXT:  ${{ toJson(vars) }}
+        run: |
+
+          gh_vars_json=$(jq -n \
+              --argjson vars_json "$VARS_CONTEXT" \
+              '$vars_json')
+
+          gh_secrets_json=$(jq -n \
+              --argjson secrets_json "$SECRETS_CONTEXT" \
+              '$secrets_json')
+
+          echo "$gh_vars_json" > "github-variables"
+          echo "$gh_secrets_json" > "github-secrets"
+
+
+          echo "Creating configmap for environment variables "
+          kubectl create configmap github-environment-variables --from-file=github-variables -n $KUBE_NAMESPACE
+
+          echo "Creating secret for secret variables "
+          kubectl create secret generic github-secret-variables --from-file=github-secrets -n $KUBE_NAMESPACE
