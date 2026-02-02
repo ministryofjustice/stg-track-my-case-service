@@ -556,6 +556,38 @@ class CaseDetailsServiceTest {
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
 
+    @Test
+    @DisplayName("includes hearing of types Trial or SENTENCE")
+    void testGetCaseDetailsByCaseUrnWithHearingScheduleInSortedOrderOfSittingDateAndHearingType() {
+        final CourtSittingDto currentSittingDto = createCourtSitting(currentSittingStartDate, currentSittingEndDate);
+        final List<CourtSittingDto> courtSittings =   List.of(currentSittingDto);
+
+        final HearingDto hearingDto1 = createHearing(HearingType.SENTENCE.getValue(), courtSittings);
+        final HearingDto hearingDto2  = createHearing(HearingType.SENTENCE.getValue(), courtSittings);
+        final HearingDto hearingDto3 = createHearing(HearingType.TRIAL.getValue(), courtSittings);
+        final HearingDto hearingDto4 = createHearing("Invalid Type", courtSittings);
+
+        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto1, hearingDto3, hearingDto2, hearingDto4));
+
+        final CourtRoomDto courtRoomDto = new CourtRoomDto(123, "CourtRoom 01");
+        final AddressDto addressDto = new AddressDto("53", "Court Street",
+                                                     "London", null, "CB4 3MX", null);
+
+        when(courtHouseService.getCourtHouseById(any(), any(), any())).thenReturn(createCourtHouse(courtRoomDto, addressDto));
+        when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
+        when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
+
+        final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
+
+        assertEquals(caseUrn, caseDetails.caseUrn());
+        assertEquals(1, caseDetails.courtSchedule().size());
+        assertEquals(3, caseDetails.courtSchedule().getFirst().hearings().size());
+        assertEquals(HearingType.TRIAL.getValue(), caseDetails.courtSchedule().getFirst().hearings().getFirst().hearingType());
+
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
+    }
+
+
     private CourtSittingDto createCourtSitting(final  String sittingStartDate, final String sittingEndDate){
 
         return new CourtSittingDto(

@@ -47,16 +47,20 @@ public class CaseDetailsService {
                     schedule.hearingDtos().stream()
                         .map(t -> getHearingDetails(accessToken, t))
                         .filter(Objects::nonNull)
-                        .sorted(Comparator.comparing(
-                            h -> h.courtSittings() == null ? null :
-                                h.courtSittings().stream()
-                                    .filter(Objects::nonNull)
-                                    .map(CaseDetailsCourtSittingDto::sittingStart)
-                                    .filter(Objects::nonNull)
-                                    .min(Comparator.naturalOrder())
-                                    .orElse(null),
-                            Comparator.nullsLast(Comparator.naturalOrder())
-                        ))
+                        .sorted(
+                            Comparator.comparing(
+                                    (CaseDetailsHearingDto h) -> h.courtSittings() == null ? null:
+                                        h.courtSittings().stream()
+                                        .filter(Objects::nonNull)
+                                        .map(s -> LocalDateTime.parse(s.sittingStart()))
+                                        .min(Comparator.naturalOrder())
+                                        .orElse(null),
+                                    Comparator.nullsLast(Comparator.naturalOrder())
+                                )
+                                .thenComparingInt((CaseDetailsHearingDto h) ->
+                                                      HearingType.TRIAL.getValue().equalsIgnoreCase(h.hearingType()) ? 0 : 1
+                                )
+                        )
                         .toList()
                 ))
                 .toList()
@@ -126,3 +130,4 @@ public class CaseDetailsService {
             || HearingType.SENTENCE.getValue().equalsIgnoreCase(hearingType);
     }
 }
+
