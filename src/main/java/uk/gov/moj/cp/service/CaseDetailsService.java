@@ -12,11 +12,13 @@ import uk.gov.moj.cp.metrics.TrackMyCaseMetricsService;
 import uk.gov.moj.cp.model.HearingType;
 
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
@@ -36,31 +38,49 @@ public class CaseDetailsService {
     @Autowired
     private TrackMyCaseMetricsService trackMyCaseMetricsService;
 
+    @Autowired
+    private WarningMessageService warningMessageService;
+
+    private Clock clock = Clock.systemDefaultZone();
+
+    public CaseDetailsService() {
+    }
+
+    public CaseDetailsService(Clock clock) {
+        this.clock = clock;
+    }
+
+    public CaseDetailsService(Clock clock, WarningMessageService warningMessageService) {
+        this.clock = clock;
+        this.warningMessageService = warningMessageService;
+    }
+
     public CaseDetailsDto getCaseDetailsByCaseUrn(String caseUrn) {
         String accessToken = oauthTokenService.getJwtToken();
         List<CourtScheduleDto> courtSchedule = courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn);
 
+        List<CaseDetailsDto.CaseDetailsCourtScheduleDto> result = courtSchedule.stream()
+            .map(schedule -> new CaseDetailsDto.CaseDetailsCourtScheduleDto(
+                schedule.hearingDtos().stream()
+                    .map(t -> getHearingDetails(accessToken, t))
+                    .filter(Objects::nonNull)
+                    .sorted(Comparator.comparing(
+                        h -> h.courtSittings() == null ? null :
+                            h.courtSittings().stream()
+                                .filter(Objects::nonNull)
+                                .map(CaseDetailsCourtSittingDto::sittingStart)
+                                .filter(Objects::nonNull)
+                                .min(Comparator.naturalOrder())
+                                .orElse(null),
+                        Comparator.nullsLast(Comparator.naturalOrder())
+                    ))
+                    .toList()
+            ))
+            .toList();
+
+        String message = warningMessageService.getMessage(getFirstHearingType(result), getFirstCourtSitting(result));
         CaseDetailsDto caseDetails = new CaseDetailsDto(
-            caseUrn,
-            courtSchedule.stream()
-                .map(schedule -> new CaseDetailsDto.CaseDetailsCourtScheduleDto(
-                    schedule.hearingDtos().stream()
-                        .map(t -> getHearingDetails(accessToken, t))
-                        .filter(Objects::nonNull)
-                        .sorted(Comparator.comparing(
-                            h -> h.courtSittings() == null ? null :
-                                h.courtSittings().stream()
-                                    .filter(Objects::nonNull)
-                                    .map(CaseDetailsCourtSittingDto::sittingStart)
-                                    .filter(Objects::nonNull)
-                                    .min(Comparator.naturalOrder())
-                                    .orElse(null),
-                            Comparator.nullsLast(Comparator.naturalOrder())
-                        ))
-                        .toList()
-                ))
-                .toList()
-        );
+            caseUrn, message, result);
 
         String courtHouseAndRoomIds = caseDetails.courtSchedule().stream()
             .flatMap(a -> a.hearings().stream()
@@ -74,6 +94,28 @@ public class CaseDetailsService {
         return caseDetails;
 
     }
+
+    private Optional<CaseDetailsCourtSittingDto> getFirstCourtSitting(
+        List<CaseDetailsDto.CaseDetailsCourtScheduleDto> result) {
+        return result.stream()
+            .findFirst()
+            .map(CaseDetailsDto.CaseDetailsCourtScheduleDto::hearings)
+            .filter(hearings -> hearings != null && !hearings.isEmpty())
+            .map(hearings -> hearings.getFirst())
+            .map(CaseDetailsHearingDto::courtSittings)
+            .filter(sittings -> sittings != null && !sittings.isEmpty())
+            .map(sittings -> sittings.getFirst());
+    }
+
+private Optional<String> getFirstHearingType(
+    List<CaseDetailsDto.CaseDetailsCourtScheduleDto> result) {
+    return result.stream()
+        .findFirst()
+        .map(CaseDetailsDto.CaseDetailsCourtScheduleDto::hearings)
+        .filter(hearings -> hearings != null && !hearings.isEmpty())
+        .map(hearings -> hearings.getFirst())
+        .map(CaseDetailsHearingDto::hearingType);
+}
 
     private CaseDetailsHearingDto getHearingDetails(String accessToken, CourtScheduleDto.HearingDto hearing) {
 
@@ -118,7 +160,7 @@ public class CaseDetailsService {
 
     private boolean validateSittingDateNotInPast(String dateTimeString) {
         LocalDate sittingDate = LocalDateTime.parse(dateTimeString).toLocalDate();
-        return !sittingDate.isBefore(LocalDate.now());
+        return !sittingDate.isBefore(LocalDate.now(clock));
     }
 
     private boolean isTrailOrSentenceHearing(final String hearingType){
