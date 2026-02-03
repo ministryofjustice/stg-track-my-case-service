@@ -93,7 +93,7 @@ public class CaseDetailsControllerTest {
         final List<CaseDetailsCourtScheduleDto> courtSchedules = List.of(
             new CaseDetailsCourtScheduleDto(List.of(hearing)));
 
-        final CaseDetailsDto caseDetailsDto = new CaseDetailsDto(caseUrn, courtSchedules);
+        final CaseDetailsDto caseDetailsDto = new CaseDetailsDto(caseUrn, "", courtSchedules);
 
         when(caseDetailsService.getCaseDetailsByCaseUrn(caseUrn)).thenReturn(caseDetailsDto);
 
@@ -123,7 +123,7 @@ public class CaseDetailsControllerTest {
     void shouldHandleGetCaseDetailsByCaseUrnWithEmptyHearing() throws Exception {
         String caseUrn = "CASE123";
 
-        CaseDetailsDto caseDetailsDto = new CaseDetailsDto(caseUrn, new ArrayList<>());
+        CaseDetailsDto caseDetailsDto = new CaseDetailsDto(caseUrn, "",new ArrayList<>());
 
         when(caseDetailsService.getCaseDetailsByCaseUrn(caseUrn)).thenReturn(caseDetailsDto);
 

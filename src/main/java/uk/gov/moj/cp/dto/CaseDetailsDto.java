@@ -10,6 +10,7 @@ import java.util.List;
 @JsonPropertyOrder({ "caseUrn", "courtSchedule" })
 public record CaseDetailsDto(
     @JsonProperty("caseUrn") String caseUrn,
+    @JsonProperty("warningMessage") String message,
     @JsonProperty("courtSchedule") List<CaseDetailsCourtScheduleDto> courtSchedule
 ) {
     public record CaseDetailsCourtScheduleDto(
