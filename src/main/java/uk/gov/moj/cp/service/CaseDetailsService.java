@@ -64,46 +64,26 @@ public class CaseDetailsService {
                 schedule.hearingDtos().stream()
                     .map(t -> getHearingDetails(accessToken, t))
                     .filter(Objects::nonNull)
-                    .sorted(Comparator.comparing(
-                        h -> h.courtSittings() == null ? null :
-                            h.courtSittings().stream()
-                                .filter(Objects::nonNull)
-                                .map(CaseDetailsCourtSittingDto::sittingStart)
-                                .filter(Objects::nonNull)
-                                .min(Comparator.naturalOrder())
-                                .orElse(null),
-                        Comparator.nullsLast(Comparator.naturalOrder())
-                    ))
+                    .sorted(
+                        Comparator.comparing(
+                                (CaseDetailsHearingDto h) -> h.courtSittings() == null ? null :
+                                    h.courtSittings().stream()
+                                        .filter(Objects::nonNull)
+                                        .map(s -> LocalDateTime.parse(s.sittingStart()))
+                                        .min(Comparator.naturalOrder())
+                                        .orElse(null),
+                                Comparator.nullsLast(Comparator.naturalOrder())
+                            )
+                            .thenComparingInt((CaseDetailsHearingDto h) ->
+                                                  HearingType.TRIAL.getValue().equalsIgnoreCase(h.hearingType()) ? 0 : 1
+                            )
+                    )
                     .toList()
             ))
             .toList();
 
         String message = warningMessageService.getMessage(getFirstHearingType(result), getFirstCourtSitting(result));
-        CaseDetailsDto caseDetails = new CaseDetailsDto(
-            caseUrn,
-            courtSchedule.stream()
-                .map(schedule -> new CaseDetailsDto.CaseDetailsCourtScheduleDto(
-                    schedule.hearingDtos().stream()
-                        .map(t -> getHearingDetails(accessToken, t))
-                        .filter(Objects::nonNull)
-                        .sorted(
-                            Comparator.comparing(
-                                    (CaseDetailsHearingDto h) -> h.courtSittings() == null ? null:
-                                        h.courtSittings().stream()
-                                        .filter(Objects::nonNull)
-                                        .map(s -> LocalDateTime.parse(s.sittingStart()))
-                                        .min(Comparator.naturalOrder())
-                                        .orElse(null),
-                                    Comparator.nullsLast(Comparator.naturalOrder())
-                                )
-                                .thenComparingInt((CaseDetailsHearingDto h) ->
-                                                      HearingType.TRIAL.getValue().equalsIgnoreCase(h.hearingType()) ? 0 : 1
-                                )
-                        )
-                        .toList()
-                ))
-                .toList()
-        );
+        CaseDetailsDto caseDetails = new CaseDetailsDto(caseUrn, message, result);
 
         String courtHouseAndRoomIds = caseDetails.courtSchedule().stream()
             .flatMap(a -> a.hearings().stream()
