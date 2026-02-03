@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.moj.cp.dto.CaseDetailsDto;
+import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto.CaseDetailsHearingDto;
 import uk.gov.moj.cp.dto.CourtHouseDto;
 import uk.gov.moj.cp.dto.CourtScheduleDto;
 import uk.gov.moj.cp.dto.CourtHouseDto.CourtRoomDto.AddressDto;
@@ -556,6 +557,51 @@ class CaseDetailsServiceTest {
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
 
+    @Test
+    @DisplayName("includes hearing of types Trial or SENTENCE")
+    void testGetCaseDetailsByCaseUrnWithHearingScheduleInSortedOrderOfSittingDateAndHearingType() {
+        final CourtSittingDto currentSittingDto = createCourtSitting(currentSittingStartDate, currentSittingEndDate);
+        final List<CourtSittingDto> courtSittings =   List.of(currentSittingDto);
+
+        final HearingDto hearingDto1 = createHearing("1", HearingType.SENTENCE.getValue(), courtSittings);
+        final HearingDto hearingDto2  = createHearing("2", HearingType.SENTENCE.getValue(), courtSittings);
+        final HearingDto hearingDto3 = createHearing("3", HearingType.TRIAL.getValue(), courtSittings);
+        final HearingDto hearingDto4 = createHearing("4", HearingType.TRIAL.getValue(), courtSittings);
+        final HearingDto hearingDto5 = createHearing("Invalid Type", courtSittings);
+
+        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto1, hearingDto3, hearingDto2, hearingDto4, hearingDto5));
+
+        final CourtRoomDto courtRoomDto = new CourtRoomDto(123, "CourtRoom 01");
+        final AddressDto addressDto = new AddressDto("53", "Court Street",
+                                                     "London", null, "CB4 3MX", null);
+
+        when(courtHouseService.getCourtHouseById(any(), any(), any())).thenReturn(createCourtHouse(courtRoomDto, addressDto));
+        when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
+        when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
+
+        final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
+
+        assertEquals(caseUrn, caseDetails.caseUrn());
+        assertEquals(1, caseDetails.courtSchedule().size());
+        List<CaseDetailsHearingDto> hearings = caseDetails.courtSchedule().getFirst().hearings();
+        assertEquals(4, hearings.size());
+
+        assertEquals(HearingType.TRIAL.getValue(), hearings.get(0).hearingType());
+        assertEquals("3", hearings.get(0).hearingId());
+
+        assertEquals(HearingType.TRIAL.getValue(), hearings.get(1).hearingType());
+        assertEquals("4", hearings.get(1).hearingId());
+
+        assertEquals(HearingType.SENTENCE.getValue(), hearings.get(2).hearingType());
+        assertEquals("1", hearings.get(2).hearingId());
+
+        assertEquals(HearingType.SENTENCE.getValue(), hearings.get(3).hearingType());
+        assertEquals("2", hearings.get(3).hearingId());
+
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
+    }
+
+
     private CourtSittingDto createCourtSitting(final  String sittingStartDate, final String sittingEndDate){
 
         return new CourtSittingDto(
@@ -580,6 +626,16 @@ class CaseDetailsServiceTest {
     }
 
     private HearingDto createHearing(String hearingType, List<CourtSittingDto> courtSittings){
+        return new HearingDto(
+            hearingId,
+            hearingType,
+            hearingType,
+            "Note1",
+            courtSittings
+        );
+    }
+
+    private HearingDto createHearing(String hearingId, String hearingType, List<CourtSittingDto> courtSittings){
         return new HearingDto(
             hearingId,
             hearingType,
