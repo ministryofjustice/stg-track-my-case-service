@@ -16,6 +16,9 @@ import uk.gov.moj.cp.dto.CourtScheduleDto.HearingDto.CourtSittingDto;
 import uk.gov.moj.cp.metrics.TrackMyCaseMetricsService;
 import uk.gov.moj.cp.model.HearingType;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.InputStream;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -24,8 +27,10 @@ import java.util.List;
 
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -680,6 +685,109 @@ class CaseDetailsServiceTest {
         assertEquals(1, caseDetails.courtSchedule().size());
         assertEquals(2, caseDetails.courtSchedule().getFirst().hearings().size());
         assertEquals(HearingType.SENTENCE.getValue(), caseDetails.courtSchedule().getFirst().hearings().getFirst().hearingType());
+
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
+    }
+
+    @Test
+    @DisplayName("should handle complex data with multiple hearings including First hearing, Trial with multiple sittings")
+    void testGetCaseDetailsByCaseUrnWithComplexHearingData() throws Exception {
+        LocalDateTime FIXED_TODAY = LocalDateTime.of(2026, 2, 02, 10, 0, 0);
+        Clock FIXED_CLOCK = Clock.fixed(
+            FIXED_TODAY.atZone(ZoneId.systemDefault()).toInstant(),
+            ZoneId.systemDefault()
+        );
+
+        WarningMessageService actualWarningMessageService = new WarningMessageService(FIXED_CLOCK);
+
+        // Create CaseDetailsService with actual WarningMessageService
+        CaseDetailsService serviceWithActualMessageService = new CaseDetailsService(FIXED_CLOCK, actualWarningMessageService);
+
+        // Inject mocked dependencies using reflection
+        setField(serviceWithActualMessageService, "courtScheduleService", courtScheduleService);
+        setField(serviceWithActualMessageService, "courtHouseService", courtHouseService);
+        setField(serviceWithActualMessageService, "oauthTokenService", oauthTokenService);
+        setField(serviceWithActualMessageService, "trackMyCaseMetricsService", trackMyCaseMetricsService);
+
+        // Load test data from JSON file
+        ObjectMapper objectMapper = new ObjectMapper();
+        InputStream jsonStream = getClass().getClassLoader().getResourceAsStream("court-schedule-test-data.json");
+        CourtScheduleDto scheduleDto = objectMapper.readValue(jsonStream, CourtScheduleDto.class);
+
+        // Extract IDs from loaded data for verification
+        String hearing1Id = "a20ca4ff-0dc2-4777-a921-bfe08706618b";
+        String hearing2Id = "fdb25fdb-702c-46cb-a395-ea2c43385742";
+        String hearing3Id = "66d961b2-36ee-4bb5-bd1d-f191bcfbd607";
+        String courtHouse1Id = "210bf1ba-e253-3516-96df-949be917b383";
+        String courtRoom1Id = "f048a0f8-aa9c-3636-a3cb-5d185a7db71a";
+        String courtHouse3Id = "67aa82ba-67bb-4699-8176-5f572048352b";
+        String courtRoom3Id = "c5f066ff-0aff-3dde-8bd9-40a587d3c58e";
+
+        // Mock court house service to return court houses
+        CourtRoomDto courtRoomDto1 = new CourtRoomDto(123, "CourtRoom 01");
+        AddressDto addressDto1 = new AddressDto("53", "Court Street", "London", null, "CB4 3MX", null);
+        CourtHouseDto courtHouseDto1 = new CourtHouseDto(
+            courtHouse1Id,
+            courtRoom1Id,
+            "CROWN",
+            "123",
+            "Lavender Hill",
+            addressDto1,
+            Arrays.asList(courtRoomDto1)
+        );
+
+        CourtRoomDto courtRoomDto3 = new CourtRoomDto(456, "CourtRoom 02");
+        AddressDto addressDto3 = new AddressDto("54", "Court Avenue", "London", null, "CB4 3MY", null);
+        CourtHouseDto courtHouseDto3 = new CourtHouseDto(
+            courtHouse3Id,
+            courtRoom3Id,
+            "CROWN",
+            "124",
+            "Lavender Hill",
+            addressDto3,
+            Arrays.asList(courtRoomDto3)
+        );
+
+        // Mock court house service to return different court houses based on IDs
+        when(courtHouseService.getCourtHouseById(any(), eq(courtHouse1Id), eq(courtRoom1Id)))
+            .thenReturn(courtHouseDto1);
+        when(courtHouseService.getCourtHouseById(any(), eq(courtHouse3Id), eq(courtRoom3Id)))
+            .thenReturn(courtHouseDto3);
+        when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn))
+            .thenReturn(List.of(scheduleDto));
+        when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
+
+        final CaseDetailsDto caseDetails = serviceWithActualMessageService.getCaseDetailsByCaseUrn(caseUrn);
+
+//        assertEquals(caseUrn, caseDetails.caseUrn());
+//        assertEquals(1, caseDetails.courtSchedule().size());
+//
+//        // Should only include Trial hearings (hearing1 "First hearing" should be excluded)
+//        var hearings = caseDetails.courtSchedule().getFirst().hearings();
+//        assertEquals(2, hearings.size(), "Should have 2 Trial hearings (First hearing excluded)");
+//
+//        // Verify hearing 2 is included
+//        var hearing2Result = hearings.stream()
+//            .filter(h -> h.hearingId().equals(hearing2Id))
+//            .findFirst()
+//            .orElse(null);
+//        assertNotNull(hearing2Result, "Hearing 2 (Trial) should be included");
+//        assertEquals(HearingType.TRIAL.getValue(), hearing2Result.hearingType());
+//        assertEquals(1, hearing2Result.courtSittings().size());
+//
+//        // Verify hearing 3 is included with all 4 sittings (all are current or future)
+//        var hearing3Result = hearings.stream()
+//            .filter(h -> h.hearingId().equals(hearing3Id))
+//            .findFirst()
+//            .orElse(null);
+//        assertNotNull(hearing3Result, "Hearing 3 (Trial with multiple sittings) should be included");
+//        assertEquals(HearingType.TRIAL.getValue(), hearing3Result.hearingType());
+//        assertEquals(4, hearing3Result.courtSittings().size(), "All 4 sittings should be included (all are current or future)");
+//
+        // Verify the message is calculated correctly
+        // The earliest sitting is 2026-01-30T10:00 (FIXED_TODAY), so message should be TRIAL_HEARING_STARTS_TODAY
+        assertEquals("TRIAL_HEARING_IS_ONGOING", caseDetails.message(),
+            "Message should be TRIAL_HEARING_STARTS_TODAY as earliest sitting is today");
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }

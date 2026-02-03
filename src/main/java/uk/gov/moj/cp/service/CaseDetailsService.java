@@ -95,7 +95,7 @@ public class CaseDetailsService {
 
     }
 
-    private Optional<CaseDetailsCourtSittingDto> getFirstCourtSitting(
+    private List<CaseDetailsCourtSittingDto> getFirstCourtSitting(
         List<CaseDetailsDto.CaseDetailsCourtScheduleDto> result) {
         return result.stream()
             .findFirst()
@@ -104,7 +104,7 @@ public class CaseDetailsService {
             .map(hearings -> hearings.getFirst())
             .map(CaseDetailsHearingDto::courtSittings)
             .filter(sittings -> sittings != null && !sittings.isEmpty())
-            .map(sittings -> sittings.getFirst());
+            .orElse(List.of());
     }
 
 private Optional<String> getFirstHearingType(

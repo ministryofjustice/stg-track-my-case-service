@@ -8,12 +8,17 @@ import uk.gov.moj.cp.model.HearingType;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
 @Slf4j
 public class WarningMessageService {
 
+    public static final String TOMORROW = "TOMORROW";
+    public static final String TODAY = "TODAY";
+    public static final String SENTENCING_HEARING = "SENTENCING_HEARING";
+    public static final String TRIAL_HEARING = "TRIAL_HEARING";
     private Clock clock = Clock.systemDefaultZone();
 
     public WarningMessageService() {
@@ -23,23 +28,36 @@ public class WarningMessageService {
         this.clock = clock;
     }
 
-    public String getMessage(Optional<String> firstHearingType, Optional<CaseDetailsCourtSittingDto> firstSitting) {
+    public String getMessage(Optional<String> firstHearingType, List<CaseDetailsCourtSittingDto> sittings) {
 
-        if (firstHearingType.isEmpty() || firstSitting.isEmpty()) {
+        if (firstHearingType.isEmpty() || sittings == null || sittings.isEmpty()) {
             return null;
         }
 
         String hearingType = firstHearingType.get();
-        CaseDetailsCourtSittingDto sitting = firstSitting.get();
 
-        if (sitting.sittingStart() == null || sitting.sittingStart().equals("N/A")) {
+        // Check if hearing is ongoing (current date is between sitting start dates of multiple sittings)
+        LocalDate today = LocalDate.now(clock);
+        boolean isOngoing = isHearingOngoing(sittings, today);
+
+        if (isOngoing) {
+            String hearingTypePrefix = convertHearingTypeToMessageFormat(hearingType);
+            if (hearingTypePrefix == null) {
+                return null;
+            }
+            return hearingTypePrefix + "_IS_ONGOING";
+        }
+
+        // If not ongoing, use the first sitting for the existing logic
+        CaseDetailsCourtSittingDto firstSitting = sittings.getFirst();
+
+        if (firstSitting.sittingStart() == null || firstSitting.sittingStart().equals("N/A")) {
             return null;
         }
 
         try {
-            LocalDateTime sittingStartDateTime = LocalDateTime.parse(sitting.sittingStart());
+            LocalDateTime sittingStartDateTime = LocalDateTime.parse(firstSitting.sittingStart());
             LocalDate sittingDate = sittingStartDateTime.toLocalDate();
-            LocalDate today = LocalDate.now(clock);
 
             java.time.Period period = java.time.Period.between(today, sittingDate);
 
@@ -60,37 +78,72 @@ public class WarningMessageService {
                 return null;
             }
 
-            if ("TODAY".equals(periodSuffix)) {
-                return hearingTypePrefix + "_STARTS_TODAY";
+            if (TODAY.equals(periodSuffix)) {
+                return hearingTypePrefix + "_STARTS_" + TODAY;
             }
 
-            if ("TOMRROW".equals(periodSuffix)) {
-                return hearingTypePrefix + "_STARTS_TOMRROW";
+            if (TOMORROW.equals(periodSuffix)) {
+                return hearingTypePrefix + "_STARTS_" + TOMORROW;
             }
             return hearingTypePrefix + "_STARTS_IN_" + periodSuffix;
 
         } catch (Exception e) {
-            log.atWarn().log("Failed to parse sitting start date: {}", sitting.sittingStart(), e);
+            log.atWarn().log("Failed to parse sitting start date: {}", firstSitting.sittingStart(), e);
             return null;
+        }
+    }
+
+    private boolean isHearingOngoing(List<CaseDetailsCourtSittingDto> sittings, LocalDate today) {
+        if (sittings == null || sittings.size() < 2) {
+            return false;
+        }
+
+        try {
+            List<LocalDate> sittingStartDates = sittings.stream()
+                .filter(sitting -> sitting.sittingStart() != null && !sitting.sittingStart().equals("N/A"))
+                .map(sitting -> {
+                    try {
+                        LocalDateTime sittingStart = LocalDateTime.parse(sitting.sittingStart());
+                        return sittingStart.toLocalDate();
+                    } catch (Exception e) {
+                        log.atWarn().log("Failed to parse sitting start date: {}", sitting.sittingStart(), e);
+                        return null;
+                    }
+                })
+                .filter(date -> date != null)
+                .sorted()
+                .toList();
+
+            if (sittingStartDates.size() < 2) {
+                return false;
+            }
+
+            LocalDate earliestSittingDate = sittingStartDates.getFirst();
+            LocalDate latestSittingDate = sittingStartDates.getLast();
+            return earliestSittingDate.isBefore(today) &&
+                    ( (latestSittingDate.isAfter(today)|| latestSittingDate.isEqual(today)) );
+        } catch (Exception e) {
+            log.atWarn().log("Failed to check if hearing is ongoing", e);
+            return false;
         }
     }
 
     private String convertHearingTypeToMessageFormat(String hearingType) {
         if (HearingType.SENTENCE.getValue().equalsIgnoreCase(hearingType)) {
-            return "SENTENCING_HEARING";
+            return SENTENCING_HEARING;
         } else if (HearingType.TRIAL.getValue().equalsIgnoreCase(hearingType)) {
-            return "TRIAL_HEARING";
+            return TRIAL_HEARING;
         }
         return null;
     }
 
     private String formatPeriod(int months, int days) {
         if (months == 0 && days == 0) {
-            return "TODAY";
+            return TODAY;
         }
 
         if (months == 0 && days == 1) {
-            return "TOMRROW";
+            return TOMORROW;
         }
 
         StringBuilder period = new StringBuilder();
