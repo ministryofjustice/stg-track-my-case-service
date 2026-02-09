@@ -11,7 +11,9 @@ import org.springframework.stereotype.Service;
 import uk.gov.moj.cp.client.CourtScheduleClient;
 import uk.gov.moj.cp.dto.CourtScheduleDto;
 
+import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -54,8 +56,15 @@ public class CourtScheduleService {
             hearing.getHearingType(),
             hearing.getHearingDescription(),
             hearing.getListNote(),
+            convertLocalDateToString(hearing.getWeekCommencingStartDate()),
+            convertLocalDateToString(hearing.getWeekCommencingEndDate()),
+            String.valueOf(hearing.getWeekCommencingDurationInWeeks()),
             hearing.getCourtSittings().stream().map(this::getCourtSittings).collect(Collectors.toUnmodifiableList())
         );
+    }
+
+    private String convertLocalDateToString(LocalDate date) {
+        return date != null ? date.format(DateTimeFormatter.ISO_DATE) : null;
     }
 
     private CourtScheduleDto.HearingDto.CourtSittingDto getCourtSittings(CourtSitting courtSitting) {

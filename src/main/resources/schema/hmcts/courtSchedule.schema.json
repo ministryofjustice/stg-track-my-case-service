@@ -35,6 +35,23 @@
                   "type": "string",
                   "examples": ["Judge prefers afternoon start"]
                 },
+                "weekCommencingStartDate": {
+                  "description": "Start date of the week commencing period",
+                  "type": "string",
+                  "format": "date",
+                  "examples": ["2026-02-16"]
+                },
+                "weekCommencingEndDate": {
+                  "description": "End date of the week commencing period",
+                  "type": "string",
+                  "format": "date",
+                  "examples": ["2026-02-22"]
+                },
+                "weekCommencingDurationInWeeks": {
+                  "description": "Duration of the week commencing period in weeks",
+                  "type": "integer",
+                  "examples": [1]
+                },
                 "courtSittings": {
                   "description": "Details of court sittings",
                   "type": "array",

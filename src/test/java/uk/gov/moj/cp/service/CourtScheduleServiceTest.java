@@ -1,15 +1,9 @@
 package uk.gov.moj.cp.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.when;
-import static java.util.UUID.randomUUID;
-
 import com.moj.generated.hmcts.CourtSchedule;
 import com.moj.generated.hmcts.CourtScheduleSchema;
 import com.moj.generated.hmcts.CourtSitting;
 import com.moj.generated.hmcts.Hearing;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,8 +13,14 @@ import org.springframework.http.ResponseEntity;
 import uk.gov.moj.cp.client.CourtScheduleClient;
 import uk.gov.moj.cp.dto.CourtScheduleDto;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
+
+import static java.util.UUID.randomUUID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CourtScheduleServiceTest {
@@ -67,6 +67,9 @@ class CourtScheduleServiceTest {
             "First Hearing",
             "Initial hearing description",
             "Note for first hearing",
+            LocalDate.now(),
+            LocalDate.now().plusDays(7),
+            2,
             List.of(courtSitting1)
         );
 
@@ -75,6 +78,9 @@ class CourtScheduleServiceTest {
             "Second Hearing",
             "Follow-up hearing description",
             "Note for second hearing",
+            LocalDate.now(),
+            LocalDate.now().plusDays(7),
+            2,
             List.of(courtSitting2)
         );
 

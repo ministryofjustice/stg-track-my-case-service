@@ -13,6 +13,9 @@ public record CourtScheduleDto(
         String hearingType,
         String hearingDescription,
         String listNote,
+        String weekCommencingStartDate,
+        String weekCommencingEndDate,
+        String weekCommencingDurationInWeeks,
         @JsonProperty("courtSittings") List<CourtSittingDto> courtSittingDtos
     ) {
         public record CourtSittingDto(

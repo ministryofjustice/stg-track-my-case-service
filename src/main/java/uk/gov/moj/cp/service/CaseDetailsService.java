@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
@@ -48,18 +49,7 @@ public class CaseDetailsService {
                         .map(t -> getHearingDetails(accessToken, t))
                         .filter(Objects::nonNull)
                         .sorted(
-                            Comparator.comparing(
-                                    (CaseDetailsHearingDto h) -> h.courtSittings() == null ? null:
-                                        h.courtSittings().stream()
-                                        .filter(Objects::nonNull)
-                                        .map(s -> LocalDateTime.parse(s.sittingStart()))
-                                        .min(Comparator.naturalOrder())
-                                        .orElse(null),
-                                    Comparator.nullsLast(Comparator.naturalOrder())
-                                )
-                                .thenComparingInt((CaseDetailsHearingDto h) ->
-                                                      HearingType.TRIAL.getValue().equalsIgnoreCase(h.hearingType()) ? 0 : 1
-                                )
+                            getCaseDetailsHearingDtoComparator()
                         )
                         .toList()
                 ))
@@ -79,6 +69,59 @@ public class CaseDetailsService {
 
     }
 
+    private static Comparator<CaseDetailsHearingDto> getCaseDetailsHearingDtoComparator() {
+        return Comparator.comparing(
+                (CaseDetailsHearingDto h) -> getEarliestDate(h),
+                Comparator.nullsLast(Comparator.naturalOrder())
+            )
+            .thenComparingInt((CaseDetailsHearingDto h) ->
+                                  HearingType.TRIAL.getValue().equalsIgnoreCase(h.hearingType()) ? 0 : 1
+            );
+    }
+
+    private static LocalDate getEarliestDate(CaseDetailsHearingDto h) {
+        LocalDate earliestSittingDate = null;
+        LocalDate weekCommencingStartDate = null;
+
+        // Get earliest sittingStart date if present
+        if (h.courtSittings() != null && !h.courtSittings().isEmpty()) {
+            Optional<LocalDate> sittingDate = h.courtSittings().stream()
+                .filter(Objects::nonNull)
+                .filter(s -> s.sittingStart() != null && !s.sittingStart().equals("N/A"))
+                .map(s -> {
+                    try {
+                        return LocalDateTime.parse(s.sittingStart()).toLocalDate();
+                    } catch (Exception e) {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .min(Comparator.naturalOrder());
+
+            if (sittingDate.isPresent()) {
+                earliestSittingDate = sittingDate.get();
+            }
+        }
+
+        if (h.weekCommencingStartDate() != null && !h.weekCommencingStartDate().isEmpty()) {
+            try {
+                weekCommencingStartDate = LocalDate.parse(h.weekCommencingStartDate());
+            } catch (Exception e) {
+                // Ignore parsing errors
+            }
+        }
+
+        // Return the earliest date, or null if both are null
+        if (earliestSittingDate != null && weekCommencingStartDate != null) {
+            return earliestSittingDate.isBefore(weekCommencingStartDate) ||
+                earliestSittingDate.equals(weekCommencingStartDate) ? earliestSittingDate : weekCommencingStartDate;
+        } else if (earliestSittingDate != null) {
+            return earliestSittingDate;
+        } else {
+            return weekCommencingStartDate;
+        }
+    }
+
     private CaseDetailsHearingDto getHearingDetails(String accessToken, CourtScheduleDto.HearingDto hearing) {
 
         if (isNull(hearing) || !isTrailOrSentenceHearing(hearing.hearingType())){
@@ -86,14 +129,15 @@ public class CaseDetailsService {
         }
 
         final List<CourtSittingDto> sittings = hearing.courtSittingDtos();
-        if (isNull(sittings) || sittings.isEmpty()) {
-            return null;
-        }
 
+        final boolean hasInValidSittingDates = sittings.stream()
+            .anyMatch(s -> isNull(s) || sittings.isEmpty());
         final boolean hasAnyCurrentOrFutureSitting = sittings.stream()
             .anyMatch(s -> validateSittingDateNotInPast(s.sittingStart()));
 
-        if (!hasAnyCurrentOrFutureSitting) {
+        final boolean hasValidWeekCommencingDate = validateWeekCommencingDateNotInPast(hearing.weekCommencingStartDate());
+
+        if (!hasAnyCurrentOrFutureSitting && !hasValidWeekCommencingDate && hasInValidSittingDates) {
             return null;
         }
 
@@ -106,7 +150,10 @@ public class CaseDetailsService {
             hearing.hearingId(),
             hearing.hearingType(),
             hearing.hearingDescription(),
-            hearing.listNote()
+            hearing.listNote(),
+            hearing.weekCommencingStartDate(),
+            hearing.weekCommencingEndDate(),
+            hearing.weekCommencingDurationInWeeks()
         );
     }
 
@@ -121,8 +168,23 @@ public class CaseDetailsService {
     }
 
     private boolean validateSittingDateNotInPast(String dateTimeString) {
-        LocalDate sittingDate = LocalDateTime.parse(dateTimeString).toLocalDate();
-        return !sittingDate.isBefore(LocalDate.now());
+        if (Optional.ofNullable(dateTimeString).isPresent()) {
+            LocalDate sittingDate = LocalDateTime.parse(dateTimeString).toLocalDate();
+            return !sittingDate.isBefore(LocalDate.now());
+        }
+        return false;
+    }
+
+    private boolean validateWeekCommencingDateNotInPast(String dateString) {
+        if (dateString != null && !dateString.isEmpty()) {
+            try {
+                LocalDate weekCommencingDate = LocalDate.parse(dateString);
+                return !weekCommencingDate.isBefore(LocalDate.now());
+            } catch (Exception e) {
+                return false;
+            }
+        }
+        return false;
     }
 
     private boolean isTrailOrSentenceHearing(final String hearingType){
