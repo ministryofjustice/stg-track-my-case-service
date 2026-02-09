@@ -129,15 +129,13 @@ public class CaseDetailsService {
         }
 
         final List<CourtSittingDto> sittings = hearing.courtSittingDtos();
-
-        final boolean hasInValidSittingDates = sittings.stream()
-            .anyMatch(s -> isNull(s) || sittings.isEmpty());
-        final boolean hasAnyCurrentOrFutureSitting = sittings.stream()
-            .anyMatch(s -> validateSittingDateNotInPast(s.sittingStart()));
+        final boolean hasAnyCurrentOrFutureSitting = (sittings != null && !sittings.isEmpty())
+            && sittings.stream()
+                .anyMatch(s -> validateSittingDateNotInPast(s.sittingStart()));
 
         final boolean hasValidWeekCommencingDate = validateWeekCommencingDateNotInPast(hearing.weekCommencingStartDate());
 
-        if (!hasAnyCurrentOrFutureSitting && !hasValidWeekCommencingDate && hasInValidSittingDates) {
+        if (!hasAnyCurrentOrFutureSitting && !hasValidWeekCommencingDate) {
             return null;
         }
 

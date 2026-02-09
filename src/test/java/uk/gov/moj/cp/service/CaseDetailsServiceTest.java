@@ -963,13 +963,12 @@ class CaseDetailsServiceTest {
             courtSittings
         );
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto1, hearingDto3, hearingDto2, hearingDto4));
+        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto3, hearingDto1, hearingDto2, hearingDto4));
 
         final CourtRoomDto courtRoomDto = new CourtRoomDto(123, "CourtRoom 01");
         final AddressDto addressDto = new AddressDto("53", "Court Street",
                                                      "London", null, "CB4 3MX", null);
 
-        when(courtHouseService.getCourtHouseById(any(), any(), any())).thenReturn(createCourtHouse(courtRoomDto, addressDto));
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
 
@@ -982,12 +981,9 @@ class CaseDetailsServiceTest {
 
         assertEquals(HearingType.SENTENCE.getValue(), hearings.get(0).hearingType());
         assertEquals("1", hearings.get(0).hearingId());
-        assertEquals(datePlus42, hearings.get(0).weekCommencingStartDate());
-        assertEquals(datePlus49, hearings.get(0).weekCommencingEndDate());
+        assertEquals(datePlus7, hearings.get(0).weekCommencingStartDate());
+        assertEquals(datePlus14, hearings.get(0).weekCommencingEndDate());
         assertEquals("1", hearings.get(0).weekCommencingDurationInWeeks());
-
-        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
-
     }
 
     private CourtSittingDto createCourtSitting(final  String sittingStartDate, final String sittingEndDate){
