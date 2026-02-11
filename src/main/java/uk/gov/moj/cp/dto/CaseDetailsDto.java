@@ -20,8 +20,16 @@ public record CaseDetailsDto(
             @JsonProperty("hearingId") String hearingId,
             @JsonProperty("hearingType") String hearingType,
             @JsonProperty("hearingDescription") String hearingDescription,
-            @JsonProperty("listNote") String listNote
+            @JsonProperty("listNote") String listNote,
+            @JsonProperty("weekCommencing") WeekCommencing weekCommencing
         ) {
+            public record WeekCommencing(
+                @JsonProperty("startDate") String startDate,
+                @JsonProperty("endDate") String endDate,
+                @JsonProperty("durationInWeeks") int durationInWeeks,
+                @JsonProperty("courtHouse") CourtHouseDto courtHouse
+            ) {}
+
             public record CaseDetailsCourtSittingDto(
                 @JsonProperty("judiciaryId") String judiciaryId,
                 @JsonProperty("sittingStart") String sittingStart,

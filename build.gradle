@@ -244,6 +244,8 @@ jsonSchema2Pojo {
   usePrimitives = true
   includeConstructors = true
   annotationStyle = "jackson2"
+  useJodaDates = false
+  dateType = "java.time.LocalDate"
 }
 
 sourceSets {
