@@ -6,11 +6,11 @@ import org.springframework.stereotype.Service;
 import uk.gov.moj.cp.dto.CaseDetailsDto;
 import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto.CaseDetailsHearingDto;
 import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto.CaseDetailsHearingDto.CaseDetailsCourtSittingDto;
-import uk.gov.moj.cp.dto.CourtScheduleDto.HearingDto.CourtSittingDto;
+import uk.gov.moj.cp.dto.CourtHouseDto;
 import uk.gov.moj.cp.dto.CourtScheduleDto;
+import uk.gov.moj.cp.dto.CourtScheduleDto.HearingDto.CourtSittingDto;
 import uk.gov.moj.cp.metrics.TrackMyCaseMetricsService;
 import uk.gov.moj.cp.model.HearingType;
-
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -58,6 +58,7 @@ public class CaseDetailsService {
 
         String courtHouseAndRoomIds = caseDetails.courtSchedule().stream()
             .flatMap(a -> a.hearings().stream()
+                .filter(d-> d.courtSittings() !=null && !d.courtSittings().isEmpty())
                 .flatMap(b -> b.courtSittings().stream()
                     .map(c -> c.courtHouse().courtHouseId() + ":" + c.courtHouse().courtRoomId())))
             .collect(Collectors.joining("  "));
@@ -79,15 +80,15 @@ public class CaseDetailsService {
             );
     }
 
-    private static LocalDate getEarliestDate(CaseDetailsHearingDto h) {
+    private static LocalDate getEarliestDate(CaseDetailsHearingDto hearingDto) {
         LocalDate earliestSittingDate = null;
         LocalDate weekCommencingStartDate = null;
 
         // Get earliest sittingStart date if present
-        if (h.courtSittings() != null && !h.courtSittings().isEmpty()) {
-            Optional<LocalDate> sittingDate = h.courtSittings().stream()
+        if (hearingDto.courtSittings() != null && !hearingDto.courtSittings().isEmpty()) {
+            Optional<LocalDate> sittingDate = hearingDto.courtSittings().stream()
                 .filter(Objects::nonNull)
-                .filter(s -> s.sittingStart() != null && !s.sittingStart().equals("N/A"))
+                .filter(s -> s.sittingStart() != null )
                 .map(s -> {
                     try {
                         return LocalDateTime.parse(s.sittingStart()).toLocalDate();
@@ -103,12 +104,12 @@ public class CaseDetailsService {
             }
         }
 
-        if (h.weekCommencingStartDate() != null && !h.weekCommencingStartDate().isEmpty()) {
-            try {
-                weekCommencingStartDate = LocalDate.parse(h.weekCommencingStartDate());
-            } catch (Exception e) {
+        try {
+            weekCommencingStartDate = Optional.ofNullable(hearingDto.weekCommencing())
+                .map(weekCommencing -> LocalDate.parse(weekCommencing.startDate()))
+                .orElse(null);
+        } catch (Exception exception){
                 // Ignore parsing errors
-            }
         }
 
         // Return the earliest date, or null if both are null
@@ -124,24 +125,47 @@ public class CaseDetailsService {
 
     private CaseDetailsHearingDto getHearingDetails(String accessToken, CourtScheduleDto.HearingDto hearing) {
 
+        boolean hasValidWeekCommencingDate = false;
+        CaseDetailsHearingDto.WeekCommencing weekCommencing = null;
+        List<CaseDetailsCourtSittingDto> mappedSittings = null;
+
         if (isNull(hearing) || !isTrailOrSentenceHearing(hearing.hearingType())){
             return null;
         }
 
-        final List<CourtSittingDto> sittings = hearing.courtSittingDtos();
-        final boolean hasAnyCurrentOrFutureSitting = (sittings != null && !sittings.isEmpty())
-            && sittings.stream()
+        if(Optional.ofNullable(hearing.weekCommencingDto()).isPresent()) {
+            CourtScheduleDto.HearingDto.WeekCommencingDto wc = hearing.weekCommencingDto();
+            hasValidWeekCommencingDate = validateWeekCommencingDateNotInPast(hearing.weekCommencingDto().startDate());
+            if (!hasValidWeekCommencingDate){
+                return null;
+            }
+            CourtHouseDto courtHouseDto = courtHouseService.getCourtHouseById(
+                accessToken,
+                wc.courtHouse(),
+                null
+            );
+
+            weekCommencing = new CaseDetailsHearingDto.WeekCommencing(
+                wc.startDate(),
+                wc.endDate(),
+                wc.durationInWeeks(),
+                courtHouseDto
+            );
+        } else {
+            final List<CourtSittingDto> sittings = hearing.courtSittingDtos();
+            final boolean hasAnyCurrentOrFutureSitting = (sittings != null && !sittings.isEmpty())
+                && sittings.stream()
                 .anyMatch(s -> validateSittingDateNotInPast(s.sittingStart()));
 
-        final boolean hasValidWeekCommencingDate = validateWeekCommencingDateNotInPast(hearing.weekCommencingStartDate());
+            if (!hasAnyCurrentOrFutureSitting ) {
+                return null;
+            }
 
-        if (!hasAnyCurrentOrFutureSitting && !hasValidWeekCommencingDate) {
-            return null;
+            mappedSittings = sittings.stream()
+                .map(s -> getHearingSchedule(accessToken, s))
+                .toList();
         }
 
-        final List<CaseDetailsCourtSittingDto> mappedSittings = sittings.stream()
-            .map(s -> getHearingSchedule(accessToken, s))
-            .toList();
 
         return new CaseDetailsHearingDto(
             mappedSittings,
@@ -149,14 +173,13 @@ public class CaseDetailsService {
             hearing.hearingType(),
             hearing.hearingDescription(),
             hearing.listNote(),
-            hearing.weekCommencingStartDate(),
-            hearing.weekCommencingEndDate(),
-            hearing.weekCommencingDurationInWeeks()
+            weekCommencing
         );
     }
 
+
     private CaseDetailsCourtSittingDto getHearingSchedule(
-        String accessToken, CourtScheduleDto.HearingDto.CourtSittingDto sitting) {
+        String accessToken, CourtSittingDto sitting) {
         return new CaseDetailsCourtSittingDto(
             sitting.judiciaryId(),
             sitting.sittingStart(),

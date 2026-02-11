@@ -13,11 +13,16 @@ public record CourtScheduleDto(
         String hearingType,
         String hearingDescription,
         String listNote,
-        String weekCommencingStartDate,
-        String weekCommencingEndDate,
-        String weekCommencingDurationInWeeks,
+        @JsonProperty("weekCommencing") WeekCommencingDto weekCommencingDto,
         @JsonProperty("courtSittings") List<CourtSittingDto> courtSittingDtos
     ) {
+        public record WeekCommencingDto(
+            String courtHouse,
+            String startDate,
+            String endDate,
+            int durationInWeeks
+        ) {}
+
         public record CourtSittingDto(
             String sittingStart,
             String sittingEnd,

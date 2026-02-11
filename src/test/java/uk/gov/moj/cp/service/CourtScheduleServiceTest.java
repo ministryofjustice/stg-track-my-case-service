@@ -4,6 +4,7 @@ import com.moj.generated.hmcts.CourtSchedule;
 import com.moj.generated.hmcts.CourtScheduleSchema;
 import com.moj.generated.hmcts.CourtSitting;
 import com.moj.generated.hmcts.Hearing;
+import com.moj.generated.hmcts.WeekCommencing;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -61,15 +62,19 @@ class CourtScheduleServiceTest {
             courtHouseId,
             courtRoomId
         );
+        WeekCommencing weekCommencing = new WeekCommencing(
+            null,
+            LocalDate.now(),
+            LocalDate.now().plusDays(7),
+            2
+        );
 
         final Hearing hearing1 = new Hearing(
             hearingId1,
             "First Hearing",
             "Initial hearing description",
             "Note for first hearing",
-            LocalDate.now(),
-            LocalDate.now().plusDays(7),
-            2,
+            weekCommencing,
             List.of(courtSitting1)
         );
 
@@ -78,9 +83,7 @@ class CourtScheduleServiceTest {
             "Second Hearing",
             "Follow-up hearing description",
             "Note for second hearing",
-            LocalDate.now(),
-            LocalDate.now().plusDays(7),
-            2,
+            weekCommencing,
             List.of(courtSitting2)
         );
 

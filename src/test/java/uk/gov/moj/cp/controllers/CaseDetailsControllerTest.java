@@ -90,9 +90,10 @@ public class CaseDetailsControllerTest {
             "First Hearing",
             "Initial hearing description",
             "Test note",
+            new CaseDetailsHearingDto.WeekCommencing(
             LocalDate.now().format(DateTimeFormatter.ISO_DATE) ,
             LocalDate.now().plusDays(7).format(DateTimeFormatter.ISO_DATE) ,
-            "2"
+            2, null)
             );
 
         final List<CaseDetailsCourtScheduleDto> courtSchedules = List.of(

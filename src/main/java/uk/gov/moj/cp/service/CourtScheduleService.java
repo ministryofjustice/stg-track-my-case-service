@@ -4,6 +4,7 @@ import com.moj.generated.hmcts.CourtSchedule;
 import com.moj.generated.hmcts.CourtScheduleSchema;
 import com.moj.generated.hmcts.CourtSitting;
 import com.moj.generated.hmcts.Hearing;
+import com.moj.generated.hmcts.WeekCommencing;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -51,14 +52,22 @@ public class CourtScheduleService {
     }
 
     private CourtScheduleDto.HearingDto getHearings(Hearing hearing) {
+        CourtScheduleDto.HearingDto.WeekCommencingDto weekCommencingDto = null;
+        if(Optional.ofNullable(hearing.getWeekCommencing()).isPresent()) {
+            WeekCommencing wc = Optional.ofNullable(hearing.getWeekCommencing()).isPresent() ? hearing.getWeekCommencing() : null;
+            weekCommencingDto = new CourtScheduleDto.HearingDto.WeekCommencingDto(
+                wc.getCourtHouse(),
+                convertLocalDateToString(wc.getStartDate()),
+                convertLocalDateToString(wc.getEndDate()),
+                wc.getDurationInWeeks()
+            );
+        }
         return new CourtScheduleDto.HearingDto(
             hearing.getHearingId(),
             hearing.getHearingType(),
             hearing.getHearingDescription(),
             hearing.getListNote(),
-            convertLocalDateToString(hearing.getWeekCommencingStartDate()),
-            convertLocalDateToString(hearing.getWeekCommencingEndDate()),
-            String.valueOf(hearing.getWeekCommencingDurationInWeeks()),
+            weekCommencingDto,
             hearing.getCourtSittings().stream().map(this::getCourtSittings).collect(Collectors.toUnmodifiableList())
         );
     }
@@ -66,6 +75,17 @@ public class CourtScheduleService {
     private String convertLocalDateToString(LocalDate date) {
         return date != null ? date.format(DateTimeFormatter.ISO_DATE) : null;
     }
+
+    private LocalDate convertDateToLocalDate(Date date) {
+        if (date == null) {
+            return null;
+        }
+        return date.toInstant()
+            .atZone(ZoneId.systemDefault())
+            .withZoneSameInstant(ZoneId.of("Europe/London"))
+            .toLocalDate();
+    }
+
 
     private CourtScheduleDto.HearingDto.CourtSittingDto getCourtSittings(CourtSitting courtSitting) {
         return new CourtScheduleDto.HearingDto.CourtSittingDto(

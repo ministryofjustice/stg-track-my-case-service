@@ -4,6 +4,7 @@ import com.moj.generated.hmcts.CourtSchedule;
 import com.moj.generated.hmcts.CourtScheduleSchema;
 import com.moj.generated.hmcts.CourtSitting;
 import com.moj.generated.hmcts.Hearing;
+import com.moj.generated.hmcts.WeekCommencing;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpMethod;
@@ -74,12 +75,17 @@ class CourtScheduleClientTest {
                 "some-courtRoom"
             )
         );
+        WeekCommencing wc = new WeekCommencing(
+            null,
+            LocalDate.now(),
+            LocalDate.now().plusDays(7),
+            2
+        );
+
         Hearing hearing = new Hearing(
             "1", "some-hearingType",
             "some-hearingDescription", "some-listNote",
-            LocalDate.now(),
-            LocalDate.now().plusDays(7),
-            2,
+            wc,
             courtSittings
         );
         CourtScheduleSchema courtScheduleSchema = new CourtScheduleSchema(List.of(new CourtSchedule(List.of(hearing))));
