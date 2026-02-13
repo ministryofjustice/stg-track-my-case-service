@@ -184,7 +184,6 @@ jobs:
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
           --set Networkpolicy.Ingress="track-my-case-preprod" \
-          --set Ingress.Enabled=false \
           "${custom_variables_array[@]}"
           # > rendered.yaml
 
@@ -207,7 +206,6 @@ jobs:
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
           --set Networkpolicy.Ingress="track-my-case-preprod" \
-          --set Ingress.Enabled=false \
           "${custom_variables_array[@]}"
 
           echo "Labeling the service"
