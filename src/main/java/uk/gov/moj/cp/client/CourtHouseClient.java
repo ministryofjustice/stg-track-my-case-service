@@ -58,12 +58,12 @@ public class CourtHouseClient {
 
     public ResponseEntity<CourtHouse> getCourtHouseById(String accessToken, String courtId, String courtRoomId) {
         try {
-            String uri = (courtRoomId == null || courtRoomId.isEmpty())
+            String courtHouseAmpUrl = (courtRoomId == null || courtRoomId.isEmpty())
                 ? buildCourthearingCourthousesByIdUrl(courtId)
                 : buildCourthearingCourthousesAndCourtRoomsByIdUrl(courtId, courtRoomId);
 
             ResponseEntity<CourtHouse> responseEntity = restTemplate.exchange(
-                uri,
+                courtHouseAmpUrl,
                 HttpMethod.GET,
                 getRequestEntity(accessToken),
                 CourtHouse.class

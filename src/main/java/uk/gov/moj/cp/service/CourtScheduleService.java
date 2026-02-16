@@ -17,8 +17,11 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static java.util.Objects.nonNull;
 
 @Service
 @Slf4j
@@ -54,12 +57,12 @@ public class CourtScheduleService {
     private CourtScheduleDto.HearingDto getHearings(Hearing hearing) {
         CourtScheduleDto.HearingDto.WeekCommencingDto weekCommencingDto = null;
         if(Optional.ofNullable(hearing.getWeekCommencing()).isPresent()) {
-            WeekCommencing wc = Optional.ofNullable(hearing.getWeekCommencing()).isPresent() ? hearing.getWeekCommencing() : null;
+            WeekCommencing weekCommencing = Optional.ofNullable(hearing.getWeekCommencing()).isPresent() ? hearing.getWeekCommencing() : null;
             weekCommencingDto = new CourtScheduleDto.HearingDto.WeekCommencingDto(
-                wc.getCourtHouse(),
-                convertLocalDateToString(wc.getStartDate()),
-                convertLocalDateToString(wc.getEndDate()),
-                wc.getDurationInWeeks()
+                weekCommencing.getCourtHouse(),
+                convertLocalDateToString(weekCommencing.getStartDate()),
+                convertLocalDateToString(weekCommencing.getEndDate()),
+                weekCommencing.getDurationInWeeks()
             );
         }
         return new CourtScheduleDto.HearingDto(
@@ -73,11 +76,11 @@ public class CourtScheduleService {
     }
 
     private String convertLocalDateToString(LocalDate date) {
-        return date != null ? date.format(DateTimeFormatter.ISO_DATE) : null;
+        return nonNull(date)  ? date.format(DateTimeFormatter.ISO_DATE) : null;
     }
 
     private LocalDate convertDateToLocalDate(Date date) {
-        if (date == null) {
+        if (Objects.isNull(date)) {
             return null;
         }
         return date.toInstant()
