@@ -13,6 +13,6 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ministryofjustice/github-actions/code-formatter@v14
         with:
-          ignore-files: "networkpolicy.yaml,servicemonitor.yaml,grafana-dashboard-template.yaml,grafana-dashboard.yaml"
+          ignore-files: "networkpolicy.yaml,servicemonitor.yaml,grafana-dashboard-template.yaml,grafana-dashboard.yaml,prometheusrule.yaml"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
