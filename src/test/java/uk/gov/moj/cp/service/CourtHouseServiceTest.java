@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static java.util.UUID.randomUUID;
 
@@ -32,6 +33,7 @@ class CourtHouseServiceTest {
     @InjectMocks
     private CourtHouseService courtHouseService;
     private final String accessToken = "testToken";
+    private final String caseUrn = "SOMECASEURN";
 
 
     @Test
@@ -57,9 +59,9 @@ class CourtHouseServiceTest {
         );
 
         final ResponseEntity<CourtHouse> entity = ResponseEntity.ok(courtHouse);
-        when(courtHouseClient.getCourtHouseById(accessToken, courtHouseId, courtRoomId)).thenReturn(entity);
+        when(courtHouseClient.getCourtHouseById(accessToken, caseUrn, courtHouseId, courtRoomId)).thenReturn(entity);
 
-        CourtHouseDto dto = courtHouseService.getCourtHouseById(accessToken, courtHouseId, courtRoomId);
+        CourtHouseDto dto = courtHouseService.getCourtHouseById(accessToken, caseUrn, courtHouseId, courtRoomId);
 
         assertNotNull(dto);
         assertEquals(courtHouseId, dto.courtHouseId());
@@ -87,10 +89,10 @@ class CourtHouseServiceTest {
 
     @Test
     void testGetCourtHouseByCourtHouseById_returnsNull() {
-        when(courtHouseClient.getCourtHouseById(anyString(), anyString(), anyString()))
+        when(courtHouseClient.getCourtHouseById(anyString(), eq(caseUrn), anyString(), anyString()))
             .thenReturn(new ResponseEntity<>(null, null, 200));
 
-        CourtHouseDto result = courtHouseService.getCourtHouseById(accessToken, "courtId", "courtRoomId");
+        CourtHouseDto result = courtHouseService.getCourtHouseById(accessToken, caseUrn, "courtId", "courtRoomId");
 
         assertNull(result);
     }

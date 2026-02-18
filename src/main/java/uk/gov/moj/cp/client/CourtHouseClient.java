@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import uk.gov.moj.cp.service.MockCourtScheduleClient;
 
 import java.util.List;
 
@@ -35,6 +36,8 @@ public class CourtHouseClient {
     @Value("${services.api-cp-refdata-courthearing-courthouses.path}")
     private String apiCpRefdataCourthearingCourthousesPath;
 
+    private final MockCourtScheduleClient mockCourtScheduleClient;
+
     protected String buildCourthearingCourthousesByIdUrl(String courtId, String courtRoomId) {
         return UriComponentsBuilder
             .fromUriString(getAmpUrl())
@@ -43,7 +46,12 @@ public class CourtHouseClient {
             .toUriString();
     }
 
-    public ResponseEntity<CourtHouse> getCourtHouseById(String accessToken, String courtId, String courtRoomId) {
+    public ResponseEntity<CourtHouse> getCourtHouseById(String accessToken, String caseUrn, String courtId, String courtRoomId) {
+        final boolean useMock = mockCourtScheduleClient.useMock(caseUrn);
+        if (useMock) {
+            CourtHouse mockCourtHouse = mockCourtScheduleClient.getMockCourtHouse();
+            return ResponseEntity.ok(mockCourtHouse);
+        }
         try {
             ResponseEntity<CourtHouse> responseEntity = restTemplate.exchange(
                 buildCourthearingCourthousesByIdUrl(courtId, courtRoomId),

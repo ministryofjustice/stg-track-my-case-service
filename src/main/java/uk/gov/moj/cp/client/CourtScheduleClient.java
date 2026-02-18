@@ -1,5 +1,6 @@
 package uk.gov.moj.cp.client;
 
+import com.moj.generated.hmcts.CourtSchedule;
 import com.moj.generated.hmcts.CourtScheduleSchema;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+import uk.gov.moj.cp.service.MockCourtScheduleClient;
 
 import java.util.List;
 
@@ -35,6 +37,8 @@ public class CourtScheduleClient {
     @Value("${services.api-cp-crime-schedulingandlisting-courtschedule.path}")
     private String apiCpCrimeSchedulingandlistingCourtschedulePath;
 
+    private final MockCourtScheduleClient mockCourtScheduleClient;
+
     protected String buildCourtScheduleUrl(String caseUrn) {
         return UriComponentsBuilder
             .fromUriString(getAmpUrl())
@@ -44,6 +48,11 @@ public class CourtScheduleClient {
     }
 
     public ResponseEntity<CourtScheduleSchema> getCourtScheduleByCaseUrn(String accessToken, String caseUrn) {
+        final boolean useMock = mockCourtScheduleClient.useMock(caseUrn);
+        if (useMock) {
+            List<CourtSchedule> courtSchedules = mockCourtScheduleClient.customData(caseUrn.toUpperCase());
+            return ResponseEntity.ok(new CourtScheduleSchema(courtSchedules));
+        }
         try {
             return restTemplate.exchange(
                 buildCourtScheduleUrl(caseUrn),
