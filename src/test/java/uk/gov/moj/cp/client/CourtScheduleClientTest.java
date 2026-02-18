@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.moj.cp.service.MockCourtScheduleClient;
 
 import java.util.Date;
 import java.util.List;
@@ -23,6 +24,7 @@ import static org.mockito.Mockito.when;
 class CourtScheduleClientTest {
 
     private CourtScheduleClient courtScheduleClient;
+    private MockCourtScheduleClient mockCourtScheduleClient;
 
     private RestTemplate restTemplate;
 
@@ -34,7 +36,13 @@ class CourtScheduleClientTest {
     @BeforeEach
     public void setUp() {
         restTemplate = mock(RestTemplate.class);
-        courtScheduleClient = new CourtScheduleClient(restTemplate) {
+        mockCourtScheduleClient = new MockCourtScheduleClient(){
+            @Override
+            public Boolean getUseMockData() {
+                return false;
+            }
+        };
+        courtScheduleClient = new CourtScheduleClient(restTemplate, mockCourtScheduleClient) {
             @Override
             public String getAmpUrl() {
                 return ampUrl;

@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.moj.cp.service.MockCourtScheduleClient;
 
 import java.util.List;
 
@@ -29,11 +30,18 @@ class CourtHouseClientTest {
     private final String ampSubscriptionKey = "some-amp-subscription-key";
     private final String apiCpRefdataCourthearingCourthousesPath = "/courthouses/{court_id}/courtrooms/{court_room_id}";
     private final String accessToken = "testToken";
+    private final String caseUrn = "SOMECASEURN";
 
     @BeforeEach
     public void setUp() {
         restTemplate = mock(RestTemplate.class);
-        courtHouseClient = new CourtHouseClient(restTemplate) {
+        MockCourtScheduleClient mockCourtScheduleClient = new MockCourtScheduleClient(){
+            @Override
+            public Boolean getUseMockData() {
+                return false;
+            }
+        };
+        courtHouseClient = new CourtHouseClient(restTemplate, mockCourtScheduleClient) {
             @Override
             public String getAmpUrl() {
                 return ampUrl;
@@ -81,7 +89,7 @@ class CourtHouseClientTest {
             eq(courtHouseClient.getRequestEntity(accessToken)),
             eq(CourtHouse.class)
         )).thenReturn(response);
-        ResponseEntity<CourtHouse> actual = courtHouseClient.getCourtHouseById(accessToken, courtId, courtRoomId);
+        ResponseEntity<CourtHouse> actual = courtHouseClient.getCourtHouseById(accessToken, caseUrn, courtId, courtRoomId);
 
         assertThat(actual).isNotNull();
         assertThat(courtHouse).isEqualTo(actual.getBody());
@@ -100,7 +108,7 @@ class CourtHouseClientTest {
             eq(CourtHouse.class)
         )).thenThrow(new RestClientException("Timeout"));
 
-        HttpEntity<CourtHouse> result = courtHouseClient.getCourtHouseById(accessToken, courtId, courtRoomId);
+        HttpEntity<CourtHouse> result = courtHouseClient.getCourtHouseById(accessToken, caseUrn, courtId, courtRoomId);
         assertThat(result).isNull();
     }
 }

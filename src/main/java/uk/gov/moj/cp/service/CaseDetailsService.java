@@ -45,7 +45,7 @@ public class CaseDetailsService {
             courtSchedule.stream()
                 .map(schedule -> new CaseDetailsDto.CaseDetailsCourtScheduleDto(
                     schedule.hearingDtos().stream()
-                        .map(t -> getHearingDetails(accessToken, t))
+                        .map(t -> getHearingDetails(accessToken, t, caseUrn))
                         .filter(Objects::nonNull)
                         .sorted(
                             Comparator.comparing(
@@ -79,7 +79,7 @@ public class CaseDetailsService {
 
     }
 
-    private CaseDetailsHearingDto getHearingDetails(String accessToken, CourtScheduleDto.HearingDto hearing) {
+    private CaseDetailsHearingDto getHearingDetails(String accessToken, CourtScheduleDto.HearingDto hearing, String caseUrn) {
 
         if (isNull(hearing) || !isTrailOrSentenceHearing(hearing.hearingType())){
             return null;
@@ -98,7 +98,7 @@ public class CaseDetailsService {
         }
 
         final List<CaseDetailsCourtSittingDto> mappedSittings = sittings.stream()
-            .map(s -> getHearingSchedule(accessToken, s))
+            .map(s -> getHearingSchedule(accessToken, s, caseUrn))
             .toList();
 
         return new CaseDetailsHearingDto(
@@ -111,12 +111,12 @@ public class CaseDetailsService {
     }
 
     private CaseDetailsCourtSittingDto getHearingSchedule(
-        String accessToken, CourtScheduleDto.HearingDto.CourtSittingDto sitting) {
+        String accessToken, CourtScheduleDto.HearingDto.CourtSittingDto sitting, String caseUrn) {
         return new CaseDetailsCourtSittingDto(
             sitting.judiciaryId(),
             sitting.sittingStart(),
             sitting.sittingEnd(),
-            courtHouseService.getCourtHouseById(accessToken, sitting.courtHouse(), sitting.courtRoom())
+            courtHouseService.getCourtHouseById(accessToken, caseUrn, sitting.courtHouse(), sitting.courtRoom())
         );
     }
 
