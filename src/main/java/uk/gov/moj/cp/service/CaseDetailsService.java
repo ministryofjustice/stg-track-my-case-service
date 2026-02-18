@@ -13,7 +13,6 @@ import uk.gov.moj.cp.metrics.TrackMyCaseMetricsService;
 import uk.gov.moj.cp.model.HearingType;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -83,14 +82,24 @@ public class CaseDetailsService {
                 (CaseDetailsHearingDto h) -> getEarliestDate(h),
                 Comparator.nullsLast(Comparator.naturalOrder())
             )
+            .thenComparing((CaseDetailsHearingDto hearingDto) -> hasSittingStart(hearingDto) ? 0 : 1) // Prioritize hearings with sittingStart over weekCommencing only
             .thenComparingInt((CaseDetailsHearingDto h) ->
                                   HearingType.TRIAL.getValue().equalsIgnoreCase(h.hearingType()) ? 0 : 1
             );
     }
 
+    private static boolean hasSittingStart(CaseDetailsHearingDto hearingDto) {
+        return nonNull(hearingDto.courtSittings())
+            && !hearingDto.courtSittings().isEmpty()
+            && hearingDto.courtSittings().stream()
+                .anyMatch(s -> nonNull(s.sittingStart()) && !s.sittingStart().isEmpty());
+    }
+
+
     private static LocalDate getEarliestDate(CaseDetailsHearingDto hearingDto) {
         LocalDate earliestSittingDate = null;
         LocalDate weekCommencingStartDate = null;
+        LocalDate weekCommencingEndDate = null;
 
         // Get earliest sittingStart date if present
         if (nonNull(hearingDto.courtSittings()) && !hearingDto.courtSittings().isEmpty()) {
@@ -115,6 +124,9 @@ public class CaseDetailsService {
             weekCommencingStartDate = Optional.ofNullable(hearingDto.weekCommencing())
                 .map(weekCommencing -> LocalDate.parse(weekCommencing.startDate()))
                 .orElse(null);
+            weekCommencingEndDate = Optional.ofNullable(hearingDto.weekCommencing())
+                .map(weekCommencing -> LocalDate.parse(weekCommencing.endDate()))
+                .orElse(null);
         } catch (Exception exception){
                 // Ignore parsing errors
         }
@@ -122,11 +134,13 @@ public class CaseDetailsService {
         // Return the earliest date, or null if both are null
         if (nonNull(earliestSittingDate) && nonNull(weekCommencingStartDate)) {
             return earliestSittingDate.isBefore(weekCommencingStartDate) ||
-                earliestSittingDate.equals(weekCommencingStartDate) ? earliestSittingDate : weekCommencingStartDate;
+                earliestSittingDate.equals(weekCommencingStartDate) ||
+                (earliestSittingDate.isAfter(weekCommencingStartDate) && earliestSittingDate.isBefore(weekCommencingEndDate))
+                ? earliestSittingDate : weekCommencingStartDate;
         } else if (nonNull(earliestSittingDate)) {
             return earliestSittingDate;
         } else {
-            return weekCommencingStartDate;
+            return weekCommencingEndDate;
         }
     }
 
@@ -142,7 +156,9 @@ public class CaseDetailsService {
 
         if(Optional.ofNullable(hearing.weekCommencingDto()).isPresent()) {
             CourtScheduleDto.HearingDto.WeekCommencingDto wc = hearing.weekCommencingDto();
-            hasValidWeekCommencingDate = validateWeekCommencingDateNotInPast(hearing.weekCommencingDto().startDate());
+            // Validate that either start date or end date is not in the past (hearing is current or future)
+            hasValidWeekCommencingDate = validateWeekCommencingDateNotInPast(wc.startDate())
+                || validateWeekCommencingDateNotInPast(wc.endDate());
             if (!hasValidWeekCommencingDate){
                 return null;
             }

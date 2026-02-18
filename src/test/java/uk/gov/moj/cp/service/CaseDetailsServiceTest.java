@@ -26,6 +26,8 @@ import java.util.List;
 
 import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -847,6 +849,119 @@ class CaseDetailsServiceTest {
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
+
+    @Test
+    @DisplayName("weekCommencing hearing should come first when its start date is earlier than courtSitting date")
+    void testWithWeekCommencingBeforeCourtSitting() {
+        // Hearing with weekCommencing: startDate = today - 2 days, endDate = today + 5 days
+        String weekCommencingStartDate = LocalDate.now().minusDays(2).toString();
+        String weekCommencingEndDate = LocalDate.now().plusDays(5).toString();
+        final HearingDto hearingWithWeekCommencing = createHearingWithWeeks(
+            "1",
+            HearingType.TRIAL.getValue(),
+            weekCommencingStartDate,
+            weekCommencingEndDate,
+            1
+        );
+
+        // Hearing with courtSitting: sittingStart = today + 3 days
+        String sittingStartDate = LocalDateTime.now().plusDays(3).toString();
+        String sittingEndDate = LocalDateTime.now().plusDays(3).plusHours(2).toString();
+        final CourtSittingDto courtSittingDto = createCourtSitting(sittingStartDate, sittingEndDate);
+        final List<CourtSittingDto> courtSittings = List.of(courtSittingDto);
+        final HearingDto hearingWithCourtSitting = createHearing(
+            "2",
+            HearingType.TRIAL.getValue(),
+            courtSittings
+        );
+
+        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingWithCourtSitting, hearingWithWeekCommencing));
+
+        final CourtRoomDto courtRoomDto = new CourtRoomDto(123, "CourtRoom 01");
+        final AddressDto addressDto = new AddressDto("53", "Court Street",
+                                                     "London", null, "CB4 3MX", null);
+
+        when(courtHouseService.getCourtHouseById(any(), any(), any())).thenReturn(createCourtHouse(courtRoomDto, addressDto));
+        when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
+        when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
+
+        final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
+
+        assertEquals(caseUrn, caseDetails.caseUrn());
+        assertEquals(1, caseDetails.courtSchedule().size());
+        assertEquals(2, caseDetails.courtSchedule().getFirst().hearings().size());
+
+        // Verify that the weekCommencing hearing comes first (because today - 2 days < today + 3 days)
+        final CaseDetailsHearingDto firstHearing = caseDetails.courtSchedule().getFirst().hearings().getFirst();
+        assertEquals("2", firstHearing.hearingId());
+        assertEquals(HearingType.TRIAL.getValue(), firstHearing.hearingType());
+
+        assertNull(firstHearing.weekCommencing());
+        assertNotNull(firstHearing.courtSittings());
+        assertEquals(1, firstHearing.courtSittings().size());
+        assertEquals(sittingStartDate, firstHearing.courtSittings().getFirst().sittingStart());
+
+
+        // Verify that the courtSitting hearing comes second
+        final CaseDetailsHearingDto secondHearing = caseDetails.courtSchedule().getFirst().hearings().get(1);
+        assertEquals("1", secondHearing.hearingId());
+        assertEquals(HearingType.TRIAL.getValue(), secondHearing.hearingType());
+        assertNull(firstHearing.weekCommencing());
+        assertEquals(weekCommencingStartDate, secondHearing.weekCommencing().startDate());
+        assertEquals(weekCommencingEndDate, secondHearing.weekCommencing().endDate());
+        assertEquals(1, secondHearing.weekCommencing().durationInWeeks());
+        assertNull(secondHearing.courtSittings());
+
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
+    }
+
+
+    void testWithWeekCommencingBeforeCourtSittingAndEndsOnSameDateWithMutiDayHearing() {
+        String weekCommencingStartDate = LocalDate.now().minusDays(6).toString();
+        String weekCommencingEndDate = LocalDate.now().plusDays(1).toString();
+        final HearingDto hearingWithWeekCommencing = createHearingWithWeeks(
+            "1",
+            HearingType.TRIAL.getValue(),
+            weekCommencingStartDate,
+            weekCommencingEndDate,
+            1
+        );
+
+        String sittingStartDate = LocalDateTime.now().plusDays(1).toString();
+        String sittingEndDate = LocalDateTime.now().plusDays(1).plusHours(2).toString();
+        final CourtSittingDto courtSittingDto = createCourtSitting(sittingStartDate, sittingEndDate);
+        final List<CourtSittingDto> courtSittings = List.of(courtSittingDto);
+        final HearingDto hearingWithCourtSitting = createHearing(
+            "2",
+            HearingType.TRIAL.getValue(),
+            courtSittings
+        );
+
+        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingWithCourtSitting, hearingWithWeekCommencing));
+
+        final CourtRoomDto courtRoomDto = new CourtRoomDto(123, "CourtRoom 01");
+        final AddressDto addressDto = new AddressDto("53", "Court Street",
+                                                     "London", null, "CB4 3MX", null);
+
+        when(courtHouseService.getCourtHouseById(any(), any(), any())).thenReturn(createCourtHouse(courtRoomDto, addressDto));
+        when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
+        when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
+
+        final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
+
+        assertEquals(caseUrn, caseDetails.caseUrn());
+        assertEquals(1, caseDetails.courtSchedule().size());
+        assertEquals(1, caseDetails.courtSchedule().getFirst().hearings().size());
+
+        // Verify that the weekCommencing hearing comes first (because today - 2 days < today + 3 days)
+        final CaseDetailsHearingDto firstHearing = caseDetails.courtSchedule().getFirst().hearings().getFirst();
+        assertEquals("1", firstHearing.hearingId());
+        assertEquals(HearingType.TRIAL.getValue(), firstHearing.hearingType());
+        assertNull(firstHearing.weekCommencing());
+
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
+    }
+
 
     @Test
     void testGetCaseDetailsByCaseUrnWhenValidButEmptySittingAndWeekDateIsValid() {
