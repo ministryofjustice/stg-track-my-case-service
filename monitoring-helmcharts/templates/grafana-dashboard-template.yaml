@@ -180,7 +180,7 @@
               "uid": "prometheus"
             },
             "editorMode": "builder",
-            "expr": "sum(kube_pod_container_info{namespace='{{ .Release.Namespace }}', service='$service'})",
+            "expr": "sum(kube_pod_status_phase{namespace=\"{{ .Release.Namespace }}\",pod=~\"$service-.*\"})",
             "legendFormat": "Total",
             "range": true,
             "refId": "A"
@@ -191,7 +191,7 @@
               "uid": "prometheus"
             },
             "editorMode": "code",
-            "expr": "sum({namespace='{{ .Release.Namespace }}', service='$service', phase='Running',pod=~'.*deployment.*'} + 0)",
+            "expr": "sum(kube_pod_status_phase{namespace=\"{{ .Release.Namespace }}\",pod=~\"$service-.*\", phase=\"Running\"})",
             "hide": false,
             "legendFormat": "Running",
             "range": true,
@@ -202,8 +202,8 @@
               "type": "prometheus",
               "uid": "prometheus"
             },
-            "editorMode": "builder",
-            "expr": "sum({namespace='{{ .Release.Namespace }}', service='$service',phase='Pending',pod=~'.*deployment.*'} + 0)",
+            "editorMode": "code",
+            "expr": "sum(kube_pod_status_phase{namespace=\"{{ .Release.Namespace }}\",pod=~\"$service-.*\", phase=\"Pending\"})",
             "hide": false,
             "legendFormat": "Pending",
             "range": true,
@@ -215,7 +215,7 @@
               "uid": "prometheus"
             },
             "editorMode": "code",
-            "expr": "sum({namespace='{{ .Release.Namespace }}', service='$service',phase='Failed',pod=~'.*deployment.*'} + 0)",
+            "expr": "sum(kube_pod_status_phase{namespace=\"{{ .Release.Namespace }}\", pod=~\"$service-.*\", phase=\"Failed\"})",
             "hide": false,
             "legendFormat": "Failed",
             "range": true,
