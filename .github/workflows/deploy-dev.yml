@@ -1,74 +1,33 @@
-name: CI/CD prod
+name: Deploy (dev)
 
+# Called automatically by build.yml after a successful build.
+# Can also be triggered manually to re-deploy any existing image tag (e.g. rollbacks).
 on:
+  workflow_call:
+    inputs:
+      image_tag:
+        description: 'Image tag to deploy (e.g. v1.2.3)'
+        required: true
+        type: string
   workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Image tag to deploy (e.g. v1.2.3)'
+        required: true
+        type: string
+
 permissions: {}
-concurrency: prod
+concurrency: dev
 
 jobs:
-  build-push-prod:
-    name: Build & Push New Image
+  deploy-dev:
+    name: Deploy to dev
     runs-on: ubuntu-latest
     permissions:
-      id-token: write # This is required for requesting the JWT
-      contents: write # This is required for actions/checkout
-    environment: prod
-    outputs:
-      new_tag: ${{ steps.set-version-tag-output.outputs.new_tag }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
+      contents: write   # required for actions/checkout
+      id-token: write   # required for OIDC JWT
+    environment: dev
 
-      - name: Bump version and push tag
-        uses: anothrNick/github-tag-action@1.75.0
-        id: bump-id
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          WITH_V: true
-
-      - name: Set Version tag output
-        id: set-version-tag-output
-        run: echo "new_tag=${{ steps.bump-id.outputs.new_tag }}" >> $GITHUB_OUTPUT
-
-      - name: Build
-        env:
-          NEW_TAG_V: ${{ steps.set-version-tag-output.outputs.new_tag }}
-        shell: bash
-        run: |
-          docker build . \
-            --build-arg BUILD_NUMBER=$NEW_TAG_V \
-            --build-arg GIT_REF=${{ github.sha }} \
-            --build-arg GIT_BRANCH=${{ github.ref_name }} \
-            -t working_image:$NEW_TAG_V
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v5
-        with:
-          role-to-assume: ${{ secrets.PROD_ECR_ROLE_TO_ASSUME }}
-          aws-region: ${{ vars.PROD_ECR_REGION }}
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Tag, and push image to Amazon ECR
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ vars.PROD_ECR_REPOSITORY }}
-          NEW_TAG_V: ${{ steps.set-version-tag-output.outputs.new_tag }}
-        shell: bash
-        run: |
-          docker tag working_image:$NEW_TAG_V $ECR_REGISTRY/$ECR_REPOSITORY:$NEW_TAG_V
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$NEW_TAG_V
-
-  deploy-prod:
-    needs: build-push-prod
-    name: Deploy Helm Chart into Cloud Platform
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write # This is required for actions/checkout
-      id-token: write # This is required for requesting the JWT
-    environment: prod
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -87,13 +46,13 @@ jobs:
       - name: Clone Helm chart repo
         run: |
           git clone https://github.com/ministryofjustice/track-my-case-cloud-platform.git
-          git  -C track-my-case-cloud-platform checkout main
+          git -C track-my-case-cloud-platform checkout main
 
-      - name: Configure AWS credentials
+      - name: Configure AWS credentials (dev ECR)
         uses: aws-actions/configure-aws-credentials@v5
         with:
-          role-to-assume: ${{ secrets.PROD_ECR_ROLE_TO_ASSUME }}
-          aws-region: ${{ vars.PROD_ECR_REGION }}
+          role-to-assume: ${{ secrets.DEV_ECR_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.DEV_ECR_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -103,13 +62,13 @@ jobs:
         env:
           APP_ROLE_ARN: ${{ secrets.APP_ROLE_ARN }}
           AUTHENTICATION_REQUIRED: ${{ vars.AUTHENTICATION_REQUIRED }}
-          ECR_REPO_WEBAPP: ${{ steps.login-ecr.outputs.registry }}/${{ vars.PROD_ECR_REPOSITORY }}
+          ECR_REPO_WEBAPP: ${{ steps.login-ecr.outputs.registry }}/${{ vars.DEV_ECR_REPOSITORY }}
           IP_RANGES: ${{ secrets.IP_RANGES }}
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
-          NEW_TAG_V: ${{ needs.build-push-prod.outputs.new_tag }}
-          RELEASE_NAME: ${{ github.event.repository.name }}-prod
-          SECRETS_CONTEXT:  ${{ toJson(secrets) }}
-          VARS_CONTEXT:  ${{ toJson(vars) }}
+          NEW_TAG_V: ${{ inputs.image_tag }}
+          RELEASE_NAME: ${{ github.event.repository.name }}-dev
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
+          VARS_CONTEXT: ${{ toJson(vars) }}
         run: |
           process_ip_range=$(echo $IP_RANGES | sed "s/,/\\\,/g")
 
@@ -137,7 +96,7 @@ jobs:
 
               # Wrap in quotes to keep value intact for Helm/YAML
               custom_variables_array+=("--set-string" "${custom_key}=${safe_value}")
-             fi
+            fi
           done
 
           # Debug
@@ -148,13 +107,10 @@ jobs:
             helm status  "$RELEASE_NAME" -n "$KUBE_NAMESPACE" || true
             helm history "$RELEASE_NAME" -n "$KUBE_NAMESPACE" || true
 
-            # safe to inspect history / rollback / clear pending
             state=$(helm status "$RELEASE_NAME" -n "$KUBE_NAMESPACE" -o json 2>/dev/null | jq -r '.info.status | select(.!=null)')
-            # Auto-clear pending-* for the current release
             if [[ "$state" == pending-* ]]; then
               latest=$(helm history "$RELEASE_NAME" -n "$KUBE_NAMESPACE" -o json | jq '.[-1].revision')
               echo "Helm release is $state at revision $latest — clearing it"
-              # Try rollback to previous deployed if exists
               prev=$(helm history "$RELEASE_NAME" -n "$KUBE_NAMESPACE" -o json | jq '[.[] | select(.status=="deployed")][-1].revision')
               if [[ -n "$prev" ]]; then
                 echo "Rolling back to deployed revision $prev..."
@@ -164,7 +120,7 @@ jobs:
               fi
             fi
           else
-           echo "Release '$RELEASE_NAME' not found in namespace '$KUBE_NAMESPACE' — first install. Skipping history/rollback."
+            echo "Release '$RELEASE_NAME' not found in namespace '$KUBE_NAMESPACE' — first install. Skipping history/rollback."
           fi
 
           echo "=== DEBUG: Helm command ==="
@@ -180,14 +136,8 @@ jobs:
           --set securityContext.capabilities.drop=["ALL"] \
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
-          --set Networkpolicy.Ingress="track-my-case-prod" \
+          --set Networkpolicy.Ingress="track-my-case-dev" \
           "${custom_variables_array[@]}"
-          # > rendered.yaml
-
-          # echo "=== DEBUG: webapp container only ==="
-          # sed -n '/containers:/,/imagePullPolicy:/p' rendered.yaml \
-          # | sed -n '/name: webapp/,$p' \
-          # | sed -n '1,/^- name:/p'
 
           echo "=== Chart values: WebApp section ==="
           helm show values mojanalytics/webapp-cp | sed -n '/^WebApp:/,/^[A-Za-z]/p'
@@ -202,7 +152,7 @@ jobs:
           --set securityContext.capabilities.drop=["ALL"] \
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
-          --set Networkpolicy.Ingress="track-my-case-prod" \
+          --set Networkpolicy.Ingress="track-my-case-dev" \
           "${custom_variables_array[@]}"
 
           echo "Labeling the service"
@@ -211,16 +161,12 @@ jobs:
       - name: Extract deployed service values for monitoring
         id: extract-values
         env:
-          RELEASE_NAME: ${{ github.event.repository.name }}-prod
+          RELEASE_NAME: ${{ github.event.repository.name }}-dev
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
         run: |
           echo "Extracting deployed Helm values..."
-
           SERVICE_NAME=$(helm get values "$RELEASE_NAME" -n "$KUBE_NAMESPACE" -o json | jq -r '.WebApp.Name')
-
           echo "ServiceName=$SERVICE_NAME"
-
-          # Export them to the next step
           echo "service_name=$SERVICE_NAME" >> $GITHUB_OUTPUT
 
       - name: Deploy Monitoring Helm chart
@@ -232,4 +178,4 @@ jobs:
             --set serviceName=${{ steps.extract-values.outputs.service_name }} \
             --set namespace=$KUBE_NAMESPACE \
             --set monitoring.interval="15s" \
-            --set alertLabels.severity="stg-track-my-case-service-prod"         
+            --set alertLabels.severity="victims-pathfinder-dev"
