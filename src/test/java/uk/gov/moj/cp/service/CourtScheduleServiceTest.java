@@ -15,7 +15,6 @@ import uk.gov.moj.cp.client.CourtScheduleClient;
 import uk.gov.moj.cp.dto.CourtScheduleDto;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -45,7 +44,7 @@ class CourtScheduleServiceTest {
         final String courtRoomId = randomUUID().toString();
 
         // Create test data
-        final ZonedDateTime sittingStart = ZonedDateTime.now(ZoneId.of("Europe/London"));
+        final ZonedDateTime sittingStart = ZonedDateTime.now();
         final ZonedDateTime sittingEnd = sittingStart.plusHours(1);
 
         final CourtSitting courtSitting1 = new CourtSitting(

@@ -14,7 +14,6 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -71,8 +70,8 @@ class CourtScheduleClientTest {
 
         List<CourtSitting> courtSittings = List.of(
             new CourtSitting(
-                ZonedDateTime.now(ZoneId.of("Europe/London")),
-                ZonedDateTime.now(ZoneId.of("Europe/London")),
+                ZonedDateTime.now(),
+                ZonedDateTime.now(),
                 "some-judiciaryId", "some-courtHouse",
                 "some-courtRoom"
             )
