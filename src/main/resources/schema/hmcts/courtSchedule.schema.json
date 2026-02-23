@@ -35,6 +35,35 @@
                   "type": "string",
                   "examples": ["Judge prefers afternoon start"]
                 },
+                "weekCommencing": {
+                  "type": "object",
+                  "description": "Week commencing period details",
+                  "properties": {
+                    "courtHouse": {
+                      "description": "Court house details ref id",
+                      "type": "string",
+                      "pattern": "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}$",
+                      "examples": ["223e4567-e89b-12d3-a456-426614174111"]
+                    },
+                    "startDate": {
+                      "description": "Start date of the week commencing period",
+                      "type": "string",
+                      "format": "date",
+                      "examples": ["2026-02-16"]
+                    },
+                    "endDate": {
+                      "description": "End date of the week commencing period",
+                      "type": "string",
+                      "format": "date",
+                      "examples": ["2026-02-22"]
+                    },
+                    "durationInWeeks": {
+                      "description": "Duration of the week commencing period in weeks",
+                      "type": "integer",
+                      "examples": [1]
+                    }
+                  }
+                },
                 "courtSittings": {
                   "description": "Details of court sittings",
                   "type": "array",

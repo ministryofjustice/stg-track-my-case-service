@@ -32,26 +32,42 @@ public class CourtHouseClient {
     private String ampSubscriptionKey;
 
     @Getter
+    @Value("${services.api-cp-refdata-courthearing-courthouses-courtrooms.path}")
+    private String apiCpRefdataCourthearingCourthousesCourtroomsPath;
+
+    @Getter
     @Value("${services.api-cp-refdata-courthearing-courthouses.path}")
     private String apiCpRefdataCourthearingCourthousesPath;
 
-    protected String buildCourthearingCourthousesByIdUrl(String courtId, String courtRoomId) {
+    protected String buildCourthearingCourthousesAndCourtRoomsByIdUrl(String courtId, String courtRoomId) {
         return UriComponentsBuilder
             .fromUriString(getAmpUrl())
-            .path(getApiCpRefdataCourthearingCourthousesPath())
+            .path(getApiCpRefdataCourthearingCourthousesCourtroomsPath())
             .buildAndExpand(courtId, courtRoomId)
             .toUriString();
     }
 
+    protected String buildCourthearingCourthousesByIdUrl(String courtId) {
+        return UriComponentsBuilder
+            .fromUriString(getAmpUrl())
+            .path(getApiCpRefdataCourthearingCourthousesPath())
+            .buildAndExpand(courtId)
+            .toUriString();
+    }
+
+
     public ResponseEntity<CourtHouse> getCourtHouseById(String accessToken, String courtId, String courtRoomId) {
         try {
-            ResponseEntity<CourtHouse> responseEntity = restTemplate.exchange(
-                buildCourthearingCourthousesByIdUrl(courtId, courtRoomId),
+            String courtHouseAmpUrl = (courtRoomId == null || courtRoomId.isEmpty())
+                ? buildCourthearingCourthousesByIdUrl(courtId)
+                : buildCourthearingCourthousesAndCourtRoomsByIdUrl(courtId, courtRoomId);
+
+            return restTemplate.exchange(
+                courtHouseAmpUrl,
                 HttpMethod.GET,
                 getRequestEntity(accessToken),
                 CourtHouse.class
             );
-            return responseEntity;
         } catch (Exception e) {
             log.atError().log("Error while calling CourtHouse API", e);
         }

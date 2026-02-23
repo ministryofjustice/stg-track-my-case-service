@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import uk.gov.moj.cp.client.CourtHouseClient;
 import uk.gov.moj.cp.dto.CourtHouseDto;
 
+import static java.util.Objects.nonNull;
+
 @Slf4j
 @Service
 public class CourtHouseService {
@@ -31,11 +33,11 @@ public class CourtHouseService {
         return new CourtHouseDto(
                 id,
                 courtRoomId,
-                courtHouseResult.getCourtHouseType() != null ? courtHouseResult.getCourtHouseType().value() : null,
+                nonNull(courtHouseResult.getCourtHouseType()) ? courtHouseResult.getCourtHouseType().value() : null,
                 courtHouseResult.getCourtHouseCode(),
                 courtHouseResult.getCourtHouseName(),
                 getAddressDto(courtHouseResult.getAddress()),
-                courtHouseResult.getCourtRoom() != null
+                nonNull(courtHouseResult.getCourtRoom())
                         ? courtHouseResult.getCourtRoom().stream()
                         .map(this::getCourtRoomDto)
                         .toList()
