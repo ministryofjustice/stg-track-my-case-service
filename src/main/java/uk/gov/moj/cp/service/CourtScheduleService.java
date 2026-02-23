@@ -14,6 +14,7 @@ import uk.gov.moj.cp.dto.CourtScheduleDto;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
@@ -79,34 +80,14 @@ public class CourtScheduleService {
         return nonNull(date)  ? date.format(DateTimeFormatter.ISO_DATE) : null;
     }
 
-    private LocalDate convertDateToLocalDate(Date date) {
-        if (Objects.isNull(date)) {
-            return null;
-        }
-        return date.toInstant()
-            .atZone(ZoneId.systemDefault())
-            .withZoneSameInstant(ZoneId.of("Europe/London"))
-            .toLocalDate();
-    }
-
-
     private CourtScheduleDto.HearingDto.CourtSittingDto getCourtSittings(CourtSitting courtSitting) {
         return new CourtScheduleDto.HearingDto.CourtSittingDto(
-            getBSTDateAndTime(courtSitting.getSittingStart()),
-            getBSTDateAndTime(courtSitting.getSittingEnd()),
+            courtSitting.getSittingStart().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+            courtSitting.getSittingEnd().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
             courtSitting.getJudiciaryId(),
             courtSitting.getCourtHouse(),
             courtSitting.getCourtRoom()
         );
     }
-
-    private String getBSTDateAndTime(Date date) {
-        return Optional.ofNullable(date)
-            .map(d -> d.toInstant().atZone(ZoneId.systemDefault())
-                .withZoneSameInstant(ZoneId.of("Europe/London"))
-                .toLocalDateTime().toString())
-            .orElse("N/A");
-    }
-
 }
 

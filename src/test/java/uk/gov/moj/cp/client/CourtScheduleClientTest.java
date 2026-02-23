@@ -14,7 +14,8 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDate;
-import java.util.Date;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -70,7 +71,8 @@ class CourtScheduleClientTest {
 
         List<CourtSitting> courtSittings = List.of(
             new CourtSitting(
-                new Date(), new Date(),
+                ZonedDateTime.now(ZoneId.of("Europe/London")),
+                ZonedDateTime.now(ZoneId.of("Europe/London")),
                 "some-judiciaryId", "some-courtHouse",
                 "some-courtRoom"
             )
