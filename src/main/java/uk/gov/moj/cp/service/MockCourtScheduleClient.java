@@ -87,6 +87,7 @@ public class MockCourtScheduleClient {
             hearingType,
             "Follow-up " + hearingType.toLowerCase() + " hearing description for case " + caseUrn,
             "Note for first hearing",
+            null,
             courtSittings
         );
 

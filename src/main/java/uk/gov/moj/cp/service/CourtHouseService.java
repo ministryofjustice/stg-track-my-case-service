@@ -19,14 +19,14 @@ public class CourtHouseService {
     @Autowired
     private CourtHouseClient courtHouseClient;
 
-    public CourtHouseDto getCourtHouseById(String accessToken, String caseUrn, String id, String courtRoomId) {
-        HttpEntity<CourtHouse> result = courtHouseClient.getCourtHouseById(accessToken, caseUrn, id, courtRoomId);
+    public CourtHouseDto getCourtHouseById(String accessToken, String caseUrn, String courtId, String courtRoomId) {
+        HttpEntity<CourtHouse> result = courtHouseClient.getCourtHouseById(accessToken, caseUrn, courtId, courtRoomId);
 
         if (result == null || result.getBody() == null) {
             log.atError().log("Response body is null or empty");
             return null;
         }
-        return convertToJudiciaryResult(result.getBody(), id, courtRoomId);
+        return convertToJudiciaryResult(result.getBody(), courtId, courtRoomId);
     }
 
     private CourtHouseDto convertToJudiciaryResult(CourtHouse courtHouseResult, String id, String courtRoomId) {
