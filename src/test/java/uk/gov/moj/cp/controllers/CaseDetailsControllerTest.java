@@ -19,7 +19,9 @@ import uk.gov.moj.cp.dto.CourtHouseDto.CourtRoomDto;
 import uk.gov.moj.cp.dto.CourtHouseDto.CourtRoomDto.AddressDto;
 import uk.gov.moj.cp.service.CaseDetailsService;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -83,11 +85,15 @@ public class CaseDetailsControllerTest {
             );
 
         final CaseDetailsHearingDto hearing = new CaseDetailsHearingDto(
-                List.of(courtSitting),
-                hearingId,
-                "First Hearing",
-                "Initial hearing description",
-                "Test note"
+            List.of(courtSitting),
+            hearingId,
+            "First Hearing",
+            "Initial hearing description",
+            "Test note",
+            new CaseDetailsHearingDto.WeekCommencing(
+            LocalDate.now().format(DateTimeFormatter.ISO_DATE) ,
+            LocalDate.now().plusDays(7).format(DateTimeFormatter.ISO_DATE) ,
+            2, null)
             );
 
         final List<CaseDetailsCourtScheduleDto> courtSchedules = List.of(

@@ -28,7 +28,7 @@ class CourtHouseClientTest {
 
     private final String ampUrl = "https://some.dev.environment.com";
     private final String ampSubscriptionKey = "some-amp-subscription-key";
-    private final String apiCpRefdataCourthearingCourthousesPath = "/courthouses/{court_id}/courtrooms/{court_room_id}";
+    private final String apiCpRefdataCourthearingCourthousesCourtroomsPath = "/courthouses/{court_id}/courtrooms/{court_room_id}";
     private final String accessToken = "testToken";
     private final String caseUrn = "SOMECASEURN";
 
@@ -53,19 +53,19 @@ class CourtHouseClientTest {
             }
 
             @Override
-            public String getApiCpRefdataCourthearingCourthousesPath() {
-                return apiCpRefdataCourthearingCourthousesPath;
+            public String getApiCpRefdataCourthearingCourthousesCourtroomsPath() {
+                return apiCpRefdataCourthearingCourthousesCourtroomsPath;
             }
         };
     }
 
     @Test
-    void shouldBuildCourthearingCourthousesByIdUrl() {
+    void shouldBuildCourthearingCourthousesAndCourtRoomsByIdUrl() {
         String id = "123";
         String courtRoomId = "123";
         String expectedUrl = "https://some.dev.environment.com/courthouses/123/courtrooms/123";
 
-        assertThat(courtHouseClient.buildCourthearingCourthousesByIdUrl(id, courtRoomId)).isEqualTo(expectedUrl);
+        assertThat(courtHouseClient.buildCourthearingCourthousesAndCourtRoomsByIdUrl(id, courtRoomId)).isEqualTo(expectedUrl);
     }
 
     @Test
