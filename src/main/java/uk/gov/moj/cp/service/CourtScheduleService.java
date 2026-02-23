@@ -14,6 +14,7 @@ import uk.gov.moj.cp.dto.CourtScheduleDto;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
@@ -100,7 +101,7 @@ public class CourtScheduleService {
         );
     }
 
-    private String getBSTDateAndTime(Date date) {
+    private String getBSTDateAndTime(ZonedDateTime date) {
         return Optional.ofNullable(date)
             .map(d -> d.toInstant().atZone(ZoneId.systemDefault())
                 .withZoneSameInstant(ZoneId.of("Europe/London"))

@@ -22,6 +22,7 @@ import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.when;
+import static java.time.ZonedDateTime.now;
 
 @ExtendWith(MockitoExtension.class)
 class CourtScheduleServiceTest {
@@ -48,16 +49,16 @@ class CourtScheduleServiceTest {
         final Date sittingEnd = new Date(System.currentTimeMillis() + 3600000); // 1 hour later
 
         final CourtSitting courtSitting1 = new CourtSitting(
-            sittingStart,
-            sittingEnd,
+            now(),
+            now(),
             judiciaryId,
             courtHouseId,
             courtRoomId
         );
 
         final CourtSitting courtSitting2 = new CourtSitting(
-            sittingStart,
-            sittingEnd,
+            now(),
+            now(),
             judiciaryId,
             courtHouseId,
             courtRoomId

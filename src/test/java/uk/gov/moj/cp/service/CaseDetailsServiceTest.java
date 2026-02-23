@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static java.time.ZonedDateTime.now;
 
 @ExtendWith(MockitoExtension.class)
 class CaseDetailsServiceTest {
@@ -78,12 +79,13 @@ class CaseDetailsServiceTest {
         courtRoomId = randomUUID().toString();
         judgeId = randomUUID().toString();
         hearingId = randomUUID().toString();
-        pastSittingStartDate = LocalDateTime.now().minusDays(1).toString();
-        pastSittingEndDate = LocalDateTime.now().minusDays(1).plusHours(2).toString();
-        currentSittingStartDate = LocalDateTime.now().toString();
-        currentSittingEndDate = LocalDateTime.now().toString();
-        futureSittingStartDate = LocalDateTime.now().plusDays(1).toString();
-        futureSittingEndDate = LocalDateTime.now().plusDays(1).plusHours(2).toString();
+
+        pastSittingStartDate = now().minusDays(1).toString();
+        pastSittingEndDate = now().minusDays(1).plusHours(2).toString();
+        currentSittingStartDate = now().toString();
+        currentSittingEndDate = now().toString();
+        futureSittingStartDate = now().plusDays(1).toString();
+        futureSittingEndDate = now().plusDays(1).plusHours(2).toString();
 
         datePlus7 = LocalDate.now().plusDays(7).toString();
         datePlus13 = LocalDate.now().plusDays(13).toString();
@@ -260,8 +262,8 @@ class CaseDetailsServiceTest {
     @Test
     @DisplayName("includes hearings when sitting date is today, but before now")
     void testGetCaseDetailsByCaseUrnWithValidHearingScheduleDetailsForCurrentDateButBeforeCurrentTime() {
-        final String todayStartDate = LocalDateTime.now().minusHours(2).toString();
-        final String todayEndDate = LocalDateTime.now().minusHours(1).toString();
+        final String todayStartDate = now().minusHours(2).toString();
+        final String todayEndDate = now().minusHours(1).toString();
 
         final List<CourtSittingDto> courtSittings =  List.of(createCourtSitting(todayStartDate, todayEndDate));
         final HearingDto hearingDto = createHearing(HearingType.SENTENCE.getValue(), courtSittings);
@@ -554,7 +556,7 @@ class CaseDetailsServiceTest {
         final List<CourtSittingDto> courtSittings1 =   List.of(futureSittingDto1);
         final HearingDto hearingDto = createHearing(HearingType.TRIAL.getValue(), courtSittings1);
 
-        final CourtSittingDto futureSittingDto2 = createCourtSitting(LocalDateTime.now().toString(), LocalDateTime.now().plusHours(2).toString());
+        final CourtSittingDto futureSittingDto2 = createCourtSitting(now().toString(), now().plusHours(2).toString());
         final List<CourtSittingDto> courtSittings2 =   List.of(futureSittingDto2);
         final HearingDto hearingDto1 = createHearing(HearingType.SENTENCE.getValue(), courtSittings2);
 
@@ -677,8 +679,8 @@ class CaseDetailsServiceTest {
 
     @Test
     void testGetCaseDetailsByCaseUrnWhenCourtSittingAndWeeCommencingDateAreSame() {
-        futureSittingStartDate = LocalDateTime.now().plusDays(7).toString();
-        futureSittingEndDate = LocalDateTime.now().plusDays(7).plusHours(2).toString();
+        futureSittingStartDate = now().plusDays(7).toString();
+        futureSittingEndDate = now().plusDays(7).plusHours(2).toString();
 
         final CourtSittingDto currentSittingDto = createCourtSitting(futureSittingStartDate, futureSittingEndDate);
         final List<CourtSittingDto> courtSittings =   List.of(currentSittingDto);
@@ -865,8 +867,8 @@ class CaseDetailsServiceTest {
         );
 
         // Hearing with courtSitting: sittingStart = today + 3 days
-        String sittingStartDate = LocalDateTime.now().plusDays(3).toString();
-        String sittingEndDate = LocalDateTime.now().plusDays(3).plusHours(2).toString();
+        String sittingStartDate = now().plusDays(3).toString();
+        String sittingEndDate = now().plusDays(3).plusHours(2).toString();
         final CourtSittingDto courtSittingDto = createCourtSitting(sittingStartDate, sittingEndDate);
         final List<CourtSittingDto> courtSittings = List.of(courtSittingDto);
         final HearingDto hearingWithCourtSitting = createHearing(

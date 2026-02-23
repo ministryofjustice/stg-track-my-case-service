@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import static java.time.ZonedDateTime.now;
 
 class CourtScheduleClientTest {
 
@@ -70,7 +71,7 @@ class CourtScheduleClientTest {
 
         List<CourtSitting> courtSittings = List.of(
             new CourtSitting(
-                new Date(), new Date(),
+                now(), now(),
                 "some-judiciaryId", "some-courtHouse",
                 "some-courtRoom"
             )

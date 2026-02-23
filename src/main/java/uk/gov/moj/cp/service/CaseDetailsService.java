@@ -13,13 +13,14 @@ import uk.gov.moj.cp.metrics.TrackMyCaseMetricsService;
 import uk.gov.moj.cp.model.HearingType;
 
 import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static java.time.LocalDateTime.parse;
+import static java.time.ZonedDateTime.parse;
 import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
@@ -219,7 +220,7 @@ public class CaseDetailsService {
 
     private boolean validateSittingDateNotInPast(String courtSittingStartDate) {
         if (Optional.ofNullable(courtSittingStartDate).isPresent()) {
-            LocalDate sittingDate = parse(courtSittingStartDate).toLocalDate();
+            LocalDate sittingDate = ZonedDateTime.parse(courtSittingStartDate).toLocalDate();
             return !sittingDate.isBefore(LocalDate.now());
         }
         return false;
