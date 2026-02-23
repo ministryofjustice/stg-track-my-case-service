@@ -171,7 +171,7 @@ public class MockCourtScheduleClient {
         }
         int months = 0;
         int days = 0;
-        Pattern bodyPattern = Pattern.compile("^(N?\\d{1,2}M)?(N?\\d{1,2}D)?$");
+        Pattern bodyPattern = Pattern.compile("^(N?\\d{1,5}M)?(N?\\d{1,5}D)?$");
         Matcher matcher = bodyPattern.matcher(body);
         if (matcher.matches()) {
             months = parseSignedUnit(matcher.group(1));
