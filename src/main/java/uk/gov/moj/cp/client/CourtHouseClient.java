@@ -62,13 +62,12 @@ public class CourtHouseClient {
                 ? buildCourthearingCourthousesByIdUrl(courtId)
                 : buildCourthearingCourthousesAndCourtRoomsByIdUrl(courtId, courtRoomId);
 
-            ResponseEntity<CourtHouse> responseEntity = restTemplate.exchange(
+            return restTemplate.exchange(
                 courtHouseAmpUrl,
                 HttpMethod.GET,
                 getRequestEntity(accessToken),
                 CourtHouse.class
             );
-            return responseEntity;
         } catch (Exception e) {
             log.atError().log("Error while calling CourtHouse API", e);
         }
