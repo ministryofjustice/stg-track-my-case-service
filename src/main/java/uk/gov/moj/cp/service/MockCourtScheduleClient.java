@@ -14,10 +14,8 @@ import org.springframework.stereotype.Component;
 import uk.gov.moj.cp.model.HearingType;
 import uk.gov.moj.cp.model.mock.MockDataSummary;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -46,7 +44,7 @@ public class MockCourtScheduleClient {
 
         // Create test data
 
-        LocalDateTime futureDate = LocalDateTime.now()
+        ZonedDateTime futureDate = ZonedDateTime.now()
             .plusMonths(mockDataSummary.getMonths())
             .plusDays(mockDataSummary.getDays())
             .withHour(10)
@@ -59,8 +57,8 @@ public class MockCourtScheduleClient {
 
         int days = mockDataSummary.getTotalHearings();
         for (int i = 0; i < days; i++) {
-            Date sittingStart = Date.from(futureDate.atZone(getZoneId()).toInstant());
-            Date sittingEnd = Date.from(futureDate.plusHours(1).atZone(getZoneId()).toInstant());
+            ZonedDateTime sittingStart = futureDate;
+            ZonedDateTime sittingEnd = futureDate.plusHours(1);
 
             final String judiciaryId = caseUrn + "-judiciary-id-" + (i + 1);
             final String courtHouseId = caseUrn + "-court-house-id-" + (i + 1);
@@ -185,10 +183,6 @@ public class MockCourtScheduleClient {
             .days(days)
             .totalHearings(totalHearings)
             .build();
-    }
-
-    private static ZoneId getZoneId() {
-        return ZoneId.systemDefault();
     }
 
     private static int parseSignedUnit(String group) {
