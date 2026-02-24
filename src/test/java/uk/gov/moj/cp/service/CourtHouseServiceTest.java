@@ -1,40 +1,36 @@
 package uk.gov.moj.cp.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-import static java.util.UUID.randomUUID;
-
 import com.moj.generated.hmcts.Address;
 import com.moj.generated.hmcts.CourtHouse;
 import com.moj.generated.hmcts.CourtHouse.CourtHouseType;
 import com.moj.generated.hmcts.CourtRoom;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
-import uk.gov.moj.cp.client.api.CourtHouseAPIClient;
+import uk.gov.moj.cp.client.api.CourtHouseClient;
 import uk.gov.moj.cp.dto.CourtHouseDto;
 
 import java.util.List;
+
+import static java.util.UUID.randomUUID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CourtHouseServiceTest {
 
     @Mock
-    private CourtHouseAPIClient courtHouseAPIClient;
+    private CourtHouseClient courtHouseAPIClient;
 
     @InjectMocks
     private CourtHouseService courtHouseService;
     private final String accessToken = "testToken";
-    private final String caseUrn = "SOMECASEURN";
-
 
     @Test
     void testGetCourtHouseByCourtHouseById_successfulCourtHouseDetails() {
@@ -86,7 +82,6 @@ class CourtHouseServiceTest {
         assertEquals("CourtRoom 20", dto.courtRoomDtoList().get(1).courtRoomName());
     }
 
-
     @Test
     void testGetCourtHouseByCourtHouseById_returnsNull() {
         when(courtHouseAPIClient.getCourtHouseById(anyString(), anyString(), anyString()))
@@ -96,7 +91,6 @@ class CourtHouseServiceTest {
 
         assertNull(result);
     }
-
 
 }
 
