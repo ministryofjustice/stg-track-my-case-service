@@ -1,4 +1,4 @@
-package uk.gov.moj.cp.client;
+package uk.gov.moj.cp.client.api;
 
 import com.moj.generated.hmcts.Address;
 import com.moj.generated.hmcts.CourtHouse;
@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import uk.gov.moj.cp.service.MockCourtScheduleClient;
 
 import java.util.List;
 
@@ -20,28 +19,22 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class CourtHouseClientTest {
+class CourtHouseAPIClientTest {
 
-    private CourtHouseClient courtHouseClient;
+    private CourtHouseAPIClient courtHouseClient;
 
     private RestTemplate restTemplate;
 
     private final String ampUrl = "https://some.dev.environment.com";
     private final String ampSubscriptionKey = "some-amp-subscription-key";
-    private final String apiCpRefdataCourthearingCourthousesCourtroomsPath = "/courthouses/{court_id}/courtrooms/{court_room_id}";
+    private final String apiCpRefDataCourtHearingCourtHousesCourtroomsPath = "/courthouses/{court_id}/courtrooms/{court_room_id}";
     private final String accessToken = "testToken";
     private final String caseUrn = "SOMECASEURN";
 
     @BeforeEach
     public void setUp() {
         restTemplate = mock(RestTemplate.class);
-        MockCourtScheduleClient mockCourtScheduleClient = new MockCourtScheduleClient(){
-            @Override
-            public Boolean getUseMockData() {
-                return false;
-            }
-        };
-        courtHouseClient = new CourtHouseClient(restTemplate, mockCourtScheduleClient) {
+        courtHouseClient = new CourtHouseAPIClient(restTemplate) {
             @Override
             public String getAmpUrl() {
                 return ampUrl;
@@ -53,8 +46,8 @@ class CourtHouseClientTest {
             }
 
             @Override
-            public String getApiCpRefdataCourthearingCourthousesCourtroomsPath() {
-                return apiCpRefdataCourthearingCourthousesCourtroomsPath;
+            public String getApiCpRefDataCourtHearingCourtHousesCourtroomsPath() {
+                return apiCpRefDataCourtHearingCourtHousesCourtroomsPath;
             }
         };
     }
@@ -65,7 +58,7 @@ class CourtHouseClientTest {
         String courtRoomId = "123";
         String expectedUrl = "https://some.dev.environment.com/courthouses/123/courtrooms/123";
 
-        assertThat(courtHouseClient.buildCourthearingCourthousesAndCourtRoomsByIdUrl(id, courtRoomId)).isEqualTo(expectedUrl);
+        assertThat(courtHouseClient.buildCourtHearingCourtHousesAndCourtRoomsByIdUrl(id, courtRoomId)).isEqualTo(expectedUrl);
     }
 
     @Test

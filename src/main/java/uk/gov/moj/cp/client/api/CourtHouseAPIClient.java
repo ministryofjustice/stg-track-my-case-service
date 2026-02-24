@@ -1,10 +1,11 @@
-package uk.gov.moj.cp.client;
+package uk.gov.moj.cp.client.api;
 
 import com.moj.generated.hmcts.CourtHouse;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -13,14 +14,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
-import uk.gov.moj.cp.service.MockCourtScheduleClient;
 
 import java.util.List;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class CourtHouseClient {
+@ConditionalOnProperty(
+    name = "services.use-mock-data",
+    havingValue = "false",
+    matchIfMissing = true
+)
+public class CourtHouseAPIClient implements CourtHouseClient {
 
     private final RestTemplate restTemplate;
 
@@ -34,41 +39,35 @@ public class CourtHouseClient {
 
     @Getter
     @Value("${services.api-cp-refdata-courthearing-courthouses-courtrooms.path}")
-    private String apiCpRefdataCourthearingCourthousesCourtroomsPath;
+    private String apiCpRefDataCourtHearingCourtHousesCourtroomsPath;
 
     @Getter
     @Value("${services.api-cp-refdata-courthearing-courthouses.path}")
-    private String apiCpRefdataCourthearingCourthousesPath;
+    private String apiCpRefDataCourtHearingCourtHousesPath;
 
-    private final MockCourtScheduleClient mockCourtScheduleClient;
 
-    protected String buildCourthearingCourthousesAndCourtRoomsByIdUrl(String courtId, String courtRoomId) {
+    protected String buildCourtHearingCourtHousesAndCourtRoomsByIdUrl(String courtId, String courtRoomId) {
         return UriComponentsBuilder
             .fromUriString(getAmpUrl())
-            .path(getApiCpRefdataCourthearingCourthousesCourtroomsPath())
+            .path(getApiCpRefDataCourtHearingCourtHousesCourtroomsPath())
             .buildAndExpand(courtId, courtRoomId)
             .toUriString();
     }
 
-    protected String buildCourthearingCourthousesByIdUrl(String courtId) {
+    protected String buildCourtHearingCourtHousesByIdUrl(String courtId) {
         return UriComponentsBuilder
             .fromUriString(getAmpUrl())
-            .path(getApiCpRefdataCourthearingCourthousesPath())
+            .path(getApiCpRefDataCourtHearingCourtHousesPath())
             .buildAndExpand(courtId)
             .toUriString();
     }
 
 
     public ResponseEntity<CourtHouse> getCourtHouseById(String accessToken, String caseUrn, String courtId, String courtRoomId) {
-        final boolean useMock = mockCourtScheduleClient.useMock(caseUrn);
-        if (useMock) {
-            CourtHouse mockCourtHouse = mockCourtScheduleClient.getMockCourtHouse();
-            return ResponseEntity.ok(mockCourtHouse);
-        }
         try {
             String courtHouseAmpUrl = (courtRoomId == null || courtRoomId.isEmpty())
-                ? buildCourthearingCourthousesByIdUrl(courtId)
-                : buildCourthearingCourthousesAndCourtRoomsByIdUrl(courtId, courtRoomId);
+                ? buildCourtHearingCourtHousesByIdUrl(courtId)
+                : buildCourtHearingCourtHousesAndCourtRoomsByIdUrl(courtId, courtRoomId);
 
             return restTemplate.exchange(
                 courtHouseAmpUrl,

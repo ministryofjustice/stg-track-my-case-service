@@ -1,16 +1,12 @@
-package uk.gov.moj.cp.service;
+package uk.gov.moj.cp.client.mock;
 
-import com.moj.generated.hmcts.Address;
-import com.moj.generated.hmcts.CourtHouse;
-import com.moj.generated.hmcts.CourtHouse.CourtHouseType;
-import com.moj.generated.hmcts.CourtRoom;
 import com.moj.generated.hmcts.CourtSchedule;
+import com.moj.generated.hmcts.CourtScheduleSchema;
 import com.moj.generated.hmcts.CourtSitting;
 import com.moj.generated.hmcts.Hearing;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.ResponseEntity;
+import uk.gov.moj.cp.client.api.CourtScheduleClient;
 import uk.gov.moj.cp.model.HearingType;
 import uk.gov.moj.cp.model.mock.MockDataSummary;
 
@@ -20,18 +16,18 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Component
-@Slf4j
-public class MockCourtScheduleClient {
+@ConditionalOnProperty(
+    name = "services.use-mock-data",
+    havingValue = "true"
+)
+public class MockCourtScheduleAPIClient implements CourtScheduleClient {
 
     public static final String MOCK_DATA_URN_PREFIX_TMC = "TMC";
 
-    @Getter
-    @Value("${services.use-mock-data}")
-    private Boolean useMockData;
+    @Override
+    public ResponseEntity<CourtScheduleSchema> getCourtScheduleByCaseUrn(String accessToken, String caseUrn) {
 
-    public boolean useMock(final String caseUrn) {
-        return Boolean.TRUE.equals(getUseMockData()) && (caseUrn.toUpperCase().startsWith(MOCK_DATA_URN_PREFIX_TMC));
+        return ResponseEntity.ok(new CourtScheduleSchema(customData(caseUrn)));
     }
 
     public List<CourtSchedule> customData(final String caseUrn) {
@@ -90,38 +86,6 @@ public class MockCourtScheduleClient {
         );
 
         hearings.add(hearing);
-
-//[ {
-//            "hearings" : [ {
-//                "hearingId" : "810deb14-9a7d-4d3e-87f0-c37d4c832820",
-//                    "hearingType" : "Trial",
-//                    "hearingDescription" : "Trial",
-//                    "listNote" : "",
-//                    "weekCommencingDurationInWeeks" : 0,
-//                    "courtSittings" : [ {
-//                    "sittingStart" : 1773309600000,
-//                        "sittingEnd" : 1773311400000,
-//                        "judiciaryId" : "",
-//                        "courtHouse" : "67aa82ba-67bb-4699-8176-5f572048352b",
-//                        "courtRoom" : "c5f066ff-0aff-3dde-8bd9-40a587d3c58e"
-//                } ]
-//            }, {
-//                "hearingId" : "1e04d449-04eb-4f72-8d8e-b658a278e4dc",
-//                    "hearingType" : "First hearing",
-//                    "hearingDescription" : "First hearing",
-//                    "listNote" : "",
-//                    "weekCommencingDurationInWeeks" : 0,
-//                    "courtSittings" : [ {
-//                    "sittingStart" : 1770718200000,
-//                        "sittingEnd" : 1770719400000,
-//                        "judiciaryId" : "",
-//                        "courtHouse" : "67aa82ba-67bb-4699-8176-5f572048352b",
-//                        "courtRoom" : "c5f066ff-0aff-3dde-8bd9-40a587d3c58e"
-//                } ]
-//            } ]
-//        } ]
-//
-
         return List.of(new CourtSchedule(hearings));
     }
 
@@ -204,35 +168,4 @@ public class MockCourtScheduleClient {
             .build();
     }
 
-    public CourtHouse getMockCourtHouse() {
-//        {
-//            "courtHouseType" : "magistrate",
-//            "courtHouseCode" : "B01IX00",
-//            "courtHouseName" : "Westminster Magistrates' Court",
-//            "address" : {
-//            "address1" : "181 Marylebone Road",
-//                "address2" : "London",
-//                "postalCode" : "NW1 5BR",
-//                "country" : "UK"
-//        },
-//            "courtRoom" : [ {
-//            "courtRoomId" : 2975,
-//                "courtRoomName" : "Courtroom 01"
-//        } ]
-//        }
-        return new CourtHouse(
-            CourtHouseType.MAGISTRATE,
-            "B01IX00",
-            "Westminster Magistrates' Court",
-            new Address(
-                "181 Marylebone Road",
-                "London",
-                null,
-                null,
-                "NW1 5BR",
-                "UK"
-            ),
-            List.of(new CourtRoom(2975, "Courtroom 01"))
-        );
-    }
 }

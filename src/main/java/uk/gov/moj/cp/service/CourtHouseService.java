@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
-import uk.gov.moj.cp.client.CourtHouseClient;
+import uk.gov.moj.cp.client.api.CourtHouseClient;
 import uk.gov.moj.cp.dto.CourtHouseDto;
 
 import static java.util.Objects.nonNull;
@@ -16,8 +16,12 @@ import static java.util.Objects.nonNull;
 @Service
 public class CourtHouseService {
 
+    private final CourtHouseClient courtHouseClient;
+
     @Autowired
-    private CourtHouseClient courtHouseClient;
+    public CourtHouseService(CourtHouseClient courtHouseClient) {
+        this.courtHouseClient = courtHouseClient;
+    }
 
     public CourtHouseDto getCourtHouseById(String accessToken, String caseUrn, String courtId, String courtRoomId) {
         HttpEntity<CourtHouse> result = courtHouseClient.getCourtHouseById(accessToken, caseUrn, courtId, courtRoomId);
