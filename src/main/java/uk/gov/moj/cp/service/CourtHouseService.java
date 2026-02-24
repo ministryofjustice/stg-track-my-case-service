@@ -16,12 +16,8 @@ import static java.util.Objects.nonNull;
 @Service
 public class CourtHouseService {
 
-    private final CourtHouseClient courtHouseClient;
-
-    @Autowired
-    public CourtHouseService(CourtHouseClient courtHouseClient) {
-        this.courtHouseClient = courtHouseClient;
-    }
+   @Autowired
+    private  CourtHouseClient courtHouseClient;
 
     public CourtHouseDto getCourtHouseById(String accessToken, String caseUrn, String courtId, String courtRoomId) {
         HttpEntity<CourtHouse> result = courtHouseClient.getCourtHouseById(accessToken, caseUrn, courtId, courtRoomId);

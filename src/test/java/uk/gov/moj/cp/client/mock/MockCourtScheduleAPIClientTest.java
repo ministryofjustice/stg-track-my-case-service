@@ -1,4 +1,4 @@
-package uk.gov.moj.cp.service;
+package uk.gov.moj.cp.client.mock;
 
 import com.moj.generated.hmcts.CourtSchedule;
 import com.moj.generated.hmcts.Hearing;
@@ -16,11 +16,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.of;
 import static uk.gov.moj.cp.model.HearingType.SENTENCE;
 import static uk.gov.moj.cp.model.HearingType.TRIAL;
-//import static uk.gov.moj.cp.service.MockCourtScheduleClient.parseCaseUrn;
+import static uk.gov.moj.cp.client.mock.MockCourtScheduleAPIClient.parseCaseUrn;
 
 class MockCourtScheduleAPIClientTest {
 
-    //private final MockCourtScheduleClient mockCourtScheduleClient = new MockCourtScheduleClient();
+    private final MockCourtScheduleAPIClient mockCourtScheduleClient = new MockCourtScheduleAPIClient();
 
     //    TMC - custom test prefix
     //    TR or SE - Trial or Sentence
@@ -72,7 +72,7 @@ class MockCourtScheduleAPIClientTest {
         );
     }
 
-    /*@ParameterizedTest(name = "parseCaseUrn({0}) -> {1}, M={2}, D={3}, hearings={4}")
+    @ParameterizedTest(name = "parseCaseUrn({0}) -> {1}, M={2}, D={3}, hearings={4}")
     @MethodSource("parseCaseUrnParams")
     void parseCaseUrnTest(String caseUrn, HearingType expectedType, int expectedMonths, int expectedDays, int expectedTotalHearings) {
         MockDataSummary summary = parseCaseUrn(caseUrn);
@@ -90,5 +90,5 @@ class MockCourtScheduleAPIClientTest {
         assertEquals(1, hearings.size());
         Hearing hearing = hearings.getFirst();
         assertEquals(12, hearing.getCourtSittings().size());
-    }*/
+    }
 }

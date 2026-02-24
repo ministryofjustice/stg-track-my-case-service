@@ -6,6 +6,7 @@ import com.moj.generated.hmcts.CourtSitting;
 import com.moj.generated.hmcts.Hearing;
 import com.moj.generated.hmcts.WeekCommencing;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import uk.gov.moj.cp.client.api.CourtScheduleClient;
@@ -23,11 +24,8 @@ import static java.util.Objects.nonNull;
 @Slf4j
 public class CourtScheduleService {
 
-    private final CourtScheduleClient courtScheduleClient;
-
-    public CourtScheduleService(CourtScheduleClient courtScheduleClient) {
-        this.courtScheduleClient = courtScheduleClient;
-    }
+    @Autowired
+    private  CourtScheduleClient courtScheduleClient;
 
     public List<CourtScheduleDto> getCourtScheduleByCaseUrn(String accessToken, String caseUrn) {
         ResponseEntity<CourtScheduleSchema> result = courtScheduleClient.getCourtScheduleByCaseUrn(accessToken,

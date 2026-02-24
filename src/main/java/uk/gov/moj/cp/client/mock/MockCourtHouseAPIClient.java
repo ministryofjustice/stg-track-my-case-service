@@ -5,10 +5,12 @@ import com.moj.generated.hmcts.CourtHouse;
 import com.moj.generated.hmcts.CourtRoom;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import uk.gov.moj.cp.client.api.CourtHouseClient;
 
 import java.util.List;
 
+@Component
 @ConditionalOnProperty(
     name = "services.use-mock-data",
     havingValue = "true"

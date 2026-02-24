@@ -6,6 +6,7 @@ import com.moj.generated.hmcts.CourtSitting;
 import com.moj.generated.hmcts.Hearing;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import uk.gov.moj.cp.client.api.CourtScheduleClient;
 import uk.gov.moj.cp.model.HearingType;
 import uk.gov.moj.cp.model.mock.MockDataSummary;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Component
 @ConditionalOnProperty(
     name = "services.use-mock-data",
     havingValue = "true"
