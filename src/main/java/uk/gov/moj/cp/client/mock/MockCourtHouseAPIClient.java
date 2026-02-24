@@ -18,7 +18,6 @@ import java.util.List;
 public class MockCourtHouseAPIClient implements CourtHouseClient {
 
     public ResponseEntity<CourtHouse> getCourtHouseById(String accessToken,
-                                                        String caseUrn,
                                                         String courtId,
                                                         String courtRoomId) {
 

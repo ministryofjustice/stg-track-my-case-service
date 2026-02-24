@@ -63,7 +63,7 @@ public class CourtHouseAPIClient implements CourtHouseClient {
     }
 
 
-    public ResponseEntity<CourtHouse> getCourtHouseById(String accessToken, String caseUrn, String courtId, String courtRoomId) {
+    public ResponseEntity<CourtHouse> getCourtHouseById(String accessToken, String courtId, String courtRoomId) {
         try {
             String courtHouseAmpUrl = (courtRoomId == null || courtRoomId.isEmpty())
                 ? buildCourtHearingCourtHousesByIdUrl(courtId)

@@ -7,7 +7,6 @@ public interface CourtHouseClient {
 
     ResponseEntity<CourtHouse> getCourtHouseById(
         String accessToken,
-        String caseUrn,
         String courtId,
         String courtRoomId
     );

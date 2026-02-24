@@ -117,7 +117,7 @@ class CaseDetailsServiceTest {
 
         final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto));
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(caseUrn), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
             scheduleDto));
@@ -191,7 +191,7 @@ class CaseDetailsServiceTest {
 
         final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto, hearingDto1));
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(caseUrn), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
             scheduleDto));
@@ -239,7 +239,7 @@ class CaseDetailsServiceTest {
 
         final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto));
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(caseUrn), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -285,7 +285,7 @@ class CaseDetailsServiceTest {
 
         final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto));
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(caseUrn), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -337,7 +337,7 @@ class CaseDetailsServiceTest {
 
         final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto, hearingDto1));
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(caseUrn), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -394,7 +394,7 @@ class CaseDetailsServiceTest {
 
         final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto, hearingDto1));
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(caseUrn), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -420,7 +420,7 @@ class CaseDetailsServiceTest {
 
         final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto));
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(caseUrn), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -445,7 +445,7 @@ class CaseDetailsServiceTest {
 
         final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto));
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(caseUrn), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -495,7 +495,7 @@ class CaseDetailsServiceTest {
 
         final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto));
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(caseUrn), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -530,7 +530,7 @@ class CaseDetailsServiceTest {
 
         final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto, hearingDto1));
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(caseUrn), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -555,7 +555,7 @@ class CaseDetailsServiceTest {
 
         final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto, hearingDto1, hearingDto2));
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(caseUrn), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -589,7 +589,7 @@ class CaseDetailsServiceTest {
 
         final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto, hearingDto1, hearingDto2));
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(caseUrn), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -628,7 +628,7 @@ class CaseDetailsServiceTest {
             hearingDto5
         ));
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(caseUrn), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -684,7 +684,7 @@ class CaseDetailsServiceTest {
 
         final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto2, hearingDto1, hearingDto));
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(caseUrn), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
@@ -736,7 +736,7 @@ class CaseDetailsServiceTest {
 
         final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto3, hearingDto1, hearingDto2));
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(caseUrn), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
@@ -804,7 +804,7 @@ class CaseDetailsServiceTest {
             hearingDto5
         ));
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(caseUrn), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
@@ -916,7 +916,7 @@ class CaseDetailsServiceTest {
             hearingWithWeekCommencing
         ));
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(caseUrn), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
@@ -978,7 +978,7 @@ class CaseDetailsServiceTest {
             hearingWithWeekCommencing
         ));
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(caseUrn), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
@@ -1115,7 +1115,7 @@ class CaseDetailsServiceTest {
             hearingDto5
         ));
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(caseUrn), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));

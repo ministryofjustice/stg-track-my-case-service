@@ -19,8 +19,8 @@ public class CourtHouseService {
    @Autowired
     private  CourtHouseClient courtHouseClient;
 
-    public CourtHouseDto getCourtHouseById(String accessToken, String caseUrn, String courtId, String courtRoomId) {
-        HttpEntity<CourtHouse> result = courtHouseClient.getCourtHouseById(accessToken, caseUrn, courtId, courtRoomId);
+    public CourtHouseDto getCourtHouseById(String accessToken, String courtId, String courtRoomId) {
+        HttpEntity<CourtHouse> result = courtHouseClient.getCourtHouseById(accessToken, courtId, courtRoomId);
 
         if (result == null || result.getBody() == null) {
             log.atError().log("Response body is null or empty");
