@@ -11,7 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
-import uk.gov.moj.cp.client.CourtScheduleClient;
+import uk.gov.moj.cp.client.api.CourtScheduleAPIClient;
 import uk.gov.moj.cp.dto.CourtScheduleDto;
 
 import java.time.LocalDate;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 class CourtScheduleServiceTest {
 
     @Mock
-    private CourtScheduleClient courtScheduleClient;
+    private CourtScheduleAPIClient courtScheduleAPIClient;
 
     @InjectMocks
     private CourtScheduleService courtScheduleService;
@@ -91,7 +91,7 @@ class CourtScheduleServiceTest {
         final CourtScheduleSchema schema = new CourtScheduleSchema(List.of(courtSchedule));
         final ResponseEntity<CourtScheduleSchema> response = ResponseEntity.ok(schema);
 
-        when(courtScheduleClient.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(response);
+        when(courtScheduleAPIClient.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(response);
 
         List<CourtScheduleDto> result = courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn);
 
@@ -131,7 +131,7 @@ class CourtScheduleServiceTest {
         final CourtScheduleSchema schema = new CourtScheduleSchema(List.of(courtSchedule));
         final ResponseEntity<CourtScheduleSchema> response = ResponseEntity.ok(schema);
 
-        when(courtScheduleClient.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(response);
+        when(courtScheduleAPIClient.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(response);
 
         List<CourtScheduleDto> result = courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn);
 

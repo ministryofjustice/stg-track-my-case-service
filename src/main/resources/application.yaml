@@ -43,6 +43,7 @@ azure:
     instrumentation-key: ${rpe.AppInsightsInstrumentationKey:00000000-0000-0000-0000-000000000000}
 
 services:
+  use-mock-data: ${TMC_USE_MOCK_DATA:false}
   amp-url: ${TMC_AMP_URL}
   amp-subscription-key: ${TMC_AMP_SUBSCRIPTION_KEY}
 

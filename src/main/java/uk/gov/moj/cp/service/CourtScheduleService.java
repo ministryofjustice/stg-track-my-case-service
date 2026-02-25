@@ -9,16 +9,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import uk.gov.moj.cp.client.CourtScheduleClient;
+import uk.gov.moj.cp.client.api.CourtScheduleClient;
 import uk.gov.moj.cp.dto.CourtScheduleDto;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -29,7 +25,7 @@ import static java.util.Objects.nonNull;
 public class CourtScheduleService {
 
     @Autowired
-    private CourtScheduleClient courtScheduleClient;
+    private  CourtScheduleClient courtScheduleClient;
 
     public List<CourtScheduleDto> getCourtScheduleByCaseUrn(String accessToken, String caseUrn) {
         ResponseEntity<CourtScheduleSchema> result = courtScheduleClient.getCourtScheduleByCaseUrn(accessToken,

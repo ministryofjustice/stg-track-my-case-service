@@ -1,38 +1,36 @@
 package uk.gov.moj.cp.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-import static java.util.UUID.randomUUID;
-
 import com.moj.generated.hmcts.Address;
 import com.moj.generated.hmcts.CourtHouse;
 import com.moj.generated.hmcts.CourtHouse.CourtHouseType;
 import com.moj.generated.hmcts.CourtRoom;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
-import uk.gov.moj.cp.client.CourtHouseClient;
+import uk.gov.moj.cp.client.api.CourtHouseClient;
 import uk.gov.moj.cp.dto.CourtHouseDto;
 
 import java.util.List;
+
+import static java.util.UUID.randomUUID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CourtHouseServiceTest {
 
     @Mock
-    private CourtHouseClient courtHouseClient;
+    private CourtHouseClient courtHouseAPIClient;
 
     @InjectMocks
     private CourtHouseService courtHouseService;
     private final String accessToken = "testToken";
-
 
     @Test
     void testGetCourtHouseByCourtHouseById_successfulCourtHouseDetails() {
@@ -57,7 +55,7 @@ class CourtHouseServiceTest {
         );
 
         final ResponseEntity<CourtHouse> entity = ResponseEntity.ok(courtHouse);
-        when(courtHouseClient.getCourtHouseById(accessToken, courtHouseId, courtRoomId)).thenReturn(entity);
+        when(courtHouseAPIClient.getCourtHouseById(accessToken, courtHouseId, courtRoomId)).thenReturn(entity);
 
         CourtHouseDto dto = courtHouseService.getCourtHouseById(accessToken, courtHouseId, courtRoomId);
 
@@ -84,17 +82,15 @@ class CourtHouseServiceTest {
         assertEquals("CourtRoom 20", dto.courtRoomDtoList().get(1).courtRoomName());
     }
 
-
     @Test
     void testGetCourtHouseByCourtHouseById_returnsNull() {
-        when(courtHouseClient.getCourtHouseById(anyString(), anyString(), anyString()))
+        when(courtHouseAPIClient.getCourtHouseById(anyString(), anyString(), anyString()))
             .thenReturn(new ResponseEntity<>(null, null, 200));
 
         CourtHouseDto result = courtHouseService.getCourtHouseById(accessToken, "courtId", "courtRoomId");
 
         assertNull(result);
     }
-
 
 }
 

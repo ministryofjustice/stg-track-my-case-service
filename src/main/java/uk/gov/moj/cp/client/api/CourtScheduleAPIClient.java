@@ -1,10 +1,11 @@
-package uk.gov.moj.cp.client;
+package uk.gov.moj.cp.client.api;
 
-import com.moj.generated.hmcts.CourtHouse;
+import com.moj.generated.hmcts.CourtScheduleSchema;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -19,7 +20,12 @@ import java.util.List;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class CourtHouseClient {
+@ConditionalOnProperty(
+    name = "services.use-mock-data",
+    havingValue = "false",
+    matchIfMissing = true
+)
+public class CourtScheduleAPIClient implements CourtScheduleClient {
 
     private final RestTemplate restTemplate;
 
@@ -32,44 +38,27 @@ public class CourtHouseClient {
     private String ampSubscriptionKey;
 
     @Getter
-    @Value("${services.api-cp-refdata-courthearing-courthouses-courtrooms.path}")
-    private String apiCpRefdataCourthearingCourthousesCourtroomsPath;
+    @Value("${services.api-cp-crime-schedulingandlisting-courtschedule.path}")
+    private String apiCpCrimeSchedulingAndListingCourtSchedulePath;
 
-    @Getter
-    @Value("${services.api-cp-refdata-courthearing-courthouses.path}")
-    private String apiCpRefdataCourthearingCourthousesPath;
-
-    protected String buildCourthearingCourthousesAndCourtRoomsByIdUrl(String courtId, String courtRoomId) {
+    protected String buildCourtScheduleUrl(String caseUrn) {
         return UriComponentsBuilder
             .fromUriString(getAmpUrl())
-            .path(getApiCpRefdataCourthearingCourthousesCourtroomsPath())
-            .buildAndExpand(courtId, courtRoomId)
+            .path(getApiCpCrimeSchedulingAndListingCourtSchedulePath())
+            .buildAndExpand(caseUrn)
             .toUriString();
     }
 
-    protected String buildCourthearingCourthousesByIdUrl(String courtId) {
-        return UriComponentsBuilder
-            .fromUriString(getAmpUrl())
-            .path(getApiCpRefdataCourthearingCourthousesPath())
-            .buildAndExpand(courtId)
-            .toUriString();
-    }
-
-
-    public ResponseEntity<CourtHouse> getCourtHouseById(String accessToken, String courtId, String courtRoomId) {
+    public ResponseEntity<CourtScheduleSchema> getCourtScheduleByCaseUrn(String accessToken, String caseUrn) {
         try {
-            String courtHouseAmpUrl = (courtRoomId == null || courtRoomId.isEmpty())
-                ? buildCourthearingCourthousesByIdUrl(courtId)
-                : buildCourthearingCourthousesAndCourtRoomsByIdUrl(courtId, courtRoomId);
-
             return restTemplate.exchange(
-                courtHouseAmpUrl,
+                buildCourtScheduleUrl(caseUrn),
                 HttpMethod.GET,
                 getRequestEntity(accessToken),
-                CourtHouse.class
+                CourtScheduleSchema.class
             );
         } catch (Exception e) {
-            log.atError().log("Error while calling CourtHouse API", e);
+            log.error("Error while calling CourtSchedule API", e);
         }
         return null;
     }
@@ -81,5 +70,4 @@ public class CourtHouseClient {
         headers.set("Ocp-Apim-Subscription-Key", getAmpSubscriptionKey());
         return new HttpEntity<>(headers);
     }
-
 }

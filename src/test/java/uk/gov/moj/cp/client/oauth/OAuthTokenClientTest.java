@@ -1,4 +1,4 @@
-package uk.gov.moj.cp.client;
+package uk.gov.moj.cp.client.oauth;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

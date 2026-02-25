@@ -1,4 +1,4 @@
-package uk.gov.moj.cp.client;
+package uk.gov.moj.cp.client.api;
 
 import com.moj.generated.hmcts.CourtSchedule;
 import com.moj.generated.hmcts.CourtScheduleSchema;
@@ -22,21 +22,22 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class CourtScheduleClientTest {
+class CourtScheduleAPIClientTest {
 
-    private CourtScheduleClient courtScheduleClient;
+    private CourtScheduleAPIClient courtScheduleAPIClient;
 
     private RestTemplate restTemplate;
 
     private final String ampUrl = "https://some.dev.environment.com";
     private final String ampSubscriptionKey = "some-amp-subscription-key";
-    private final String apiCpCrimeSchedulingandlistingCourtschedulePath = "/case/{case_urn}/courtschedule";
+    private final String apiCpCrimeSchedulingAndListingCourtSchedulePath = "/case/{case_urn}/courtschedule";
     private final String accessToken = "testToken";
 
     @BeforeEach
     public void setUp() {
         restTemplate = mock(RestTemplate.class);
-        courtScheduleClient = new CourtScheduleClient(restTemplate) {
+
+        courtScheduleAPIClient = new CourtScheduleAPIClient(restTemplate){
             @Override
             public String getAmpUrl() {
                 return ampUrl;
@@ -48,8 +49,8 @@ class CourtScheduleClientTest {
             }
 
             @Override
-            public String getApiCpCrimeSchedulingandlistingCourtschedulePath() {
-                return apiCpCrimeSchedulingandlistingCourtschedulePath;
+            public String getApiCpCrimeSchedulingAndListingCourtSchedulePath() {
+                return apiCpCrimeSchedulingAndListingCourtSchedulePath;
             }
         };
     }
@@ -59,7 +60,7 @@ class CourtScheduleClientTest {
         String caseUrn = "CASE123";
         String expectedUrl = "https://some.dev.environment.com/case/CASE123/courtschedule";
 
-        String actualUrl = courtScheduleClient.buildCourtScheduleUrl(caseUrn);
+        String actualUrl = courtScheduleAPIClient.buildCourtScheduleUrl(caseUrn);
         assertThat(actualUrl).isEqualTo(expectedUrl);
     }
 
@@ -98,12 +99,12 @@ class CourtScheduleClientTest {
         when(restTemplate.exchange(
             eq(expectedUrl),
             eq(HttpMethod.GET),
-            eq(courtScheduleClient.getRequestEntity(accessToken)),
+            eq(courtScheduleAPIClient.getRequestEntity(accessToken)),
             eq(CourtScheduleSchema.class)
         )).thenReturn(response);
 
-        ResponseEntity<CourtScheduleSchema> actual = courtScheduleClient.getCourtScheduleByCaseUrn(accessToken,
-                                                                                                   caseUrn);
+        ResponseEntity<CourtScheduleSchema> actual = courtScheduleAPIClient.getCourtScheduleByCaseUrn(accessToken,
+                                                                                                      caseUrn);
 
         assertThat(actual).isNotNull();
         assertThat(courtScheduleSchema).isEqualTo(actual.getBody());
@@ -117,12 +118,12 @@ class CourtScheduleClientTest {
         when(restTemplate.exchange(
             eq(expectedUrl),
             eq(HttpMethod.GET),
-            eq(courtScheduleClient.getRequestEntity(accessToken)),
+            eq(courtScheduleAPIClient.getRequestEntity(accessToken)),
             eq(CourtScheduleSchema.class)
         )).thenThrow(new RestClientException("Service unavailable"));
 
-        ResponseEntity<CourtScheduleSchema> response = courtScheduleClient.getCourtScheduleByCaseUrn(accessToken,
-                                                                                                     caseUrn);
+        ResponseEntity<CourtScheduleSchema> response = courtScheduleAPIClient.getCourtScheduleByCaseUrn(accessToken,
+                                                                                                        caseUrn);
         assertThat(response).isNull();
     }
 }

@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import uk.gov.moj.cp.client.OAuthTokenClient;
+import uk.gov.moj.cp.client.oauth.OAuthTokenClient;
 import uk.gov.moj.cp.model.OAuthTokenResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
