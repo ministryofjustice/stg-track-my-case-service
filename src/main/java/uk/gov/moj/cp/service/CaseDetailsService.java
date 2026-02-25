@@ -48,7 +48,8 @@ public class CaseDetailsService {
                     List<CaseDetailsHearingDto> caseDetailsHearingDtos = schedule.hearingDtos().stream()
                         .map(t -> getHearingDetails(accessToken, t))
                         .filter(Objects::nonNull)
-                        .sorted(getCaseDetailsHearingDtoComparator())
+                        .min(getCaseDetailsHearingDtoComparator())
+                        .stream()
                         .toList();
                     return new CaseDetailsCourtScheduleDto(caseDetailsHearingDtos);
                 })
