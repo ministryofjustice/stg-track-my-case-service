@@ -11,7 +11,7 @@ metrics:
   actuator_endpoint: prometheus
   grafana_dashboard:
     enabled: true
-    name: Track My Case Service
+    name: Track a case service
 
 alertLabels:
   severity: victims-pathfinder-dev
