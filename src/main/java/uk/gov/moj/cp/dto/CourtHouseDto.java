@@ -31,4 +31,19 @@ public record CourtHouseDto(
             String country
         ) {}
     }
+
+    public static CourtHouseDto withCourtHouseIdAndCourtRoomId(String courtHouseId, String courtRoomId) {
+        return new CourtHouseDto(
+            courtHouseId,
+            courtRoomId,
+            "", "", "", null, null
+        );
+    }
+
+    public static CourtHouseDto withCourtHouseId(String courtHouseId) {
+        return new CourtHouseDto(
+            courtHouseId,
+            "", "", "", "", null, null
+        );
+    }
 }

@@ -142,6 +142,7 @@ class CaseDetailsServiceTest {
         assertEquals(futureSittingStartDate, schedule.sittingStart());
         assertEquals(futureSittingEndDate, schedule.sittingEnd());
 
+        assertEquals("Lavender Hill", schedule.courtHouse().courtHouseName());
         assertEquals("53", schedule.courtHouse().address().address1());
         assertEquals("Court Street", schedule.courtHouse().address().address2());
         assertEquals("London", schedule.courtHouse().address().address3());
@@ -1013,6 +1014,8 @@ class CaseDetailsServiceTest {
 
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+            createCourtHouse(courtRoomDto, addressDto));
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
