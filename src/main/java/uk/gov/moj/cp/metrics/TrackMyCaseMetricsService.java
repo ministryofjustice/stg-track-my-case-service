@@ -17,7 +17,7 @@ public class TrackMyCaseMetricsService {
         this.caseDetailsCounter =
             Counter.builder()
                 .name("trackmycase_service_started")
-                .help("Total number of cases viewed in Track My Case service")
+                .help("Total number of cases viewed in Track a case service")
                 .register(meterRegistry);
     }
 
