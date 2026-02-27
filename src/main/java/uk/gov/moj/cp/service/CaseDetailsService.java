@@ -48,7 +48,7 @@ public class CaseDetailsService {
                             .map(this::getHearingDetails)
                             .filter(Objects::nonNull)
                             .min(getCaseDetailsHearingDtoComparator())
-                            .map(h -> enrichHearingWithCourtDetails(accessToken, h))
+                            .map(h -> enrichHearingWithCourtDetails(caseUrn, accessToken, h))
                             .stream()
                             .toList();
 
@@ -230,7 +230,7 @@ public class CaseDetailsService {
             || HearingType.SENTENCE.getValue().equalsIgnoreCase(hearingType);
     }
 
-    private CaseDetailsHearingDto enrichHearingWithCourtDetails(final String accessToken, final CaseDetailsHearingDto hearing) {
+    private CaseDetailsHearingDto enrichHearingWithCourtDetails(final String caseUrn, final String accessToken, final CaseDetailsHearingDto hearing) {
         WeekCommencing enrichedWeekCommencing = enrichWeekCommencingWithCourtDetails(accessToken, hearing.weekCommencing());
 
         List<CaseDetailsCourtSittingDto> enrichedCourtSittings =
@@ -240,13 +240,15 @@ public class CaseDetailsService {
 
         if (nonNull(enrichedWeekCommencing)) {
             log.atInfo().log(
-                "hearingId (W/C) - {} : CourtHouse Id - {} ",
+                "caseUrn -{} : hearingId (W/C) - {} : CourtHouse Id - {} ",
+                caseUrn,
                 hearing.hearingId(),
                 enrichedWeekCommencing.courtHouse().courtHouseId()
             );
         } else {
             log.atInfo().log(
-                "hearingId - {} : CourtHouse Id - {} :  CourtRoom Id : {} ",
+                "caseUrn -{} : hearingId - {} : CourtHouse Id - {} :  CourtRoom Id : {}",
+                caseUrn,
                 hearing.hearingId(),
                 enrichedCourtSittings.getFirst().courtHouse().courtHouseId(),
                 enrichedCourtSittings.getFirst().courtHouse().courtRoomId()
