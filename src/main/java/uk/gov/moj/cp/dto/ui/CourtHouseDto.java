@@ -1,4 +1,4 @@
-package uk.gov.moj.cp.dto;
+package uk.gov.moj.cp.dto.ui;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -12,25 +12,10 @@ public record CourtHouseDto(
     String courtHouseType,
     String courtHouseCode,
     String courtHouseName,
-    @JsonProperty("address") CourtRoomDto.AddressDto address,
+    @JsonProperty("address") AddressDto address,
     //String courtHouseDescription,
     @JsonProperty("courtRoom") List<CourtRoomDto> courtRoomDtoList
 ) {
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    public record CourtRoomDto(
-        int courtRoomId,
-        String courtRoomName
-    ) {
-        @JsonInclude(JsonInclude.Include.NON_NULL)
-        public record AddressDto(
-            String address1,
-            String address2,
-            String address3,
-            String address4,
-            String postalCode,
-            String country
-        ) {}
-    }
 
     public static CourtHouseDto withCourtHouseIdAndCourtRoomId(String courtHouseId, String courtRoomId) {
         return new CourtHouseDto(

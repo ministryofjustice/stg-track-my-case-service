@@ -10,13 +10,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import uk.gov.moj.cp.dto.CaseDetailsDto;
-import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto;
-import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto.CaseDetailsHearingDto;
-import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto.CaseDetailsHearingDto.CaseDetailsCourtSittingDto;
-import uk.gov.moj.cp.dto.CourtHouseDto;
-import uk.gov.moj.cp.dto.CourtHouseDto.CourtRoomDto;
-import uk.gov.moj.cp.dto.CourtHouseDto.CourtRoomDto.AddressDto;
+import uk.gov.moj.cp.dto.ui.CaseDetailsDto;
+import uk.gov.moj.cp.dto.ui.CaseDetailsCourtScheduleDto;
+import uk.gov.moj.cp.dto.ui.CaseDetailsHearingDto;
+import uk.gov.moj.cp.dto.ui.CaseDetailsCourtSittingDto;
+import uk.gov.moj.cp.dto.ui.CourtHouseDto;
+import uk.gov.moj.cp.dto.ui.CourtRoomDto;
+import uk.gov.moj.cp.dto.ui.AddressDto;
+import uk.gov.moj.cp.dto.ui.CaseDetailsWeekCommencingDto;
 import uk.gov.moj.cp.service.CaseDetailsService;
 
 import java.time.LocalDate;
@@ -90,7 +91,7 @@ public class CaseDetailsControllerTest {
             "First Hearing",
             "Initial hearing description",
             "Test note",
-            new CaseDetailsHearingDto.WeekCommencing(
+            new CaseDetailsWeekCommencingDto(
             LocalDate.now().format(DateTimeFormatter.ISO_DATE) ,
             LocalDate.now().plusDays(7).format(DateTimeFormatter.ISO_DATE) ,
             2, null)

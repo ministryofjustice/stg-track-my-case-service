@@ -8,16 +8,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.moj.cp.dto.CaseDetailsDto;
-import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto.CaseDetailsHearingDto;
-import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto.CaseDetailsHearingDto.WeekCommencing;
-import uk.gov.moj.cp.dto.CourtHouseDto;
-import uk.gov.moj.cp.dto.CourtHouseDto.CourtRoomDto;
-import uk.gov.moj.cp.dto.CourtHouseDto.CourtRoomDto.AddressDto;
+import uk.gov.moj.cp.dto.ui.CaseDetailsDto;
+import uk.gov.moj.cp.dto.ui.CaseDetailsHearingDto;
+import uk.gov.moj.cp.dto.ui.CourtHouseDto;
+import uk.gov.moj.cp.dto.ui.CourtRoomDto;
+import uk.gov.moj.cp.dto.ui.AddressDto;
 import uk.gov.moj.cp.dto.CourtScheduleDto;
-import uk.gov.moj.cp.dto.CourtScheduleDto.HearingDto;
-import uk.gov.moj.cp.dto.CourtScheduleDto.HearingDto.CourtSittingDto;
-import uk.gov.moj.cp.dto.CourtScheduleDto.HearingDto.WeekCommencingDto;
+import uk.gov.moj.cp.dto.HearingDto;
+import uk.gov.moj.cp.dto.CourtSittingDto;
+import uk.gov.moj.cp.dto.WeekCommencingDto;
 import uk.gov.moj.cp.metrics.TrackMyCaseMetricsService;
 import uk.gov.moj.cp.model.HearingType;
 
@@ -1126,37 +1125,28 @@ class CaseDetailsServiceTest {
     }
 
     private HearingDto createHearing(String hearingType, List<CourtSittingDto> courtSittings) {
-        return new HearingDto(
-            hearingId,
-            hearingType,
-            hearingType,
-            "Note1",
-            null,
-            courtSittings
-        );
+        return createHearing(hearingId, hearingType, courtSittings);
     }
 
     private HearingDto createHearing(String hearingId, String hearingType, List<CourtSittingDto> courtSittings) {
-        return new HearingDto(
-            hearingId,
-            hearingType,
-            hearingType,
-            "Note1",
-            null,
-            courtSittings
-        );
+        return HearingDto.builder()
+            .hearingId(hearingId)
+            .hearingType(hearingType)
+            .hearingDescription(hearingType)
+            .listNote("Note1")
+            .courtSittings(courtSittings)
+            .build();
     }
 
     private HearingDto createHearingWithWeeks(String hearingId, String hearingType,
                                               String startDate, String endDate,
                                               int durationInWeeks) {
-        return new HearingDto(
-            hearingId,
-            hearingType,
-            hearingType,
-            "Note1",
-            new WeekCommencingDto(courtHouseId, startDate, endDate, durationInWeeks),
-            null
-        );
+        return HearingDto.builder()
+            .hearingId(hearingId)
+            .hearingType(hearingType)
+            .hearingDescription(hearingType)
+            .listNote("Note1")
+            .weekCommencing(new WeekCommencingDto(courtHouseId, startDate, endDate, durationInWeeks))
+            .build();
     }
 }

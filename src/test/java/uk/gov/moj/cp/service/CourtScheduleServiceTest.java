@@ -13,6 +13,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import uk.gov.moj.cp.client.api.CourtScheduleAPIClient;
 import uk.gov.moj.cp.dto.CourtScheduleDto;
+import uk.gov.moj.cp.dto.CourtSittingDto;
+import uk.gov.moj.cp.dto.HearingDto;
 
 import java.time.LocalDate;
 import java.time.ZonedDateTime;
@@ -102,26 +104,26 @@ class CourtScheduleServiceTest {
         assertNotNull(scheduleDto.hearingDtos());
         assertEquals(2, scheduleDto.hearingDtos().size());
 
-        CourtScheduleDto.HearingDto hearingDto1 = scheduleDto.hearingDtos().get(0);
-        assertEquals(hearingId1, hearingDto1.hearingId());
-        assertEquals("First Hearing", hearingDto1.hearingType());
-        assertEquals("Initial hearing description", hearingDto1.hearingDescription());
-        assertEquals("Note for first hearing", hearingDto1.listNote());
-        assertEquals(1, hearingDto1.courtSittingDtos().size());
+        HearingDto hearingDto1 = scheduleDto.hearingDtos().get(0);
+        assertEquals(hearingId1, hearingDto1.getHearingId());
+        assertEquals("First Hearing", hearingDto1.getHearingType());
+        assertEquals("Initial hearing description", hearingDto1.getHearingDescription());
+        assertEquals("Note for first hearing", hearingDto1.getListNote());
+        assertEquals(1, hearingDto1.getCourtSittings().size());
 
-        CourtScheduleDto.HearingDto.CourtSittingDto sittingDto1 = hearingDto1.courtSittingDtos().get(0);
+        CourtSittingDto sittingDto1 = hearingDto1.getCourtSittings().get(0);
         assertNotNull(sittingDto1.sittingStart());
         assertNotNull(sittingDto1.sittingEnd());
         assertEquals(judiciaryId, sittingDto1.judiciaryId());
         assertEquals(courtHouseId, sittingDto1.courtHouse());
         assertEquals(courtRoomId, sittingDto1.courtRoom());
 
-        CourtScheduleDto.HearingDto hearingDto2 = scheduleDto.hearingDtos().get(1);
-        assertEquals(hearingId2, hearingDto2.hearingId());
-        assertEquals("Second Hearing", hearingDto2.hearingType());
-        assertEquals("Follow-up hearing description", hearingDto2.hearingDescription());
-        assertEquals("Note for second hearing", hearingDto2.listNote());
-        assertEquals(1, hearingDto2.courtSittingDtos().size());
+        HearingDto hearingDto2 = scheduleDto.hearingDtos().get(1);
+        assertEquals(hearingId2, hearingDto2.getHearingId());
+        assertEquals("Second Hearing", hearingDto2.getHearingType());
+        assertEquals("Follow-up hearing description", hearingDto2.getHearingDescription());
+        assertEquals("Note for second hearing", hearingDto2.getListNote());
+        assertEquals(1, hearingDto2.getCourtSittings().size());
     }
 
     @Test

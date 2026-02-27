@@ -11,7 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import uk.gov.moj.cp.client.api.CourtHouseClient;
-import uk.gov.moj.cp.dto.CourtHouseDto;
+import uk.gov.moj.cp.dto.ui.CourtHouseDto;
 
 import java.util.List;
 

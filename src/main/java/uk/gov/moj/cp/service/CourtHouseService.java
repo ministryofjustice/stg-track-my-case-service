@@ -9,9 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
 import uk.gov.moj.cp.client.api.CourtHouseClient;
-import uk.gov.moj.cp.dto.CourtHouseDto;
-import uk.gov.moj.cp.dto.CourtHouseDto.CourtRoomDto;
-import uk.gov.moj.cp.dto.CourtHouseDto.CourtRoomDto.AddressDto;
+import uk.gov.moj.cp.dto.ui.CourtHouseDto;
+import uk.gov.moj.cp.dto.ui.CourtRoomDto;
+import uk.gov.moj.cp.dto.ui.AddressDto;
 
 import java.util.List;
 
