@@ -11,7 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 import uk.gov.moj.cp.client.api.CourtHouseClient;
-import uk.gov.moj.cp.dto.ui.CourtHouseDto;
+import uk.gov.moj.cp.dto.outbound.CourtHouseDto;
 
 import java.util.List;
 
@@ -60,26 +60,26 @@ class CourtHouseServiceTest {
         CourtHouseDto dto = courtHouseService.getCourtHouseById(accessToken, courtHouseId, courtRoomId);
 
         assertNotNull(dto);
-        assertEquals(courtHouseId, dto.courtHouseId());
-        assertEquals(courtRoomId, dto.courtRoomId());
-        assertEquals("crown", dto.courtHouseType());
-        assertEquals("CHC123", dto.courtHouseCode());
-        assertEquals("Lavender Hill", dto.courtHouseName());
+        assertEquals(courtHouseId, dto.getCourtHouseId());
+        assertEquals(courtRoomId, dto.getCourtRoomId());
+        assertEquals("crown", dto.getCourtHouseType());
+        assertEquals("CHC123", dto.getCourtHouseCode());
+        assertEquals("Lavender Hill", dto.getCourtHouseName());
 
-        assertNotNull(dto.address());
-        assertEquals("1 High Street", dto.address().address1());
-        assertEquals("Court Road", dto.address().address2());
-        assertEquals("London", dto.address().address3());
-        assertNull(dto.address().address4());
-        assertEquals("AA1 2BB", dto.address().postalCode());
-        assertEquals("UK", dto.address().country());
+        assertNotNull(dto.getAddress());
+        assertEquals("1 High Street", dto.getAddress().getAddress1());
+        assertEquals("Court Road", dto.getAddress().getAddress2());
+        assertEquals("London", dto.getAddress().getAddress3());
+        assertNull(dto.getAddress().getAddress4());
+        assertEquals("AA1 2BB", dto.getAddress().getPostalCode());
+        assertEquals("UK", dto.getAddress().getCountry());
 
-        assertNotNull(dto.courtRoomDtoList());
-        assertEquals(2, dto.courtRoomDtoList().size());
-        assertEquals(10, dto.courtRoomDtoList().get(0).courtRoomId());
-        assertEquals("CourtRoom 10", dto.courtRoomDtoList().get(0).courtRoomName());
-        assertEquals(20, dto.courtRoomDtoList().get(1).courtRoomId());
-        assertEquals("CourtRoom 20", dto.courtRoomDtoList().get(1).courtRoomName());
+        assertNotNull(dto.getCourtRooms());
+        assertEquals(2, dto.getCourtRooms().size());
+        assertEquals(10, dto.getCourtRooms().getFirst().getCourtRoomId());
+        assertEquals("CourtRoom 10", dto.getCourtRooms().getFirst().getCourtRoomName());
+        assertEquals(20, dto.getCourtRooms().get(1).getCourtRoomId());
+        assertEquals("CourtRoom 20", dto.getCourtRooms().get(1).getCourtRoomName());
     }
 
     @Test

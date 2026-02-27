@@ -41,7 +41,9 @@ public class UserController {
             }
             return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
-                .body(new ErrorResponseDto("User not found by email: " + decodedEmail));
+                .body(ErrorResponseDto.builder()
+                          .message("User not found by email: " + decodedEmail)
+                          .build());
         }
         return ResponseEntity.ok(userService.getAllUsers());
     }
@@ -60,7 +62,9 @@ public class UserController {
         }
         return ResponseEntity
             .status(HttpStatus.NOT_FOUND)
-            .body(new ErrorResponseDto("User not found by email: " + user.getEmail()));
+            .body(ErrorResponseDto.builder()
+                      .message("User not found by email: " + user.getEmail())
+                      .build());
     }
 
     @DeleteMapping("/delete")
@@ -71,6 +75,8 @@ public class UserController {
         }
         return ResponseEntity
             .status(HttpStatus.NOT_FOUND)
-            .body(new ErrorResponseDto("User not found by email: " + user.getEmail()));
+            .body(ErrorResponseDto.builder()
+                      .message("User not found by email: " + user.getEmail())
+                      .build());
     }
 }

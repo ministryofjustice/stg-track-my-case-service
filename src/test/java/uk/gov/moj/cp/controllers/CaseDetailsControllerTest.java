@@ -10,14 +10,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import uk.gov.moj.cp.dto.ui.CaseDetailsDto;
-import uk.gov.moj.cp.dto.ui.CaseDetailsCourtScheduleDto;
-import uk.gov.moj.cp.dto.ui.CaseDetailsHearingDto;
-import uk.gov.moj.cp.dto.ui.CaseDetailsCourtSittingDto;
-import uk.gov.moj.cp.dto.ui.CourtHouseDto;
-import uk.gov.moj.cp.dto.ui.CourtRoomDto;
-import uk.gov.moj.cp.dto.ui.AddressDto;
-import uk.gov.moj.cp.dto.ui.CaseDetailsWeekCommencingDto;
+import uk.gov.moj.cp.dto.outbound.CaseDetailsDto;
+import uk.gov.moj.cp.dto.outbound.CaseDetailsCourtScheduleDto;
+import uk.gov.moj.cp.dto.outbound.CaseDetailsHearingDto;
+import uk.gov.moj.cp.dto.outbound.CaseDetailsCourtSittingDto;
+import uk.gov.moj.cp.dto.outbound.CourtHouseDto;
+import uk.gov.moj.cp.dto.outbound.CourtRoomDto;
+import uk.gov.moj.cp.dto.outbound.AddressDto;
+import uk.gov.moj.cp.dto.outbound.CaseDetailsWeekCommencingDto;
 import uk.gov.moj.cp.service.CaseDetailsService;
 
 import java.time.LocalDate;
@@ -61,46 +61,56 @@ public class CaseDetailsControllerTest {
         final String sittingEndDate = LocalDateTime.now().plusHours(2).toString();
 
         // Create test data using correct DTO structure
-        final CourtHouseDto courtHouseDto = new CourtHouseDto(
-            courtHouseId,
-            courtRoomId,
-            "CROWN",
-            "CH123",
-            "Lavender Hill",
-            new AddressDto(
-                "123 ",
-                "Court Street",
-                "London",
-                null,
-                "TE1 1ST",
-                "UK"
-            ),
-            List.of(new CourtRoomDto(1, "CourtRoom 01"))
-        );
 
-        final CaseDetailsCourtSittingDto courtSitting = new CaseDetailsCourtSittingDto(
-                judiciaryId,
-                sittingStartDate,
-                sittingEndDate,
-                courtHouseDto
-            );
+        final CourtHouseDto courtHouseDto = CourtHouseDto.builder()
+            .courtHouseId(courtHouseId)
+            .courtRoomId(courtRoomId)
+            .courtHouseType("CROWN")
+            .courtHouseCode("CH123")
+            .courtHouseName("Lavender Hill")
+            .address(AddressDto.builder()
+                         .address1("123")
+                         .address2("Court Street")
+                         .address3("London")
+                         .postalCode("TE1 1ST")
+                         .country("UK")
+                         .build())
+            .courtRooms( List.of(CourtRoomDto.builder()
+                                    .courtRoomId(123)
+                                    .courtRoomName("CourtRoom 01")
+                                    .build()))
+            .build();
 
-        final CaseDetailsHearingDto hearing = new CaseDetailsHearingDto(
-            List.of(courtSitting),
-            hearingId,
-            "First Hearing",
-            "Initial hearing description",
-            "Test note",
-            new CaseDetailsWeekCommencingDto(
-            LocalDate.now().format(DateTimeFormatter.ISO_DATE) ,
-            LocalDate.now().plusDays(7).format(DateTimeFormatter.ISO_DATE) ,
-            2, null)
-            );
+
+        final CaseDetailsCourtSittingDto courtSitting = CaseDetailsCourtSittingDto.builder()
+            .judiciaryId(judiciaryId)
+            .sittingStart(sittingStartDate)
+            .sittingEnd(sittingEndDate)
+            .courtHouse(courtHouseDto)
+            .build();
+
+        final CaseDetailsHearingDto hearing = CaseDetailsHearingDto.builder()
+            .hearingId(hearingId)
+            .hearingType("First Hearing")
+            .hearingDescription("Initial hearing description")
+            .listNote("Test note")
+            .courtSittings(List.of(courtSitting))
+            .weekCommencing(CaseDetailsWeekCommencingDto.builder()
+                                .startDate(LocalDate.now().format(DateTimeFormatter.ISO_DATE))
+                                .endDate(LocalDate.now().plusDays(7).format(DateTimeFormatter.ISO_DATE))
+                                .durationInWeeks(2)
+                                .build())
+            .build();
 
         final List<CaseDetailsCourtScheduleDto> courtSchedules = List.of(
-            new CaseDetailsCourtScheduleDto(List.of(hearing)));
+            CaseDetailsCourtScheduleDto.builder()
+                .hearings(List.of(hearing))
+                .build());
 
-        final CaseDetailsDto caseDetailsDto = new CaseDetailsDto(caseUrn, courtSchedules);
+        final CaseDetailsDto caseDetailsDto = CaseDetailsDto.builder()
+            .caseUrn(caseUrn)
+            .courtSchedules(courtSchedules)
+            .build();
 
         when(caseDetailsService.getCaseDetailsByCaseUrn(caseUrn)).thenReturn(caseDetailsDto);
 
@@ -130,7 +140,10 @@ public class CaseDetailsControllerTest {
     void shouldHandleGetCaseDetailsByCaseUrnWithEmptyHearing() throws Exception {
         String caseUrn = "CASE123";
 
-        CaseDetailsDto caseDetailsDto = new CaseDetailsDto(caseUrn, new ArrayList<>());
+        final CaseDetailsDto caseDetailsDto = CaseDetailsDto.builder()
+            .caseUrn(caseUrn)
+            .courtSchedules(new ArrayList<>())
+            .build();
 
         when(caseDetailsService.getCaseDetailsByCaseUrn(caseUrn)).thenReturn(caseDetailsDto);
 

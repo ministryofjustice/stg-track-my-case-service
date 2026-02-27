@@ -1,4 +1,4 @@
-package uk.gov.moj.cp.dto;
+package uk.gov.moj.cp.dto.inbound;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
@@ -10,9 +10,16 @@ import java.util.List;
 @Builder
 public class HearingDto {
 
+    @JsonProperty("hearingId")
     private String hearingId;
+
+    @JsonProperty("hearingType")
     private String hearingType;
+
+    @JsonProperty("hearingDescription")
     private String hearingDescription;
+
+    @JsonProperty("listNote")
     private String listNote;
 
     @JsonProperty("weekCommencing")

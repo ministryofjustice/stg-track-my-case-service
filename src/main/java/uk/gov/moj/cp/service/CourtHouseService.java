@@ -9,9 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
 import uk.gov.moj.cp.client.api.CourtHouseClient;
-import uk.gov.moj.cp.dto.ui.CourtHouseDto;
-import uk.gov.moj.cp.dto.ui.CourtRoomDto;
-import uk.gov.moj.cp.dto.ui.AddressDto;
+import uk.gov.moj.cp.dto.outbound.CourtHouseDto;
+import uk.gov.moj.cp.dto.outbound.CourtRoomDto;
+import uk.gov.moj.cp.dto.outbound.AddressDto;
 
 import java.util.List;
 
@@ -34,38 +34,42 @@ public class CourtHouseService {
         return convertToJudiciaryResult(result.getBody(), courtId, courtRoomId);
     }
 
-    private CourtHouseDto convertToJudiciaryResult(CourtHouse courtHouseResult, String id, String courtRoomId) {
-        CourtHouseType courtHouseType = courtHouseResult.getCourtHouseType();
-        List<CourtRoomDto> courtRoomDtos = nonNull(courtHouseResult.getCourtRoom())
-            ? courtHouseResult.getCourtRoom().stream()
+    private CourtHouseDto convertToJudiciaryResult(CourtHouse courtHouse, String id, String courtRoomId) {
+        CourtHouseType courtHouseType = courtHouse.getCourtHouseType();
+        List<CourtRoomDto> courtRoomDtos = nonNull(courtHouse.getCourtRoom())
+            ? courtHouse.getCourtRoom().stream()
             .map(this::getCourtRoomDto)
             .toList()
             : null;
-        AddressDto addressDto = getAddressDto(courtHouseResult.getAddress());
-        return new CourtHouseDto(
-            id,
-            courtRoomId,
-            nonNull(courtHouseType) ? courtHouseType.value() : null,
-            courtHouseResult.getCourtHouseCode(),
-            courtHouseResult.getCourtHouseName(),
-            addressDto,
-            courtRoomDtos
-        );
+        AddressDto addressDto = getAddressDto(courtHouse.getAddress());
+
+       return CourtHouseDto.builder()
+           .courtHouseId(id)
+           .courtRoomId(courtRoomId)
+           .courtHouseType(nonNull(courtHouseType) ? courtHouseType.value() : null)
+           .courtHouseCode(courtHouse.getCourtHouseCode())
+           .courtHouseName(courtHouse.getCourtHouseName())
+           .address(addressDto)
+           .courtRooms(courtRoomDtos)
+           .build();
     }
 
-    private CourtRoomDto getCourtRoomDto(CourtRoom cr) {
-        return new CourtRoomDto(cr.getCourtRoomId(), cr.getCourtRoomName());
+    private CourtRoomDto getCourtRoomDto(CourtRoom courtRoom) {
+        return CourtRoomDto.builder()
+            .courtRoomId(courtRoom.getCourtRoomId())
+            .courtRoomName(courtRoom.getCourtRoomName())
+            .build();
     }
 
     private AddressDto getAddressDto(Address address) {
-        return new AddressDto(
-            address.getAddress1(),
-            address.getAddress2(),
-            address.getAddress3(),
-            address.getAddress4(),
-            address.getPostalCode(),
-            address.getCountry()
-        );
+        return AddressDto.builder()
+            .address1(address.getAddress1())
+            .address2(address.getAddress2())
+            .address3(address.getAddress3())
+            .address4(address.getAddress4())
+            .postalCode(address.getPostalCode())
+            .country(address.getCountry())
+            .build();
     }
 }
 

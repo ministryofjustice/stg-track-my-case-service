@@ -10,10 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import uk.gov.moj.cp.client.api.CourtScheduleClient;
-import uk.gov.moj.cp.dto.CourtScheduleDto;
-import uk.gov.moj.cp.dto.CourtSittingDto;
-import uk.gov.moj.cp.dto.HearingDto;
-import uk.gov.moj.cp.dto.WeekCommencingDto;
+import uk.gov.moj.cp.dto.inbound.CourtScheduleDto;
+import uk.gov.moj.cp.dto.inbound.CourtSittingDto;
+import uk.gov.moj.cp.dto.inbound.HearingDto;
+import uk.gov.moj.cp.dto.inbound.WeekCommencingDto;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -55,7 +55,10 @@ public class CourtScheduleService {
                      List<HearingDto> hearings = courtSchedule.getHearings().stream()
                          .map(this::getHearings)
                          .toList();
-                     return new CourtScheduleDto(hearings);
+
+                     return CourtScheduleDto.builder()
+                         .hearings(hearings)
+                         .build();
                  }).toList();
         return courtScheduleDtos;
     }
@@ -64,12 +67,13 @@ public class CourtScheduleService {
         WeekCommencingDto weekCommencingDto = null;
         WeekCommencing weekCommencing = hearing.getWeekCommencing();
         if (weekCommencing != null) {
-            weekCommencingDto = new WeekCommencingDto(
-                weekCommencing.getCourtHouse(),
-                convertLocalDateToString(weekCommencing.getStartDate()),
-                convertLocalDateToString(weekCommencing.getEndDate()),
-                weekCommencing.getDurationInWeeks()
-            );
+
+            weekCommencingDto = WeekCommencingDto.builder()
+                .courtHouse(weekCommencing.getCourtHouse())
+                .startDate(convertLocalDateToString(weekCommencing.getStartDate()))
+                .endDate(convertLocalDateToString(weekCommencing.getEndDate()))
+                .durationInWeeks(weekCommencing.getDurationInWeeks())
+                .build();
         }
 
         List<CourtSittingDto> courtSittings = hearing.getCourtSittings().stream().map(this::getCourtSittings).toList();
@@ -89,13 +93,15 @@ public class CourtScheduleService {
     }
 
     private CourtSittingDto getCourtSittings(CourtSitting courtSitting) {
-        return new CourtSittingDto(
-            courtSitting.getSittingStart().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-            courtSitting.getSittingEnd().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
-            courtSitting.getJudiciaryId(),
-            courtSitting.getCourtHouse(),
-            courtSitting.getCourtRoom()
-        );
+
+        return CourtSittingDto.builder()
+            .sittingStart(courtSitting.getSittingStart().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+            .sittingEnd(courtSitting.getSittingEnd().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME))
+            .judiciaryId(courtSitting.getJudiciaryId())
+            .courtHouse(courtSitting.getCourtHouse())
+            .courtRoom(courtSitting.getCourtRoom())
+            .build();
+
     }
 }
 
