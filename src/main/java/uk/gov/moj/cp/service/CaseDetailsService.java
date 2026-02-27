@@ -41,7 +41,7 @@ public class CaseDetailsService {
         String accessToken = oauthTokenService.getJwtToken();
         List<CourtScheduleDto> courtSchedule = courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn);
 
-        CaseDetailsDto caseDetails =  new CaseDetailsDto(
+        CaseDetailsDto caseDetails = new CaseDetailsDto(
             caseUrn,
             courtSchedule.stream()
                 .map(schedule -> {
@@ -300,25 +300,5 @@ public class CaseDetailsService {
             ))
             .toList();
     }
-
-   /* private static String getCourtHouseIdsForWeekCommencingHearing(final CaseDetailsDto caseDetails) {
-        return caseDetails.courtSchedule().stream()
-            .flatMap(dto -> dto.hearings().stream()
-                .filter(caseDetailsHearingDto -> nonNull(caseDetailsHearingDto.weekCommencing()) && nonNull(
-                    caseDetailsHearingDto.weekCommencing().courtHouse()))
-                .map(caseDetailsHearingDto -> caseDetailsHearingDto.weekCommencing().courtHouse().courtHouseId())
-            ).collect(Collectors.joining("  "));
-    }
-
-    private static String getCourtHouseAndCortRoomIdsForFixedDateHearing(final CaseDetailsDto caseDetails) {
-        return caseDetails.courtSchedule().stream()
-            .flatMap(a -> a.hearings().stream()
-                .filter(d -> d.courtSittings() != null && !d.courtSittings().isEmpty())
-                .flatMap(b -> b.courtSittings().stream()
-                    .map(c -> c.courtHouse().courtHouseId() + ":" + c.courtHouse().courtRoomId())
-                )
-            )
-            .collect(Collectors.joining("  "));
-    }*/
 }
 
