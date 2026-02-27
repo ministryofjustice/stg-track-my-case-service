@@ -42,7 +42,7 @@ jobs:
             -t working_image:$NEW_TAG_V
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v5
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.PROD_ECR_ROLE_TO_ASSUME }}
           aws-region: ${{ vars.PROD_ECR_REGION }}
@@ -90,7 +90,7 @@ jobs:
           git  -C track-my-case-cloud-platform checkout main
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v5
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.PROD_ECR_ROLE_TO_ASSUME }}
           aws-region: ${{ vars.PROD_ECR_REGION }}
