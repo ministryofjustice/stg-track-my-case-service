@@ -58,17 +58,8 @@ public class CaseDetailsService {
                 .toList()
         );
 
-      /*  String courtHouseAndRoomIds = getCourtHouseAndCortRoomIdsForFixedDateHearing(caseDetails);
-        String weekCommencingIds = getCourtHouseIdsForWeekCommencingHearing(caseDetails);
-
-        log.atInfo().log(
-            "caseUrn : {} -> Received CourtHouse Id and courtRoomId :{} and WeekCommencing CourtHouse Ids : {} ",
-            caseUrn, courtHouseAndRoomIds, weekCommencingIds
-        );*/
-
         trackMyCaseMetricsService.incrementCaseDetailsCount(caseUrn);
         return caseDetails;
-
     }
 
 
@@ -243,28 +234,25 @@ public class CaseDetailsService {
     private CaseDetailsHearingDto enrichHearingWithCourtDetails(final String accessToken, final CaseDetailsHearingDto hearing) {
         WeekCommencing enrichedWeekCommencing = enrichWeekCommencingWithCourtDetails(accessToken, hearing.weekCommencing());
 
-
-        if (nonNull(enrichedWeekCommencing)) {
-            log.atInfo().log(
-                "hearingId - {} : CourtHouse Id - {} ",
-                hearing.hearingId(),
-                enrichedWeekCommencing.courtHouse().courtHouseId()
-            );
-        }
-
         List<CaseDetailsCourtSittingDto> enrichedCourtSittings =
             (isNull(enrichedWeekCommencing))
                 ? enrichCourtSittingsWithCourtDetails(accessToken, hearing.courtSittings())
                 : null;
 
-
-      /*  log.atInfo().log(
-            "hearingId - {} : CourtHouse Id - {} :  CourtRoom Id : {} ",
-            hearing.hearingId(),
-            enrichedCourtSittings.getFirst().courtHouse().courtHouseId(),
-            enrichedCourtSittings.getFirst().courtHouse().courtRoomId()
-        );
-*/
+        if (nonNull(enrichedWeekCommencing)) {
+            log.atInfo().log(
+                "hearingId (W/C) - {} : CourtHouse Id - {} ",
+                hearing.hearingId(),
+                enrichedWeekCommencing.courtHouse().courtHouseId()
+            );
+        } else {
+            log.atInfo().log(
+                "hearingId - {} : CourtHouse Id - {} :  CourtRoom Id : {} ",
+                hearing.hearingId(),
+                enrichedCourtSittings.getFirst().courtHouse().courtHouseId(),
+                enrichedCourtSittings.getFirst().courtHouse().courtRoomId()
+            );
+        }
 
         return new CaseDetailsHearingDto(
             enrichedCourtSittings,
