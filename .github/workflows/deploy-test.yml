@@ -1,0 +1,206 @@
+name: Deploy (test)
+
+# Promotes an already-built image from GHCR into the test ECR and deploys it.
+# Trigger manually via workflow_dispatch, or call from an automation workflow.
+#
+# Prerequisite: the image tag must have been produced by build.yml and pushed to GHCR.
+on:
+  workflow_call:
+    inputs:
+      image_tag:
+        description: 'Image tag to deploy (e.g. v1.2.3)'
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: 'Image tag to deploy (e.g. v1.2.3)'
+        required: true
+        type: string
+
+permissions: {}
+concurrency: test
+
+jobs:
+  deploy-test:
+    name: Promote & Deploy to test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # required for actions/checkout
+      id-token: write   # required for OIDC JWT
+      packages: read    # required to pull from GHCR
+    environment: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Authenticate to the cluster
+        env:
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+          KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
+        run: |
+          echo "${{ secrets.KUBE_CERT }}" > ca.crt
+          kubectl config set-cluster ${KUBE_CLUSTER} --certificate-authority=./ca.crt --server=https://${KUBE_CLUSTER}
+          kubectl config set-credentials deploy-user --token=${{ secrets.KUBE_TOKEN }}
+          kubectl config set-context ${KUBE_CLUSTER} --cluster=${KUBE_CLUSTER} --user=deploy-user --namespace=${{ secrets.KUBE_NAMESPACE }}
+          kubectl config use-context ${KUBE_CLUSTER}
+
+      - name: Clone Helm chart repo
+        run: |
+          git clone https://github.com/ministryofjustice/track-my-case-cloud-platform.git
+          git -C track-my-case-cloud-platform checkout main
+
+      # ── Pull image from GHCR (build source) ────────────────────────────────
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull image from GHCR
+        env:
+          NEW_TAG_V: ${{ inputs.image_tag }}
+        run: |
+          docker pull ghcr.io/${{ github.repository }}:$NEW_TAG_V
+
+      # ── Re-tag and push to TEST ECR ─────────────────────────────────────────
+      - name: Configure AWS credentials (test ECR)
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ secrets.TEST_ECR_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.TEST_ECR_REGION }}
+
+      - name: Login to Amazon ECR (test)
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Re-tag and push image to test ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ vars.TEST_ECR_REPOSITORY }}
+          NEW_TAG_V: ${{ inputs.image_tag }}
+        shell: bash
+        run: |
+          docker tag ghcr.io/${{ github.repository }}:$NEW_TAG_V $ECR_REGISTRY/$ECR_REPOSITORY:$NEW_TAG_V
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$NEW_TAG_V
+
+      # ── Helm deploy ─────────────────────────────────────────────────────────
+      - name: Upgrade the Helm chart
+        env:
+          APP_ROLE_ARN: ${{ secrets.APP_ROLE_ARN }}
+          AUTHENTICATION_REQUIRED: ${{ vars.AUTHENTICATION_REQUIRED }}
+          ECR_REPO_WEBAPP: ${{ steps.login-ecr.outputs.registry }}/${{ vars.TEST_ECR_REPOSITORY }}
+          IP_RANGES: ${{ secrets.IP_RANGES }}
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+          NEW_TAG_V: ${{ inputs.image_tag }}
+          RELEASE_NAME: ${{ github.event.repository.name }}-test
+          SECRETS_CONTEXT: ${{ toJson(secrets) }}
+          VARS_CONTEXT: ${{ toJson(vars) }}
+        run: |
+          process_ip_range=$(echo $IP_RANGES | sed "s/,/\\\,/g")
+
+          combined_json=$(jq -n \
+              --argjson secrets_json "$SECRETS_CONTEXT" \
+              --argjson vars_json "$VARS_CONTEXT" \
+              '$secrets_json + $vars_json')
+
+          custom_variables_array=()
+          for row in $(echo "$combined_json" | jq -r 'to_entries[] | @base64'); do
+            key=$(echo "$row" | base64 --decode | jq -r '.key')
+            value=$(echo "$row" | base64 --decode | jq -r '.value')
+
+            if [[ $key == TMC_* ]]; then
+              custom_key="Secrets.WebApp.Parameters.${key}"
+
+              safe_value="$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
+
+              if [[ "$value" != "$safe_value" ]]; then
+                echo "ERROR: Value for key '${custom_key}' has leading/trailing whitespace"
+                exit 1
+              fi
+
+              custom_variables_array+=("--set-string" "${custom_key}=${safe_value}")
+            fi
+          done
+
+          echo "=== DEBUG: custom_variables_array ==="
+          printf '%s\n' "${custom_variables_array[@]}"
+
+          if helm status "$RELEASE_NAME" -n "$KUBE_NAMESPACE" >/dev/null 2>&1; then
+            helm status  "$RELEASE_NAME" -n "$KUBE_NAMESPACE" || true
+            helm history "$RELEASE_NAME" -n "$KUBE_NAMESPACE" || true
+
+            state=$(helm status "$RELEASE_NAME" -n "$KUBE_NAMESPACE" -o json 2>/dev/null | jq -r '.info.status | select(.!=null)')
+            if [[ "$state" == pending-* ]]; then
+              latest=$(helm history "$RELEASE_NAME" -n "$KUBE_NAMESPACE" -o json | jq '.[-1].revision')
+              echo "Helm release is $state at revision $latest — clearing it"
+              prev=$(helm history "$RELEASE_NAME" -n "$KUBE_NAMESPACE" -o json | jq '[.[] | select(.status=="deployed")][-1].revision')
+              if [[ -n "$prev" ]]; then
+                echo "Rolling back to deployed revision $prev..."
+                helm rollback "$RELEASE_NAME" "$prev" -n "$KUBE_NAMESPACE" || true
+              else
+                echo "No deployed revision to roll back to (first install or all failed)."
+              fi
+            fi
+          else
+            echo "Release '$RELEASE_NAME' not found in namespace '$KUBE_NAMESPACE' — first install. Skipping history/rollback."
+          fi
+
+          echo "=== DEBUG: Helm command ==="
+          set -x
+
+          helm upgrade --install --dry-run --debug --namespace $KUBE_NAMESPACE $RELEASE_NAME ./track-my-case-cloud-platform/charts/webapp-cp \
+          --set Namespace=$KUBE_NAMESPACE \
+          --set WebApp.Image.Repository=$ECR_REPO_WEBAPP \
+          --set WebApp.Image.Tag=$NEW_TAG_V \
+          --set WebApp.Name=$KUBE_NAMESPACE \
+          --set Ingress.ModSec.Enabled=true \
+          --set securityContext.allowPrivilegeEscalation=false \
+          --set securityContext.capabilities.drop=["ALL"] \
+          --set securityContext.runAsNonRoot=true \
+          --set securityContext.seccompProfile.type="RuntimeDefault" \
+          --set Networkpolicy.Ingress="track-my-case-test" \
+          "${custom_variables_array[@]}"
+
+          echo "=== Chart values: WebApp section ==="
+          helm show values mojanalytics/webapp-cp | sed -n '/^WebApp:/,/^[A-Za-z]/p'
+
+          helm upgrade --install --atomic --wait --timeout 10m0s --namespace $KUBE_NAMESPACE $RELEASE_NAME ./track-my-case-cloud-platform/charts/webapp-cp \
+          --set Namespace=$KUBE_NAMESPACE \
+          --set WebApp.Image.Repository=$ECR_REPO_WEBAPP \
+          --set WebApp.Image.Tag=$NEW_TAG_V \
+          --set WebApp.Name=$KUBE_NAMESPACE \
+          --set Ingress.ModSec.Enabled=true \
+          --set securityContext.allowPrivilegeEscalation=false \
+          --set securityContext.capabilities.drop=["ALL"] \
+          --set securityContext.runAsNonRoot=true \
+          --set securityContext.seccompProfile.type="RuntimeDefault" \
+          --set Networkpolicy.Ingress="track-my-case-test" \
+          "${custom_variables_array[@]}"
+
+          echo "Labeling the service"
+          kubectl label service --overwrite=true $KUBE_NAMESPACE app=$KUBE_NAMESPACE
+
+      - name: Extract deployed service values for monitoring
+        id: extract-values
+        env:
+          RELEASE_NAME: ${{ github.event.repository.name }}-test
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+        run: |
+          echo "Extracting deployed Helm values..."
+          SERVICE_NAME=$(helm get values "$RELEASE_NAME" -n "$KUBE_NAMESPACE" -o json | jq -r '.WebApp.Name')
+          echo "ServiceName=$SERVICE_NAME"
+          echo "service_name=$SERVICE_NAME" >> $GITHUB_OUTPUT
+
+      - name: Deploy Monitoring Helm chart
+        env:
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+        run: |
+          helm upgrade --install monitoring-helmcharts ./monitoring-helmcharts \
+            --namespace $KUBE_NAMESPACE \
+            --set serviceName=${{ steps.extract-values.outputs.service_name }} \
+            --set namespace=$KUBE_NAMESPACE \
+            --set monitoring.interval="15s" \
+            --set alertLabels.severity="victims-pathfinder-test"

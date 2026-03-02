@@ -1,0 +1,114 @@
+name: Build
+
+# Builds a single Docker image, tags it with a clean semver (no env suffix),
+# pushes it to GHCR (used as a promotion source by all deploy workflows)
+# and to DEV ECR, then auto-deploys to dev.
+#
+# Promotion flow:
+#   build.yml  →  deploy-dev.yml (auto)
+#               →  deploy-test.yml (manual workflow_dispatch with image_tag)
+#               →  deploy-preprod.yml (manual)
+#               →  deploy-prod.yml   (manual)
+#
+# Each promote-and-deploy step pulls the image from GHCR and re-tags it into
+# the environment's own ECR — no rebuild required.
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+permissions: {}
+concurrency:
+  group: build
+  cancel-in-progress: false  # queue new runs; never cancel an in-flight build
+
+jobs:
+  build:
+    name: Build & Push Image
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write   # required for OIDC JWT (ECR)
+      contents: write   # required for git tag push
+      packages: write   # required for GHCR push
+    environment: dev    # dev ECR credentials live in the dev environment
+    outputs:
+      new_tag: ${{ steps.set-version-tag-output.outputs.new_tag }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      # Clean semver tag — no PRERELEASE suffix.
+      # The same image is promoted through dev → test → preprod → prod.
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@1.75.0
+        id: bump-id
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
+          DEFAULT_BUMP: patch
+
+      - name: Set version tag output
+        id: set-version-tag-output
+        run: echo "new_tag=${{ steps.bump-id.outputs.new_tag }}" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image
+        env:
+          NEW_TAG_V: ${{ steps.set-version-tag-output.outputs.new_tag }}
+        shell: bash
+        run: |
+          docker build . \
+            --build-arg BUILD_NUMBER=$NEW_TAG_V \
+            --build-arg GIT_REF=${{ github.sha }} \
+            --build-arg GIT_BRANCH=${{ github.ref_name }} \
+            -t working_image:$NEW_TAG_V
+
+      # ── Push to GHCR ────────────────────────────────────────────────────────
+      # GHCR is the promotion source: deploy-test/preprod/prod pull from here.
+      # Authentication uses the built-in GITHUB_TOKEN — no environment secrets.
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push image to GHCR
+        env:
+          NEW_TAG_V: ${{ steps.set-version-tag-output.outputs.new_tag }}
+        shell: bash
+        run: |
+          GHCR_IMAGE=ghcr.io/${{ github.repository }}:$NEW_TAG_V
+          docker tag working_image:$NEW_TAG_V $GHCR_IMAGE
+          docker push $GHCR_IMAGE
+
+      # ── Push to DEV ECR ──────────────────────────────────────────────────────
+      - name: Configure AWS credentials (dev ECR)
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ secrets.DEV_ECR_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.DEV_ECR_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Push image to dev ECR
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: ${{ vars.DEV_ECR_REPOSITORY }}
+          NEW_TAG_V: ${{ steps.set-version-tag-output.outputs.new_tag }}
+        shell: bash
+        run: |
+          docker tag working_image:$NEW_TAG_V $ECR_REGISTRY/$ECR_REPOSITORY:$NEW_TAG_V
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$NEW_TAG_V
+
+  # Auto-deploy to dev immediately after a successful build
+  deploy-dev:
+    needs: build
+    uses: ./.github/workflows/deploy-dev.yml
+    with:
+      image_tag: ${{ needs.build.outputs.new_tag }}
+    secrets: inherit
