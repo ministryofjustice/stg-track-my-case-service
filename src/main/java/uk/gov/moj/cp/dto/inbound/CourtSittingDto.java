@@ -2,26 +2,26 @@ package uk.gov.moj.cp.dto.inbound;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
 
-@Getter
+@Value
 @Builder
 public class CourtSittingDto{
 
     @JsonProperty("sittingStart")
-    private String sittingStart;
+    String sittingStart;
 
     @JsonProperty("sittingEnd")
-    private String sittingEnd;
+    String sittingEnd;
 
     @JsonProperty("judiciaryId")
-    private String judiciaryId;
+    String judiciaryId;
 
     @JsonProperty("courtHouse")
-    private String courtHouse;
+    String courtHouse;
 
     @JsonProperty("courtRoom")
-    private String courtRoom;
+    String courtRoom;
 }
 
 
