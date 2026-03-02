@@ -214,29 +214,3 @@ jobs:
 
           echo "Labeling the service"
           kubectl label service --overwrite=true $KUBE_NAMESPACE app=$KUBE_NAMESPACE
-
-      - name: Extract deployed service values for monitoring
-        id: extract-values
-        env:
-          RELEASE_NAME: ${{ github.event.repository.name }}-dev
-          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
-        run: |
-          echo "Extracting deployed Helm values..."
-
-          SERVICE_NAME=$(helm get values "$RELEASE_NAME" -n "$KUBE_NAMESPACE" -o json | jq -r '.WebApp.Name')
-
-          echo "ServiceName=$SERVICE_NAME"
-
-          # Export them to the next step
-          echo "service_name=$SERVICE_NAME" >> $GITHUB_OUTPUT
-
-      - name: Deploy Monitoring Helm chart
-        env:
-          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
-        run: |
-          helm upgrade --install monitoring-helmcharts ./monitoring-helmcharts \
-            --namespace $KUBE_NAMESPACE \
-            --set serviceName=${{ steps.extract-values.outputs.service_name }} \
-            --set namespace=$KUBE_NAMESPACE \
-            --set monitoring.interval="15s" \
-            --set alertLabels.severity="victims-pathfinder-dev"         
