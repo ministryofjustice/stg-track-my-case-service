@@ -1,0 +1,42 @@
+name: Deploy Monitoring - test
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+concurrency:
+  group: backend-monitoring-test
+  cancel-in-progress: false
+
+jobs:
+  deploy-monitoring-test:
+    name: Deploy Monitoring Helm Chart - test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    environment: test
+    steps:
+      - name: Authenticate to the cluster
+        env:
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+          KUBE_CLUSTER: ${{ secrets.KUBE_CLUSTER }}
+        run: |
+          echo "${{ secrets.KUBE_CERT }}" > ca.crt
+          kubectl config set-cluster ${KUBE_CLUSTER} --certificate-authority=./ca.crt --server=https://${KUBE_CLUSTER}
+          kubectl config set-credentials deploy-user --token=${{ secrets.KUBE_TOKEN }}
+          kubectl config set-context ${KUBE_CLUSTER} --cluster=${KUBE_CLUSTER} --user=deploy-user --namespace=${{ secrets.KUBE_NAMESPACE }}
+          kubectl config use-context ${KUBE_CLUSTER}
+
+      - name: Clone Helm chart repo
+        run: |
+          git clone https://github.com/ministryofjustice/track-my-case-cloud-platform.git
+          git -C track-my-case-cloud-platform checkout main
+
+      - name: Deploy Monitoring Helm chart
+        env:
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+        run: |
+          helm upgrade --install stg-track-my-case-monitoring \
+            ./track-my-case-cloud-platform/charts/stg-track-my-case-monitoring \
+            -f ./track-my-case-cloud-platform/charts/stg-track-my-case-monitoring/values-test.yaml \
+            --namespace $KUBE_NAMESPACE --wait
