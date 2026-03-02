@@ -3,23 +3,23 @@ package uk.gov.moj.cp.dto.outbound;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
 
-@Getter
+@Value
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CaseDetailsWeekCommencingDto{
 
     @JsonProperty("startDate")
-    private String startDate;
+    String startDate;
 
     @JsonProperty("endDate")
-    private String endDate;
+    String endDate;
 
     @JsonProperty("durationInWeeks")
-    private int durationInWeeks;
+    int durationInWeeks;
 
     @JsonProperty("courtHouse")
-    private CourtHouseDto courtHouse;
+    CourtHouseDto courtHouse;
 }
 

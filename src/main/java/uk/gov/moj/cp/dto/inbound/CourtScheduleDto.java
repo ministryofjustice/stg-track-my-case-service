@@ -1,17 +1,15 @@
 package uk.gov.moj.cp.dto.inbound;
 
-
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
 
-@Getter
+@Value
 @Builder
 public class CourtScheduleDto {
 
     @JsonProperty("hearings")
-    private List<HearingDto> hearings;
+    List<HearingDto> hearings;
 }
-

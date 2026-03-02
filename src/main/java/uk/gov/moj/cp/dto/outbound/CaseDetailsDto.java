@@ -4,18 +4,18 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
 
 import java.util.List;
 
-@Getter
+@Value
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({"caseUrn", "courtSchedule"})
 public class CaseDetailsDto {
 
     @JsonProperty("caseUrn")
-    private String caseUrn;
+    String caseUrn;
 
     @JsonProperty("courtSchedule")
     List<CaseDetailsCourtScheduleDto> courtSchedules;
