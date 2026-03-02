@@ -3,16 +3,16 @@ package uk.gov.moj.cp.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import uk.gov.moj.cp.dto.outbound.CaseDetailsDto;
+import uk.gov.moj.cp.dto.inbound.CourtScheduleDto;
+import uk.gov.moj.cp.dto.inbound.CourtSittingDto;
+import uk.gov.moj.cp.dto.inbound.HearingDto;
+import uk.gov.moj.cp.dto.inbound.WeekCommencingDto;
 import uk.gov.moj.cp.dto.outbound.CaseDetailsCourtScheduleDto;
-import uk.gov.moj.cp.dto.outbound.CaseDetailsHearingDto;
 import uk.gov.moj.cp.dto.outbound.CaseDetailsCourtSittingDto;
+import uk.gov.moj.cp.dto.outbound.CaseDetailsDto;
+import uk.gov.moj.cp.dto.outbound.CaseDetailsHearingDto;
 import uk.gov.moj.cp.dto.outbound.CaseDetailsWeekCommencingDto;
 import uk.gov.moj.cp.dto.outbound.CourtHouseDto;
-import uk.gov.moj.cp.dto.inbound.CourtScheduleDto;
-import uk.gov.moj.cp.dto.inbound.HearingDto;
-import uk.gov.moj.cp.dto.inbound.CourtSittingDto;
-import uk.gov.moj.cp.dto.inbound.WeekCommencingDto;
 import uk.gov.moj.cp.metrics.TrackMyCaseMetricsService;
 import uk.gov.moj.cp.model.HearingType;
 
@@ -87,7 +87,7 @@ public class CaseDetailsService {
 
         return CaseDetailsHearingDto.builder()
             .hearingId(hearing.getHearingId())
-            .hearingType( hearing.getHearingType())
+            .hearingType(hearing.getHearingType())
             .hearingDescription(hearing.getHearingDescription())
             .listNote(hearing.getListNote())
             .courtSittings(courtSittings)
@@ -244,10 +244,13 @@ public class CaseDetailsService {
     }
 
     private CaseDetailsHearingDto enrichHearingWithCourtDetails(final String caseUrn, final String accessToken, final CaseDetailsHearingDto hearing) {
-        CaseDetailsWeekCommencingDto enrichedWeekCommencing = enrichWeekCommencingWithCourtDetails(accessToken, hearing.getWeekCommencing());
+        CaseDetailsWeekCommencingDto enrichedWeekCommencing = enrichWeekCommencingWithCourtDetails(
+            accessToken,
+            hearing.getWeekCommencing()
+        );
 
         List<CaseDetailsCourtSittingDto> enrichedCourtSittings =
-            (isNull(enrichedWeekCommencing))
+            (isNull(enrichedWeekCommencing) && nonNull(hearing.getCourtSittings()))
                 ? enrichCourtSittingsWithCourtDetails(accessToken, hearing.getCourtSittings())
                 : null;
 
@@ -259,20 +262,28 @@ public class CaseDetailsService {
                 enrichedWeekCommencing.getCourtHouse().getCourtHouseId()
             );
         } else {
-            log.atInfo().log(
-                "caseUrn -{} : hearingId - {} : CourtHouse Id - {} :  CourtRoom Id : {}",
-                caseUrn,
-                hearing.getHearingId(),
-                enrichedCourtSittings.getFirst().getCourtHouse().getCourtHouseId(),
-                enrichedCourtSittings.getFirst().getCourtHouse().getCourtRoomId()
-            );
+            if (nonNull(enrichedCourtSittings)) {
+                log.atInfo().log(
+                    "caseUrn -{} : hearingId - {} : CourtHouse Id - {} :  CourtRoom Id : {}",
+                    caseUrn,
+                    hearing.getHearingId(),
+                    enrichedCourtSittings.getFirst().getCourtHouse().getCourtHouseId(),
+                    enrichedCourtSittings.getFirst().getCourtHouse().getCourtRoomId()
+                );
+            } else {
+                log.atInfo().log(
+                    "caseUrn -{} : hearingId - {} : CourtHouse details are null",
+                    caseUrn,
+                    hearing.getHearingId()
+                );
+            }
         }
 
-        return  CaseDetailsHearingDto.builder()
+        return CaseDetailsHearingDto.builder()
             .hearingId(hearing.getHearingId())
             .hearingType(hearing.getHearingType())
-            .hearingDescription( hearing.getHearingDescription())
-            .listNote( hearing.getListNote())
+            .hearingDescription(hearing.getHearingDescription())
+            .listNote(hearing.getListNote())
             .courtSittings(enrichedCourtSittings)
             .weekCommencing(enrichedWeekCommencing)
             .build();
@@ -296,13 +307,12 @@ public class CaseDetailsService {
             .build();
     }
 
-    private List<CaseDetailsCourtSittingDto> enrichCourtSittingsWithCourtDetails(final String accessToken, final List<CaseDetailsCourtSittingDto> courtSittings
-    ) {
-        if (isNull(courtSittings))
-             return null;
+    private List<CaseDetailsCourtSittingDto> enrichCourtSittingsWithCourtDetails(final String accessToken,
+                                                                                 final List<CaseDetailsCourtSittingDto> courtSittings) {
 
-        final String courtHouseId = courtSittings.getFirst().getCourtHouse().getCourtHouseId();
-        final String courtRoomId = courtSittings.getFirst().getCourtHouse().getCourtRoomId();
+        CourtHouseDto courtHouse = courtSittings.getFirst().getCourtHouse();
+        final String courtHouseId = courtHouse.getCourtHouseId();
+        final String courtRoomId = courtHouse.getCourtRoomId();
         final CourtHouseDto courtHouseDto = courtHouseService.getCourtHouseById(accessToken, courtHouseId, courtRoomId);
 
         return courtSittings.stream()
