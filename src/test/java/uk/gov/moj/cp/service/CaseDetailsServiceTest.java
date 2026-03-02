@@ -8,16 +8,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.moj.cp.dto.CaseDetailsDto;
-import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto.CaseDetailsHearingDto;
-import uk.gov.moj.cp.dto.CaseDetailsDto.CaseDetailsCourtScheduleDto.CaseDetailsHearingDto.WeekCommencing;
-import uk.gov.moj.cp.dto.CourtHouseDto;
-import uk.gov.moj.cp.dto.CourtHouseDto.CourtRoomDto;
-import uk.gov.moj.cp.dto.CourtHouseDto.CourtRoomDto.AddressDto;
-import uk.gov.moj.cp.dto.CourtScheduleDto;
-import uk.gov.moj.cp.dto.CourtScheduleDto.HearingDto;
-import uk.gov.moj.cp.dto.CourtScheduleDto.HearingDto.CourtSittingDto;
-import uk.gov.moj.cp.dto.CourtScheduleDto.HearingDto.WeekCommencingDto;
+import uk.gov.moj.cp.dto.outbound.CaseDetailsDto;
+import uk.gov.moj.cp.dto.outbound.CaseDetailsHearingDto;
+import uk.gov.moj.cp.dto.outbound.CourtHouseDto;
+import uk.gov.moj.cp.dto.outbound.CourtRoomDto;
+import uk.gov.moj.cp.dto.outbound.AddressDto;
+import uk.gov.moj.cp.dto.inbound.CourtScheduleDto;
+import uk.gov.moj.cp.dto.inbound.HearingDto;
+import uk.gov.moj.cp.dto.inbound.CourtSittingDto;
+import uk.gov.moj.cp.dto.inbound.WeekCommencingDto;
 import uk.gov.moj.cp.metrics.TrackMyCaseMetricsService;
 import uk.gov.moj.cp.model.HearingType;
 
@@ -99,11 +98,18 @@ class CaseDetailsServiceTest {
         datePlus43 = LocalDate.now().plusDays(43).toString();
         datePlus50 = LocalDate.now().plusDays(50).toString();
 
-        courtRoomDto = new CourtRoomDto(123, "CourtRoom 01");
-        addressDto = new AddressDto(
-            "53", "Court Street",
-            "London", null, "CB4 3MX", "UK"
-        );
+        courtRoomDto = CourtRoomDto.builder()
+            .courtRoomId(123)
+            .courtRoomName("CourtRoom 01")
+            .build();
+
+        addressDto = AddressDto.builder()
+            .address1("53")
+            .address2("Court Street")
+            .address3("London")
+            .postalCode("CB4 3MX")
+            .country("UK")
+            .build();
     }
 
     @Test
@@ -115,7 +121,9 @@ class CaseDetailsServiceTest {
         ));
         final HearingDto hearingDto = createHearing(HearingType.TRIAL.getValue(), futureCourtSittings);
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingDto))
+            .build();
 
         when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
@@ -125,28 +133,30 @@ class CaseDetailsServiceTest {
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(1, caseDetails.getCourtSchedules().getFirst().getHearings().size());
 
-        var caseHearingDetails = caseDetails.courtSchedule().getFirst().hearings().getFirst();
-        assertEquals(hearingId, caseHearingDetails.hearingId());
-        assertEquals(HearingType.TRIAL.getValue(), caseHearingDetails.hearingType());
-        assertEquals(HearingType.TRIAL.getValue(), caseHearingDetails.hearingDescription());
-        assertEquals("Note1", caseHearingDetails.listNote());
+        var caseHearingDetails = caseDetails.getCourtSchedules().getFirst().getHearings().getFirst();
+        assertEquals(hearingId, caseHearingDetails.getHearingId());
+        assertEquals(HearingType.TRIAL.getValue(), caseHearingDetails.getHearingType());
+        assertEquals(HearingType.TRIAL.getValue(), caseHearingDetails.getHearingDescription());
+        assertEquals("Note1", caseHearingDetails.getListNote());
 
-        var schedule = caseHearingDetails.courtSittings().getFirst();
-        assertEquals(judgeId, schedule.judiciaryId());
-        assertEquals(courtHouseId, schedule.courtHouse().courtHouseId());
-        assertEquals(courtRoomId, schedule.courtHouse().courtRoomId());
-        assertEquals(futureSittingStartDate, schedule.sittingStart());
-        assertEquals(futureSittingEndDate, schedule.sittingEnd());
+        var schedule = caseHearingDetails.getCourtSittings().getFirst();
+        assertEquals(judgeId, schedule.getJudiciaryId());
+        assertEquals(courtHouseId, schedule.getCourtHouse().getCourtHouseId());
+        assertEquals(courtRoomId, schedule.getCourtHouse().getCourtRoomId());
+        assertEquals(futureSittingStartDate, schedule.getSittingStart());
+        assertEquals(futureSittingEndDate, schedule.getSittingEnd());
 
-        assertEquals("53", schedule.courtHouse().address().address1());
-        assertEquals("Court Street", schedule.courtHouse().address().address2());
-        assertEquals("London", schedule.courtHouse().address().address3());
+        assertEquals("Lavender Hill", schedule.getCourtHouse().getCourtHouseName());
+        assertEquals("53", schedule.getCourtHouse().getAddress().getAddress1());
+        assertEquals("Court Street", schedule.getCourtHouse().getAddress().getAddress2());
+        assertEquals("London", schedule.getCourtHouse().getAddress().getAddress3());
 
-        assertEquals(123, schedule.courtHouse().courtRoomDtoList().getFirst().courtRoomId());
-        assertEquals("CourtRoom 01", schedule.courtHouse().courtRoomDtoList().getFirst().courtRoomName());
+        assertEquals(123, schedule.getCourtHouse().getCourtRooms().getFirst().getCourtRoomId());
+        assertEquals("CourtRoom 01", schedule.getCourtHouse().getCourtRooms().getFirst().getCourtRoomName());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -161,7 +171,10 @@ class CaseDetailsServiceTest {
         ));
         final HearingDto hearingDto = createHearing(HearingType.SENTENCE.getValue(), pastCourtSittings);
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingDto))
+            .build();
+
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
 
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -169,9 +182,9 @@ class CaseDetailsServiceTest {
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
-        assertEquals(0, caseDetails.courtSchedule().getFirst().hearings().size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(0, caseDetails.getCourtSchedules().getFirst().getHearings().size());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -189,7 +202,9 @@ class CaseDetailsServiceTest {
         List<CourtSittingDto> pastCourtSittings = List.of(createCourtSitting(pastSittingStartDate, pastSittingEndDate));
         final HearingDto hearingDto1 = createHearing(HearingType.TRIAL.getValue(), pastCourtSittings);
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto, hearingDto1));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingDto, hearingDto1))
+            .build();
 
         when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
@@ -200,29 +215,29 @@ class CaseDetailsServiceTest {
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
-        assertEquals(1, caseDetails.courtSchedule().getFirst().hearings().size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(1, caseDetails.getCourtSchedules().getFirst().getHearings().size());
 
-        var caseHearingDetails = caseDetails.courtSchedule().getFirst().hearings().getFirst();
-        assertEquals(hearingId, caseHearingDetails.hearingId());
-        assertEquals(HearingType.TRIAL.getValue(), caseHearingDetails.hearingType());
-        assertEquals(HearingType.TRIAL.getValue(), caseHearingDetails.hearingDescription());
-        assertEquals("Note1", caseHearingDetails.listNote());
+        var caseHearingDetails = caseDetails.getCourtSchedules().getFirst().getHearings().getFirst();
+        assertEquals(hearingId, caseHearingDetails.getHearingId());
+        assertEquals(HearingType.TRIAL.getValue(), caseHearingDetails.getHearingType());
+        assertEquals(HearingType.TRIAL.getValue(), caseHearingDetails.getHearingDescription());
+        assertEquals("Note1", caseHearingDetails.getListNote());
 
-        var schedule = caseHearingDetails.courtSittings().getFirst();
-        assertEquals(judgeId, schedule.judiciaryId());
-        assertEquals(courtHouseId, schedule.courtHouse().courtHouseId());
-        assertEquals(courtRoomId, schedule.courtHouse().courtRoomId());
-        assertEquals(futureSittingStartDate, schedule.sittingStart());
-        assertEquals(futureSittingEndDate, schedule.sittingEnd());
+        var schedule = caseHearingDetails.getCourtSittings().getFirst();
+        assertEquals(judgeId, schedule.getJudiciaryId());
+        assertEquals(courtHouseId, schedule.getCourtHouse().getCourtHouseId());
+        assertEquals(courtRoomId, schedule.getCourtHouse().getCourtRoomId());
+        assertEquals(futureSittingStartDate, schedule.getSittingStart());
+        assertEquals(futureSittingEndDate, schedule.getSittingEnd());
 
-        assertEquals("53", schedule.courtHouse().address().address1());
-        assertEquals("Court Street", schedule.courtHouse().address().address2());
-        assertEquals("London", schedule.courtHouse().address().address3());
+        assertEquals("53", schedule.getCourtHouse().getAddress().getAddress1());
+        assertEquals("Court Street", schedule.getCourtHouse().getAddress().getAddress2());
+        assertEquals("London", schedule.getCourtHouse().getAddress().getAddress3());
 
-        assertEquals(123, schedule.courtHouse().courtRoomDtoList().getFirst().courtRoomId());
-        assertEquals("CourtRoom 01", schedule.courtHouse().courtRoomDtoList().getFirst().courtRoomName());
+        assertEquals(123, schedule.getCourtHouse().getCourtRooms().getFirst().getCourtRoomId());
+        assertEquals("CourtRoom 01", schedule.getCourtHouse().getCourtRooms().getFirst().getCourtRoomName());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -237,7 +252,9 @@ class CaseDetailsServiceTest {
         ));
         final HearingDto hearingDto = createHearing(HearingType.TRIAL.getValue(), currentCourtSittings);
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingDto))
+            .build();
 
         when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
@@ -247,29 +264,29 @@ class CaseDetailsServiceTest {
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
-        assertEquals(1, caseDetails.courtSchedule().getFirst().hearings().size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(1, caseDetails.getCourtSchedules().getFirst().getHearings().size());
 
-        var caseHearingDetails = caseDetails.courtSchedule().getFirst().hearings().getFirst();
-        assertEquals(hearingId, caseHearingDetails.hearingId());
-        assertEquals(HearingType.TRIAL.getValue(), caseHearingDetails.hearingType());
-        assertEquals(HearingType.TRIAL.getValue(), caseHearingDetails.hearingDescription());
-        assertEquals("Note1", caseHearingDetails.listNote());
+        var caseHearingDetails = caseDetails.getCourtSchedules().getFirst().getHearings().getFirst();
+        assertEquals(hearingId, caseHearingDetails.getHearingId());
+        assertEquals(HearingType.TRIAL.getValue(), caseHearingDetails.getHearingType());
+        assertEquals(HearingType.TRIAL.getValue(), caseHearingDetails.getHearingDescription());
+        assertEquals("Note1", caseHearingDetails.getListNote());
 
-        var schedule = caseHearingDetails.courtSittings().getFirst();
-        assertEquals(judgeId, schedule.judiciaryId());
-        assertEquals(courtHouseId, schedule.courtHouse().courtHouseId());
-        assertEquals(courtRoomId, schedule.courtHouse().courtRoomId());
-        assertEquals(currentSittingStartDate, schedule.sittingStart());
-        assertEquals(currentSittingEndDate, schedule.sittingEnd());
+        var schedule = caseHearingDetails.getCourtSittings().getFirst();
+        assertEquals(judgeId, schedule.getJudiciaryId());
+        assertEquals(courtHouseId, schedule.getCourtHouse().getCourtHouseId());
+        assertEquals(courtRoomId, schedule.getCourtHouse().getCourtRoomId());
+        assertEquals(currentSittingStartDate, schedule.getSittingStart());
+        assertEquals(currentSittingEndDate, schedule.getSittingEnd());
 
-        assertEquals("53", schedule.courtHouse().address().address1());
-        assertEquals("Court Street", schedule.courtHouse().address().address2());
-        assertEquals("London", schedule.courtHouse().address().address3());
+        assertEquals("53", schedule.getCourtHouse().getAddress().getAddress1());
+        assertEquals("Court Street", schedule.getCourtHouse().getAddress().getAddress2());
+        assertEquals("London", schedule.getCourtHouse().getAddress().getAddress3());
 
-        assertEquals(123, schedule.courtHouse().courtRoomDtoList().getFirst().courtRoomId());
-        assertEquals("CourtRoom 01", schedule.courtHouse().courtRoomDtoList().getFirst().courtRoomName());
+        assertEquals(123, schedule.getCourtHouse().getCourtRooms().getFirst().getCourtRoomId());
+        assertEquals("CourtRoom 01", schedule.getCourtHouse().getCourtRooms().getFirst().getCourtRoomName());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -283,7 +300,9 @@ class CaseDetailsServiceTest {
         final List<CourtSittingDto> courtSittings = List.of(createCourtSitting(todayStartDate, todayEndDate));
         final HearingDto hearingDto = createHearing(HearingType.SENTENCE.getValue(), courtSittings);
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingDto))
+            .build();
 
         when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
@@ -293,29 +312,29 @@ class CaseDetailsServiceTest {
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
-        assertEquals(1, caseDetails.courtSchedule().getFirst().hearings().size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(1, caseDetails.getCourtSchedules().getFirst().getHearings().size());
 
-        var caseHearingDetails = caseDetails.courtSchedule().getFirst().hearings().getFirst();
-        assertEquals(hearingId, caseHearingDetails.hearingId());
-        assertEquals(HearingType.SENTENCE.getValue(), caseHearingDetails.hearingType());
-        assertEquals(HearingType.SENTENCE.getValue(), caseHearingDetails.hearingDescription());
-        assertEquals("Note1", caseHearingDetails.listNote());
+        var caseHearingDetails = caseDetails.getCourtSchedules().getFirst().getHearings().getFirst();
+        assertEquals(hearingId, caseHearingDetails.getHearingId());
+        assertEquals(HearingType.SENTENCE.getValue(), caseHearingDetails.getHearingType());
+        assertEquals(HearingType.SENTENCE.getValue(), caseHearingDetails.getHearingDescription());
+        assertEquals("Note1", caseHearingDetails.getListNote());
 
-        var schedule = caseHearingDetails.courtSittings().getFirst();
-        assertEquals(judgeId, schedule.judiciaryId());
-        assertEquals(courtHouseId, schedule.courtHouse().courtHouseId());
-        assertEquals(courtRoomId, schedule.courtHouse().courtRoomId());
-        assertEquals(todayStartDate, schedule.sittingStart());
-        assertEquals(todayEndDate, schedule.sittingEnd());
+        var schedule = caseHearingDetails.getCourtSittings().getFirst();
+        assertEquals(judgeId, schedule.getJudiciaryId());
+        assertEquals(courtHouseId, schedule.getCourtHouse().getCourtHouseId());
+        assertEquals(courtRoomId, schedule.getCourtHouse().getCourtRoomId());
+        assertEquals(todayStartDate, schedule.getSittingStart());
+        assertEquals(todayEndDate, schedule.getSittingEnd());
 
-        assertEquals("53", schedule.courtHouse().address().address1());
-        assertEquals("Court Street", schedule.courtHouse().address().address2());
-        assertEquals("London", schedule.courtHouse().address().address3());
+        assertEquals("53", schedule.getCourtHouse().getAddress().getAddress1());
+        assertEquals("Court Street", schedule.getCourtHouse().getAddress().getAddress2());
+        assertEquals("London", schedule.getCourtHouse().getAddress().getAddress3());
 
-        assertEquals(123, schedule.courtHouse().courtRoomDtoList().get(0).courtRoomId());
-        assertEquals("CourtRoom 01", schedule.courtHouse().courtRoomDtoList().get(0).courtRoomName());
+        assertEquals(123, schedule.getCourtHouse().getCourtRooms().getFirst().getCourtRoomId());
+        assertEquals("CourtRoom 01", schedule.getCourtHouse().getCourtRooms().getFirst().getCourtRoomName());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -335,7 +354,9 @@ class CaseDetailsServiceTest {
         ));
         final HearingDto hearingDto1 = createHearing(HearingType.SENTENCE.getValue(), currentCourtSittings);
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto, hearingDto1));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingDto, hearingDto1))
+            .build();
 
         when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
@@ -345,9 +366,10 @@ class CaseDetailsServiceTest {
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
-        assertEquals(2, caseDetails.courtSchedule().getFirst().hearings().size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(1, caseDetails.getCourtSchedules().getFirst().getHearings().size());
+        assertEquals(HearingType.SENTENCE.getValue(), caseDetails.getCourtSchedules().getFirst().getHearings().getFirst().getHearingType());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -362,7 +384,9 @@ class CaseDetailsServiceTest {
         final HearingDto hearingDto = createHearing(HearingType.TRIAL.getValue(), pastCourtSittings);
         final HearingDto hearingDto1 = createHearing(HearingType.SENTENCE.getValue(), pastCourtSittings);
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto, hearingDto1));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingDto, hearingDto1))
+            .build();
 
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -370,9 +394,9 @@ class CaseDetailsServiceTest {
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
-        assertEquals(0, caseDetails.courtSchedule().getFirst().hearings().size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(0, caseDetails.getCourtSchedules().getFirst().getHearings().size());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -392,7 +416,9 @@ class CaseDetailsServiceTest {
         ));
         final HearingDto hearingDto1 = createHearing(HearingType.TRIAL.getValue(), futureCourtSittings);
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto, hearingDto1));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingDto, hearingDto1))
+            .build();
 
         when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
@@ -402,9 +428,9 @@ class CaseDetailsServiceTest {
 
         CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
-        assertEquals(1, caseDetails.courtSchedule().getFirst().hearings().size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(1, caseDetails.getCourtSchedules().getFirst().getHearings().size());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -418,7 +444,9 @@ class CaseDetailsServiceTest {
         final List<CourtSittingDto> courtSittings = List.of(futureSittingDto, currentSittingDto);
         final HearingDto hearingDto = createHearing(HearingType.TRIAL.getValue(), courtSittings);
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingDto))
+            .build();
 
         when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
@@ -428,10 +456,10 @@ class CaseDetailsServiceTest {
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
-        assertEquals(1, caseDetails.courtSchedule().getFirst().hearings().size());
-        assertEquals(2, caseDetails.courtSchedule().getFirst().hearings().getFirst().courtSittings().size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(1, caseDetails.getCourtSchedules().getFirst().getHearings().size());
+        assertEquals(2, caseDetails.getCourtSchedules().getFirst().getHearings().getFirst().getCourtSittings().size());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -443,7 +471,9 @@ class CaseDetailsServiceTest {
         final List<CourtSittingDto> futureCourtSittings = List.of(futureSittingDto, futureSittingDto);
         final HearingDto hearingDto = createHearing(HearingType.TRIAL.getValue(), futureCourtSittings);
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingDto))
+            .build();
 
         when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
@@ -453,10 +483,10 @@ class CaseDetailsServiceTest {
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
-        assertEquals(1, caseDetails.courtSchedule().getFirst().hearings().size());
-        assertEquals(2, caseDetails.courtSchedule().getFirst().hearings().getFirst().courtSittings().size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(1, caseDetails.getCourtSchedules().getFirst().getHearings().size());
+        assertEquals(2, caseDetails.getCourtSchedules().getFirst().getHearings().getFirst().getCourtSittings().size());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -469,7 +499,9 @@ class CaseDetailsServiceTest {
         final List<CourtSittingDto> pastCourtSittings = List.of(pastSittingDto, pastSittingDto);
         final HearingDto hearingDto = createHearing(HearingType.TRIAL.getValue(), pastCourtSittings);
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingDto))
+            .build();
 
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -477,9 +509,9 @@ class CaseDetailsServiceTest {
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
-        assertEquals(0, caseDetails.courtSchedule().getFirst().hearings().size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(0, caseDetails.getCourtSchedules().getFirst().getHearings().size());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -493,7 +525,9 @@ class CaseDetailsServiceTest {
         final List<CourtSittingDto> courtSittings = List.of(pastSittingDto, futureSittingDto);
         final HearingDto hearingDto = createHearing(HearingType.TRIAL.getValue(), courtSittings);
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingDto))
+            .build();
 
         when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
@@ -503,10 +537,10 @@ class CaseDetailsServiceTest {
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
-        assertEquals(1, caseDetails.courtSchedule().getFirst().hearings().size());
-        assertEquals(2, caseDetails.courtSchedule().getFirst().hearings().getFirst().courtSittings().size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(1, caseDetails.getCourtSchedules().getFirst().getHearings().size());
+        assertEquals(2, caseDetails.getCourtSchedules().getFirst().getHearings().getFirst().getCourtSittings().size());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -528,7 +562,9 @@ class CaseDetailsServiceTest {
         );
         final HearingDto hearingDto1 = createHearing(HearingType.SENTENCE.getValue(), pastAndFutureCourtSittings);
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto, hearingDto1));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingDto, hearingDto1))
+            .build();
 
         when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
@@ -538,9 +574,10 @@ class CaseDetailsServiceTest {
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
-        assertEquals(2, caseDetails.courtSchedule().getFirst().hearings().size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(1, caseDetails.getCourtSchedules().getFirst().getHearings().size());
+        assertEquals(HearingType.SENTENCE.getValue(), caseDetails.getCourtSchedules().getFirst().getHearings().getFirst().getHearingType());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -553,7 +590,9 @@ class CaseDetailsServiceTest {
         final HearingDto hearingDto1 = createHearing(HearingType.SENTENCE.getValue(), List.of(futureSittingDto));
         final HearingDto hearingDto2 = createHearing("Invalid Type", List.of(futureSittingDto));
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto, hearingDto1, hearingDto2));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingDto, hearingDto1, hearingDto2))
+            .build();
 
         when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
@@ -563,16 +602,17 @@ class CaseDetailsServiceTest {
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
-        assertEquals(2, caseDetails.courtSchedule().getFirst().hearings().size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(1, caseDetails.getCourtSchedules().getFirst().getHearings().size());
+        assertEquals(HearingType.TRIAL.getValue(), caseDetails.getCourtSchedules().getFirst().getHearings().getFirst().getHearingType());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
 
 
     @Test
-    @DisplayName("includes hearing of types Trial or SSENTENCE")
+    @DisplayName("includes hearing of types Trial or SENTENCE")
     void testGetCaseDetailsByCaseUrnWithHearingScheduleInSortedOrderOfSittingDate() {
         final CourtSittingDto futureSittingDto1 = createCourtSitting(futureSittingStartDate, futureSittingEndDate);
         final List<CourtSittingDto> courtSittings1 = List.of(futureSittingDto1);
@@ -587,7 +627,9 @@ class CaseDetailsServiceTest {
 
         final HearingDto hearingDto2 = createHearing("Invalid Type", courtSittings1);
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto, hearingDto1, hearingDto2));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingDto, hearingDto1, hearingDto2))
+            .build();
 
         when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
@@ -597,12 +639,12 @@ class CaseDetailsServiceTest {
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
-        assertEquals(2, caseDetails.courtSchedule().getFirst().hearings().size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(1, caseDetails.getCourtSchedules().getFirst().getHearings().size());
         assertEquals(
             HearingType.SENTENCE.getValue(),
-            caseDetails.courtSchedule().getFirst().hearings().getFirst().hearingType()
+            caseDetails.getCourtSchedules().getFirst().getHearings().getFirst().getHearingType()
         );
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
@@ -620,13 +662,9 @@ class CaseDetailsServiceTest {
         final HearingDto hearingDto4 = createHearing("4", HearingType.TRIAL.getValue(), courtSittings);
         final HearingDto hearingDto5 = createHearing("Invalid Type", courtSittings);
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(
-            hearingDto1,
-            hearingDto3,
-            hearingDto2,
-            hearingDto4,
-            hearingDto5
-        ));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingDto1, hearingDto3, hearingDto2, hearingDto4, hearingDto5))
+            .build();
 
         when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
@@ -636,22 +674,13 @@ class CaseDetailsServiceTest {
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
-        List<CaseDetailsHearingDto> hearings = caseDetails.courtSchedule().getFirst().hearings();
-        assertEquals(4, hearings.size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        List<CaseDetailsHearingDto> hearings = caseDetails.getCourtSchedules().getFirst().getHearings();
+        assertEquals(1, hearings.size());
 
-        assertEquals(HearingType.TRIAL.getValue(), hearings.get(0).hearingType());
-        assertEquals("3", hearings.get(0).hearingId());
-
-        assertEquals(HearingType.TRIAL.getValue(), hearings.get(1).hearingType());
-        assertEquals("4", hearings.get(1).hearingId());
-
-        assertEquals(HearingType.SENTENCE.getValue(), hearings.get(2).hearingType());
-        assertEquals("1", hearings.get(2).hearingId());
-
-        assertEquals(HearingType.SENTENCE.getValue(), hearings.get(3).hearingType());
-        assertEquals("2", hearings.get(3).hearingId());
+        assertEquals(HearingType.TRIAL.getValue(), hearings.getFirst().getHearingType());
+        assertEquals("3", hearings.getFirst().getHearingId());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -682,7 +711,9 @@ class CaseDetailsServiceTest {
             1
         );
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto2, hearingDto1, hearingDto));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingDto2, hearingDto1, hearingDto))
+            .build();
 
         when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
@@ -691,19 +722,19 @@ class CaseDetailsServiceTest {
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
-        assertEquals(2, caseDetails.courtSchedule().getFirst().hearings().size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(1, caseDetails.getCourtSchedules().getFirst().getHearings().size());
         assertEquals(
             HearingType.TRIAL.getValue(),
-            caseDetails.courtSchedule().getFirst().hearings().getFirst().hearingType()
+            caseDetails.getCourtSchedules().getFirst().getHearings().getFirst().getHearingType()
         );
 
         // Verify weekCommencing fields are set
-        final CaseDetailsHearingDto firstHearing = caseDetails.courtSchedule().getFirst().hearings().getFirst();
-        assertEquals(datePlus7, firstHearing.weekCommencing().startDate());
-        assertEquals(datePlus13, firstHearing.weekCommencing().endDate());
-        assertEquals(1, firstHearing.weekCommencing().durationInWeeks());
+        final CaseDetailsHearingDto firstHearing = caseDetails.getCourtSchedules().getFirst().getHearings().getFirst();
+        assertEquals(datePlus7, firstHearing.getWeekCommencing().getStartDate());
+        assertEquals(datePlus13, firstHearing.getWeekCommencing().getEndDate());
+        assertEquals(1, firstHearing.getWeekCommencing().getDurationInWeeks());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -734,7 +765,9 @@ class CaseDetailsServiceTest {
             1
         );
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto3, hearingDto1, hearingDto2));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingDto3, hearingDto1, hearingDto2))
+            .build();
 
         when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
@@ -743,23 +776,23 @@ class CaseDetailsServiceTest {
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
-        assertEquals(3, caseDetails.courtSchedule().getFirst().hearings().size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(1, caseDetails.getCourtSchedules().getFirst().getHearings().size());
         assertEquals(
             HearingType.SENTENCE.getValue(),
-            caseDetails.courtSchedule().getFirst().hearings().getFirst().hearingType()
+            caseDetails.getCourtSchedules().getFirst().getHearings().getFirst().getHearingType()
         );
 
-        final CaseDetailsHearingDto firstHearing = caseDetails.courtSchedule().getFirst().hearings().getFirst();
-        assertEquals("1", firstHearing.hearingId());
-        assertNull(firstHearing.weekCommencing());
+        final CaseDetailsHearingDto firstHearing = caseDetails.getCourtSchedules().getFirst().getHearings().getFirst();
+        assertEquals("1", firstHearing.getHearingId());
+        assertNull(firstHearing.getWeekCommencing());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
 
     @Test
-    void testExceptonalGetCaseDetailsByCaseUrnWithHearingWithWeeks() {
+    void testExceptionalGetCaseDetailsByCaseUrnWithHearingWithWeeks() {
         final HearingDto hearingDto1 = createHearingWithWeeks(
             "1",
             HearingType.SENTENCE.getValue(),
@@ -796,13 +829,9 @@ class CaseDetailsServiceTest {
             1
         );
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(
-            hearingDto3,
-            hearingDto2,
-            hearingDto4,
-            hearingDto1,
-            hearingDto5
-        ));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingDto3, hearingDto2, hearingDto4, hearingDto1, hearingDto5))
+            .build();
 
         when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
@@ -811,43 +840,22 @@ class CaseDetailsServiceTest {
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
-        List<CaseDetailsHearingDto> hearings = caseDetails.courtSchedule().getFirst().hearings();
-        assertEquals(4, hearings.size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        List<CaseDetailsHearingDto> hearings = caseDetails.getCourtSchedules().getFirst().getHearings();
+        assertEquals(1, hearings.size());
 
-        assertEquals(HearingType.SENTENCE.getValue(), hearings.get(0).hearingType());
-        assertEquals("1", hearings.get(0).hearingId());
-        assertEquals(datePlus7, hearings.get(0).weekCommencing().startDate());
-        assertEquals(datePlus14, hearings.get(0).weekCommencing().endDate());
-        assertEquals(1, hearings.get(0).weekCommencing().durationInWeeks());
-
-        assertEquals(HearingType.SENTENCE.getValue(), hearings.get(1).hearingType());
-        assertEquals("2", hearings.get(1).hearingId());
-        assertNull(hearings.get(1).courtSittings());
-        assertEquals(datePlus21, hearings.get(1).weekCommencing().startDate());
-        assertEquals(datePlus21, hearings.get(1).weekCommencing().endDate());
-        assertEquals(1, hearings.get(1).weekCommencing().durationInWeeks());
-
-        assertEquals(HearingType.TRIAL.getValue(), hearings.get(2).hearingType());
-        assertEquals("3", hearings.get(2).hearingId());
-        assertNull(hearings.get(2).courtSittings());
-        assertEquals(datePlus42, hearings.get(2).weekCommencing().startDate());
-        assertEquals(datePlus49, hearings.get(2).weekCommencing().endDate());
-        assertEquals(1, hearings.get(2).weekCommencing().durationInWeeks());
-
-        assertEquals(HearingType.TRIAL.getValue(), hearings.get(3).hearingType());
-        assertEquals("4", hearings.get(3).hearingId());
-        assertNull(hearings.get(3).courtSittings());
-        assertEquals(datePlus43, hearings.get(3).weekCommencing().startDate());
-        assertEquals(datePlus50, hearings.get(3).weekCommencing().endDate());
-        assertEquals(1, hearings.get(3).weekCommencing().durationInWeeks());
+        assertEquals(HearingType.SENTENCE.getValue(), hearings.getFirst().getHearingType());
+        assertEquals("1", hearings.getFirst().getHearingId());
+        assertEquals(datePlus7, hearings.getFirst().getWeekCommencing().getStartDate());
+        assertEquals(datePlus14, hearings.getFirst().getWeekCommencing().getEndDate());
+        assertEquals(1, hearings.getFirst().getWeekCommencing().getDurationInWeeks());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
 
     @Test
-    void testGetCaseDetailsByCaseUrnWhenValidurtSittingAndWeekDateIsNull() {
+    void testGetCaseDetailsByCaseUrnWhenValidSittingAndWeekDateIsNull() {
         final HearingDto hearingDto = createHearingWithWeeks(
             "0",
             HearingType.TRIAL.getValue(),
@@ -872,16 +880,18 @@ class CaseDetailsServiceTest {
             1
         );
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(hearingDto2, hearingDto1, hearingDto));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingDto2, hearingDto1, hearingDto))
+            .build();
 
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
-        assertEquals(0, caseDetails.courtSchedule().getFirst().hearings().size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(0, caseDetails.getCourtSchedules().getFirst().getHearings().size());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -907,14 +917,13 @@ class CaseDetailsServiceTest {
         final List<CourtSittingDto> courtSittings = List.of(courtSittingDto);
         final HearingDto hearingWithCourtSitting = createHearing(
             "2",
-            HearingType.TRIAL.getValue(),
+            HearingType.SENTENCE.getValue(),
             courtSittings
         );
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(
-            hearingWithCourtSitting,
-            hearingWithWeekCommencing
-        ));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingWithCourtSitting, hearingWithWeekCommencing))
+            .build();
 
         when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
@@ -923,30 +932,19 @@ class CaseDetailsServiceTest {
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
-        assertEquals(2, caseDetails.courtSchedule().getFirst().hearings().size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(1, caseDetails.getCourtSchedules().getFirst().getHearings().size());
 
         // Verify that the weekCommencing hearing comes first (because today - 2 days < today + 3 days)
-        final CaseDetailsHearingDto firstHearing = caseDetails.courtSchedule().getFirst().hearings().getFirst();
-        assertEquals("2", firstHearing.hearingId());
-        assertEquals(HearingType.TRIAL.getValue(), firstHearing.hearingType());
+        final CaseDetailsHearingDto firstHearing = caseDetails.getCourtSchedules().getFirst().getHearings().getFirst();
+        assertEquals("2", firstHearing.getHearingId());
+        assertEquals(HearingType.SENTENCE.getValue(), firstHearing.getHearingType());
 
-        assertNull(firstHearing.weekCommencing());
-        assertNotNull(firstHearing.courtSittings());
-        assertEquals(1, firstHearing.courtSittings().size());
-        assertEquals(sittingStartDate, firstHearing.courtSittings().getFirst().sittingStart());
-
-
-        // Verify that the courtSitting hearing comes second
-        final CaseDetailsHearingDto secondHearing = caseDetails.courtSchedule().getFirst().hearings().get(1);
-        assertEquals("1", secondHearing.hearingId());
-        assertEquals(HearingType.TRIAL.getValue(), secondHearing.hearingType());
-        assertNotNull(secondHearing.weekCommencing());
-        assertEquals(weekCommencingStartDate, secondHearing.weekCommencing().startDate());
-        assertEquals(weekCommencingEndDate, secondHearing.weekCommencing().endDate());
-        assertEquals(1, secondHearing.weekCommencing().durationInWeeks());
-        assertNull(secondHearing.courtSittings());
+        assertNull(firstHearing.getWeekCommencing());
+        assertNotNull(firstHearing.getCourtSittings());
+        assertEquals(1, firstHearing.getCourtSittings().size());
+        assertEquals(sittingStartDate, firstHearing.getCourtSittings().getFirst().getSittingStart());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -973,10 +971,10 @@ class CaseDetailsServiceTest {
             courtSittings
         );
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(
-            hearingWithCourtSitting,
-            hearingWithWeekCommencing
-        ));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingWithCourtSitting, hearingWithWeekCommencing))
+            .build();
+
 
         when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
@@ -985,26 +983,16 @@ class CaseDetailsServiceTest {
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
-        assertEquals(2, caseDetails.courtSchedule().getFirst().hearings().size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(1, caseDetails.getCourtSchedules().getFirst().getHearings().size());
 
         // Verify that the weekCommencing hearing comes first (because today - 2 days < today + 3 days)
-        final CaseDetailsHearingDto firstHearing = caseDetails.courtSchedule().getFirst().hearings().getFirst();
-        assertEquals("2", firstHearing.hearingId());
-        assertEquals(HearingType.TRIAL.getValue(), firstHearing.hearingType());
-        assertNull(firstHearing.weekCommencing());
-        assertEquals(1, firstHearing.courtSittings().size());
-
-        final CaseDetailsHearingDto secondHearing = caseDetails.courtSchedule().getFirst().hearings().get(1);
-        assertEquals("1", secondHearing.hearingId());
-        assertEquals(HearingType.TRIAL.getValue(), secondHearing.hearingType());
-        assertNull(secondHearing.courtSittings());
-        WeekCommencing weekCommencing = secondHearing.weekCommencing();
-        assertEquals(3, weekCommencing.durationInWeeks());
-        assertEquals(weekCommencingStartDate, weekCommencing.startDate());
-        assertEquals(weekCommencingEndDate, weekCommencing.endDate());
-        assertNotNull(weekCommencing.courtHouse());
+        final CaseDetailsHearingDto firstHearing = caseDetails.getCourtSchedules().getFirst().getHearings().getFirst();
+        assertEquals("2", firstHearing.getHearingId());
+        assertEquals(HearingType.TRIAL.getValue(), firstHearing.getHearingType());
+        assertNull(firstHearing.getWeekCommencing());
+        assertEquals(1, firstHearing.getCourtSittings().size());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -1040,28 +1028,27 @@ class CaseDetailsServiceTest {
             1
         );
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(
-            hearingDto3,
-            hearingDto1,
-            hearingDto2,
-            hearingDto4
-        ));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingDto3, hearingDto1, hearingDto2, hearingDto4))
+            .build();
 
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+            createCourtHouse(courtRoomDto, addressDto));
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
-        List<CaseDetailsHearingDto> hearings = caseDetails.courtSchedule().getFirst().hearings();
-        assertEquals(4, hearings.size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        List<CaseDetailsHearingDto> hearings = caseDetails.getCourtSchedules().getFirst().getHearings();
+        assertEquals(1, hearings.size());
 
-        assertEquals(HearingType.SENTENCE.getValue(), hearings.get(0).hearingType());
-        assertEquals("1", hearings.get(0).hearingId());
-        assertEquals(datePlus7, hearings.get(0).weekCommencing().startDate());
-        assertEquals(datePlus14, hearings.get(0).weekCommencing().endDate());
-        assertEquals(1, hearings.get(0).weekCommencing().durationInWeeks());
+        assertEquals(HearingType.SENTENCE.getValue(), hearings.getFirst().getHearingType());
+        assertEquals("1", hearings.getFirst().getHearingId());
+        assertEquals(datePlus7, hearings.getFirst().getWeekCommencing().getStartDate());
+        assertEquals(datePlus14, hearings.getFirst().getWeekCommencing().getEndDate());
+        assertEquals(1, hearings.getFirst().getWeekCommencing().getDurationInWeeks());
     }
 
     @Test
@@ -1106,14 +1093,9 @@ class CaseDetailsServiceTest {
             1
         );
 
-        final CourtScheduleDto scheduleDto = new CourtScheduleDto(List.of(
-            hearingDto3,
-            hearingDto2,
-            hearingDto,
-            hearingDto1,
-            hearingDto4,
-            hearingDto5
-        ));
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingDto3, hearingDto2, hearingDto, hearingDto1, hearingDto4, hearingDto5))
+            .build();
 
         when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
@@ -1122,96 +1104,72 @@ class CaseDetailsServiceTest {
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
-        assertEquals(caseUrn, caseDetails.caseUrn());
-        assertEquals(1, caseDetails.courtSchedule().size());
-        List<CaseDetailsHearingDto> hearings = caseDetails.courtSchedule().getFirst().hearings();
-        assertEquals(5, hearings.size());
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        List<CaseDetailsHearingDto> hearings = caseDetails.getCourtSchedules().getFirst().getHearings();
+        assertEquals(1, hearings.size());
 
-        assertEquals(HearingType.SENTENCE.getValue(), hearings.get(0).hearingType());
-        assertEquals("1", hearings.get(0).hearingId());
-        assertNull(hearings.get(0).weekCommencing());
-        assertEquals(2, hearings.get(0).courtSittings().size());
-
-        assertEquals(HearingType.TRIAL.getValue(), hearings.get(1).hearingType());
-        assertEquals("0", hearings.get(1).hearingId());
-        assertNull(hearings.get(1).weekCommencing());
-
-        assertEquals(HearingType.SENTENCE.getValue(), hearings.get(2).hearingType());
-        assertEquals("2", hearings.get(2).hearingId());
-        assertEquals(datePlus21, hearings.get(2).weekCommencing().startDate());
-        assertEquals(datePlus21, hearings.get(2).weekCommencing().endDate());
-        assertEquals(1, hearings.get(2).weekCommencing().durationInWeeks());
-
-        assertEquals(HearingType.TRIAL.getValue(), hearings.get(3).hearingType());
-        assertEquals("3", hearings.get(3).hearingId());
-        assertEquals(datePlus42, hearings.get(3).weekCommencing().startDate());
-        assertEquals(datePlus49, hearings.get(3).weekCommencing().endDate());
-        assertEquals(1, hearings.get(3).weekCommencing().durationInWeeks());
-
-        assertEquals(HearingType.TRIAL.getValue(), hearings.get(4).hearingType());
-        assertEquals("4", hearings.get(4).hearingId());
-        assertEquals(datePlus43, hearings.get(4).weekCommencing().startDate());
-        assertEquals(datePlus50, hearings.get(4).weekCommencing().endDate());
-        assertEquals(1, hearings.get(4).weekCommencing().durationInWeeks());
+        assertEquals(HearingType.SENTENCE.getValue(), hearings.getFirst().getHearingType());
+        assertEquals("1", hearings.getFirst().getHearingId());
+        assertNull(hearings.getFirst().getWeekCommencing());
+        assertEquals(2, hearings.getFirst().getCourtSittings().size());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
 
     private CourtSittingDto createCourtSitting(final String sittingStartDate, final String sittingEndDate) {
-
-        return new CourtSittingDto(
-            sittingStartDate,
-            sittingEndDate,
-            judgeId,
-            courtHouseId,
-            courtRoomId
-        );
+        return CourtSittingDto.builder()
+           .sittingStart(sittingStartDate)
+           .sittingEnd(sittingEndDate)
+           .judiciaryId(judgeId)
+           .courtHouse(courtHouseId)
+           .courtRoom(courtRoomId)
+           .build();
     }
 
     private CourtHouseDto createCourtHouse(final CourtRoomDto courtRoomDto, final AddressDto addressDto) {
-        return new CourtHouseDto(
-            courtHouseId,
-            courtRoomId,
-            "CROWN",
-            "123",
-            "Lavender Hill",
-            addressDto,
-            Arrays.asList(courtRoomDto)
-        );
+        return CourtHouseDto.builder()
+            .courtHouseId(courtHouseId)
+            .courtRoomId(courtRoomId)
+            .courtHouseType("CROWN")
+            .courtHouseCode("123")
+            .courtHouseName("Lavender Hill")
+            .address(addressDto)
+            .courtRooms(Arrays.asList(courtRoomDto))
+            .build();
     }
 
     private HearingDto createHearing(String hearingType, List<CourtSittingDto> courtSittings) {
-        return new HearingDto(
-            hearingId,
-            hearingType,
-            hearingType,
-            "Note1",
-            null,
-            courtSittings
-        );
+        return createHearing(hearingId, hearingType, courtSittings);
     }
 
     private HearingDto createHearing(String hearingId, String hearingType, List<CourtSittingDto> courtSittings) {
-        return new HearingDto(
-            hearingId,
-            hearingType,
-            hearingType,
-            "Note1",
-            null,
-            courtSittings
-        );
+        return HearingDto.builder()
+            .hearingId(hearingId)
+            .hearingType(hearingType)
+            .hearingDescription(hearingType)
+            .listNote("Note1")
+            .courtSittings(courtSittings)
+            .build();
     }
 
     private HearingDto createHearingWithWeeks(String hearingId, String hearingType,
                                               String startDate, String endDate,
                                               int durationInWeeks) {
-        return new HearingDto(
-            hearingId,
-            hearingType,
-            hearingType,
-            "Note1",
-            new WeekCommencingDto(courtHouseId, startDate, endDate, durationInWeeks),
-            null
-        );
+
+        final WeekCommencingDto weekCommencingDto = WeekCommencingDto.builder()
+            .courtHouse(courtHouseId)
+            .startDate(startDate)
+            .endDate(endDate)
+            .durationInWeeks(durationInWeeks)
+            .build();
+
+        return HearingDto.builder()
+            .hearingId(hearingId)
+            .hearingType(hearingType)
+            .hearingDescription(hearingType)
+            .listNote("Note1")
+            .weekCommencing(weekCommencingDto)
+            .build();
     }
 }
