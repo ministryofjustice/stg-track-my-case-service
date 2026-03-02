@@ -5,9 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Getter;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CourtRoomDto{
 
     @JsonProperty("courtRoomId")

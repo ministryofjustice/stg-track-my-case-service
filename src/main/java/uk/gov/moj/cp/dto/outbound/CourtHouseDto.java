@@ -7,9 +7,9 @@ import lombok.Getter;
 
 import java.util.List;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 @Getter
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class CourtHouseDto{
 
     @JsonProperty("courtHouseId")
@@ -34,3 +34,4 @@ public class CourtHouseDto{
     private List<CourtRoomDto> courtRooms;
 
 }
+
