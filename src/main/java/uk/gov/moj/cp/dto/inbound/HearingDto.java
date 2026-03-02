@@ -2,30 +2,30 @@ package uk.gov.moj.cp.dto.inbound;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
 
 import java.util.List;
 
-@Getter
+@Value
 @Builder
 public class HearingDto {
 
     @JsonProperty("hearingId")
-    private String hearingId;
+    String hearingId;
 
     @JsonProperty("hearingType")
-    private String hearingType;
+    String hearingType;
 
     @JsonProperty("hearingDescription")
-    private String hearingDescription;
+    String hearingDescription;
 
     @JsonProperty("listNote")
-    private String listNote;
+    String listNote;
 
     @JsonProperty("weekCommencing")
-    private WeekCommencingDto weekCommencing;
+    WeekCommencingDto weekCommencing;
 
     @JsonProperty("courtSittings")
-    private List<CourtSittingDto> courtSittings;
+    List<CourtSittingDto> courtSittings;
 
 }

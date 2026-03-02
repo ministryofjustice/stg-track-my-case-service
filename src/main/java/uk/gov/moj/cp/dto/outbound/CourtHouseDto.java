@@ -3,35 +3,35 @@ package uk.gov.moj.cp.dto.outbound;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Value;
 
 import java.util.List;
 
-@Getter
+@Value
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class CourtHouseDto{
 
     @JsonProperty("courtHouseId")
-    private String courtHouseId;
+    String courtHouseId;
 
     @JsonProperty("courtRoomId")
-    private String courtRoomId;
+    String courtRoomId;
 
     @JsonProperty("courtHouseType")
-    private String courtHouseType;
+    String courtHouseType;
 
     @JsonProperty("courtHouseCode")
-    private String courtHouseCode;
+    String courtHouseCode;
 
     @JsonProperty("courtHouseName")
-    private String courtHouseName;
+    String courtHouseName;
 
     @JsonProperty("address")
-    private AddressDto address;
+    AddressDto address;
 
     @JsonProperty("courtRoom")
-    private List<CourtRoomDto> courtRooms;
+    List<CourtRoomDto> courtRooms;
 
 }
 
