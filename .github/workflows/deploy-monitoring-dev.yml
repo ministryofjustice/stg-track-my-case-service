@@ -30,7 +30,7 @@ jobs:
       - name: Clone Helm chart repo
         run: |
           git clone https://github.com/ministryofjustice/track-my-case-cloud-platform.git
-          git -C track-my-case-cloud-platform checkout main
+          git -C track-my-case-cloud-platform checkout feature/sv-vp-463-separate-infra-mon
 
       - name: Deploy Monitoring Helm chart
         env:
