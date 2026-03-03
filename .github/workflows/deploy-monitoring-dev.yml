@@ -2,6 +2,9 @@ name: Deploy Monitoring - dev
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - feature/sv-vp-463-separate-infra-mon  # TEMP: remove before merging to main
 
 permissions: {}
 concurrency:
