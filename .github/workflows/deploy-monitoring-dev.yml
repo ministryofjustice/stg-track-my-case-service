@@ -35,6 +35,24 @@ jobs:
           git clone https://github.com/ministryofjustice/track-my-case-cloud-platform.git
           git -C track-my-case-cloud-platform checkout feature/sv-vp-463-separate-infra-mon
 
+      - name: Adopt existing monitoring resources into new Helm release
+        env:
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+        run: |
+          NEW_RELEASE="stg-track-my-case-monitoring"
+          PATCH='{"metadata":{"annotations":{"meta.helm.sh/release-name":"'"$NEW_RELEASE"'","meta.helm.sh/release-namespace":"'"$KUBE_NAMESPACE"'"}}}'
+
+          for resource in \
+            "prometheusrule/alerting-rules-$KUBE_NAMESPACE" \
+            "configmap/${NEW_RELEASE}-dashboard" ; do
+            if kubectl get $resource -n $KUBE_NAMESPACE >/dev/null 2>&1; then
+              echo "Patching $resource..."
+              kubectl patch $resource -n $KUBE_NAMESPACE --type=merge -p "$PATCH"
+            else
+              echo "$resource not found — skipping"
+            fi
+          done
+
       - name: Deploy Monitoring Helm chart
         env:
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
