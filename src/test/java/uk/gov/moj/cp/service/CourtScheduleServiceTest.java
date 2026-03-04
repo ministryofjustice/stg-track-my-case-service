@@ -1,32 +1,35 @@
 package uk.gov.moj.cp.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.when;
-import static java.util.UUID.randomUUID;
-
 import com.moj.generated.hmcts.CourtSchedule;
 import com.moj.generated.hmcts.CourtScheduleSchema;
 import com.moj.generated.hmcts.CourtSitting;
 import com.moj.generated.hmcts.Hearing;
-
+import com.moj.generated.hmcts.WeekCommencing;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
-import uk.gov.moj.cp.client.CourtScheduleClient;
-import uk.gov.moj.cp.dto.CourtScheduleDto;
+import uk.gov.moj.cp.client.api.CourtScheduleAPIClient;
+import uk.gov.moj.cp.dto.inbound.CourtScheduleDto;
+import uk.gov.moj.cp.dto.inbound.CourtSittingDto;
+import uk.gov.moj.cp.dto.inbound.HearingDto;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.ZonedDateTime;
 import java.util.List;
+
+import static java.util.UUID.randomUUID;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class CourtScheduleServiceTest {
 
     @Mock
-    private CourtScheduleClient courtScheduleClient;
+    private CourtScheduleAPIClient courtScheduleAPIClient;
 
     @InjectMocks
     private CourtScheduleService courtScheduleService;
@@ -43,8 +46,8 @@ class CourtScheduleServiceTest {
         final String courtRoomId = randomUUID().toString();
 
         // Create test data
-        final Date sittingStart = new Date(System.currentTimeMillis());
-        final Date sittingEnd = new Date(System.currentTimeMillis() + 3600000); // 1 hour later
+        final ZonedDateTime sittingStart = ZonedDateTime.now();
+        final ZonedDateTime sittingEnd = sittingStart.plusHours(1);
 
         final CourtSitting courtSitting1 = new CourtSitting(
             sittingStart,
@@ -61,12 +64,19 @@ class CourtScheduleServiceTest {
             courtHouseId,
             courtRoomId
         );
+        WeekCommencing weekCommencing = new WeekCommencing(
+            null,
+            LocalDate.now(),
+            LocalDate.now().plusDays(7),
+            2
+        );
 
         final Hearing hearing1 = new Hearing(
             hearingId1,
             "First Hearing",
             "Initial hearing description",
             "Note for first hearing",
+            weekCommencing,
             List.of(courtSitting1)
         );
 
@@ -75,6 +85,7 @@ class CourtScheduleServiceTest {
             "Second Hearing",
             "Follow-up hearing description",
             "Note for second hearing",
+            weekCommencing,
             List.of(courtSitting2)
         );
 
@@ -82,7 +93,7 @@ class CourtScheduleServiceTest {
         final CourtScheduleSchema schema = new CourtScheduleSchema(List.of(courtSchedule));
         final ResponseEntity<CourtScheduleSchema> response = ResponseEntity.ok(schema);
 
-        when(courtScheduleClient.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(response);
+        when(courtScheduleAPIClient.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(response);
 
         List<CourtScheduleDto> result = courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn);
 
@@ -90,29 +101,29 @@ class CourtScheduleServiceTest {
         assertEquals(1, result.size());
 
         CourtScheduleDto scheduleDto = result.get(0);
-        assertNotNull(scheduleDto.hearingDtos());
-        assertEquals(2, scheduleDto.hearingDtos().size());
+        assertNotNull(scheduleDto.getHearings());
+        assertEquals(2, scheduleDto.getHearings().size());
 
-        CourtScheduleDto.HearingDto hearingDto1 = scheduleDto.hearingDtos().get(0);
-        assertEquals(hearingId1, hearingDto1.hearingId());
-        assertEquals("First Hearing", hearingDto1.hearingType());
-        assertEquals("Initial hearing description", hearingDto1.hearingDescription());
-        assertEquals("Note for first hearing", hearingDto1.listNote());
-        assertEquals(1, hearingDto1.courtSittingDtos().size());
+        HearingDto hearingDto1 = scheduleDto.getHearings().get(0);
+        assertEquals(hearingId1, hearingDto1.getHearingId());
+        assertEquals("First Hearing", hearingDto1.getHearingType());
+        assertEquals("Initial hearing description", hearingDto1.getHearingDescription());
+        assertEquals("Note for first hearing", hearingDto1.getListNote());
+        assertEquals(1, hearingDto1.getCourtSittings().size());
 
-        CourtScheduleDto.HearingDto.CourtSittingDto sittingDto1 = hearingDto1.courtSittingDtos().get(0);
-        assertNotNull(sittingDto1.sittingStart());
-        assertNotNull(sittingDto1.sittingEnd());
-        assertEquals(judiciaryId, sittingDto1.judiciaryId());
-        assertEquals(courtHouseId, sittingDto1.courtHouse());
-        assertEquals(courtRoomId, sittingDto1.courtRoom());
+        CourtSittingDto sittingDto1 = hearingDto1.getCourtSittings().get(0);
+        assertNotNull(sittingDto1.getSittingStart());
+        assertNotNull(sittingDto1.getSittingEnd());
+        assertEquals(judiciaryId, sittingDto1.getJudiciaryId());
+        assertEquals(courtHouseId, sittingDto1.getCourtHouse());
+        assertEquals(courtRoomId, sittingDto1.getCourtRoom());
 
-        CourtScheduleDto.HearingDto hearingDto2 = scheduleDto.hearingDtos().get(1);
-        assertEquals(hearingId2, hearingDto2.hearingId());
-        assertEquals("Second Hearing", hearingDto2.hearingType());
-        assertEquals("Follow-up hearing description", hearingDto2.hearingDescription());
-        assertEquals("Note for second hearing", hearingDto2.listNote());
-        assertEquals(1, hearingDto2.courtSittingDtos().size());
+        HearingDto hearingDto2 = scheduleDto.getHearings().get(1);
+        assertEquals(hearingId2, hearingDto2.getHearingId());
+        assertEquals("Second Hearing", hearingDto2.getHearingType());
+        assertEquals("Follow-up hearing description", hearingDto2.getHearingDescription());
+        assertEquals("Note for second hearing", hearingDto2.getListNote());
+        assertEquals(1, hearingDto2.getCourtSittings().size());
     }
 
     @Test
@@ -122,13 +133,13 @@ class CourtScheduleServiceTest {
         final CourtScheduleSchema schema = new CourtScheduleSchema(List.of(courtSchedule));
         final ResponseEntity<CourtScheduleSchema> response = ResponseEntity.ok(schema);
 
-        when(courtScheduleClient.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(response);
+        when(courtScheduleAPIClient.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(response);
 
         List<CourtScheduleDto> result = courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn);
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertNotNull(result.get(0).hearingDtos());
-        assertEquals(0, result.get(0).hearingDtos().size());
+        assertNotNull(result.get(0).getHearings());
+        assertEquals(0, result.get(0).getHearings().size());
     }
 }

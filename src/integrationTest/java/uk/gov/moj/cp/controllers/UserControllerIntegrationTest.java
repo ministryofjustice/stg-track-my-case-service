@@ -117,7 +117,7 @@ class UserControllerIntegrationTest {
             .andReturn();
 
         ErrorResponseDto response = readResponse(result, ErrorResponseDto.class);
-        assertThat(response.message()).isEqualTo("User not found by email: missing@example.com");
+        assertThat(response.getMessage()).isEqualTo("User not found by email: missing@example.com");
     }
 
     @Test
@@ -212,7 +212,7 @@ class UserControllerIntegrationTest {
             .andReturn();
 
         ErrorResponseDto response = readResponse(result, ErrorResponseDto.class);
-        assertThat(response.message()).isEqualTo("User not found by email: missing@example.com");
+        assertThat(response.getMessage()).isEqualTo("User not found by email: missing@example.com");
     }
 
     @Test
@@ -261,7 +261,7 @@ class UserControllerIntegrationTest {
             .andReturn();
 
         ErrorResponseDto response = readResponse(result, ErrorResponseDto.class);
-        assertThat(response.message()).isEqualTo("User not found by email: missing@example.com");
+        assertThat(response.getMessage()).isEqualTo("User not found by email: missing@example.com");
     }
 
     private void createUserViaEndpoint(String email) throws Exception {

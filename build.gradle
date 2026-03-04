@@ -13,7 +13,7 @@ plugins {
 }
 
 group = 'uk.gov.moj.cp'
-version = '0.4.0'
+version = '0.5.0'
 
 java {
   sourceCompatibility = JavaVersion.VERSION_25
@@ -244,6 +244,9 @@ jsonSchema2Pojo {
   usePrimitives = true
   includeConstructors = true
   annotationStyle = "jackson2"
+  useJodaDates = false
+  dateType = "java.time.LocalDate"
+  dateTimeType = "java.time.ZonedDateTime"
 }
 
 sourceSets {
