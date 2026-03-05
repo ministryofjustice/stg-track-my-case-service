@@ -36,6 +36,8 @@ public class CaseDetailsService {
     private final OAuthTokenService oauthTokenService;
     private final TrackMyCaseMetricsService trackMyCaseMetricsService;
 
+    private  static final String hearingTypeRegex = ".*\\b" + HearingType.TRIAL.getValue().toLowerCase() + "\\b.*";
+
     public CaseDetailsDto getCaseDetailsByCaseUrn(final String caseUrn) {
         String accessToken = oauthTokenService.getJwtToken();
         List<CourtScheduleDto> courtSchedule = courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn);
@@ -69,7 +71,7 @@ public class CaseDetailsService {
         CaseDetailsWeekCommencingDto weekCommencing = null;
         List<CaseDetailsCourtSittingDto> courtSittings = null;
 
-        if (isNull(hearing) || !isTrailOrSentenceHearing(hearing.getHearingType())) {
+        if (isNull(hearing) || !isValidHearingType(hearing.getHearingType())) {
             return null;
         }
 
@@ -102,7 +104,7 @@ public class CaseDetailsService {
             )
             .thenComparing((CaseDetailsHearingDto dto) -> hasFixedDateHearing(dto) ? 0 : 1)
             .thenComparingInt((CaseDetailsHearingDto dto) ->
-                                  HearingType.TRIAL.getValue().equalsIgnoreCase(dto.getHearingType()) ? 0 : 1
+                                  nonNull(dto.getHearingType()) && dto.getHearingType().toLowerCase().matches(hearingTypeRegex) ? 0 : 1
             );
     }
 
@@ -238,9 +240,8 @@ public class CaseDetailsService {
         return false;
     }
 
-    private boolean isTrailOrSentenceHearing(final String hearingType) {
-        return HearingType.TRIAL.getValue().equalsIgnoreCase(hearingType)
-            || HearingType.SENTENCE.getValue().equalsIgnoreCase(hearingType);
+    private boolean isValidHearingType(final String hearingType) {
+        return nonNull(HearingType.fromValue(hearingType));
     }
 
     private CaseDetailsHearingDto enrichHearingWithCourtDetails(final String caseUrn, final String accessToken, final CaseDetailsHearingDto hearing) {
@@ -279,9 +280,12 @@ public class CaseDetailsService {
             }
         }
 
+        final String hearingType = nonNull(hearing.getHearingType()) && hearing.getHearingType().toLowerCase().matches(hearingTypeRegex) ?
+            HearingType.TRIAL.getValue() : HearingType.SENTENCE.getValue();
+
         return CaseDetailsHearingDto.builder()
             .hearingId(hearing.getHearingId())
-            .hearingType(hearing.getHearingType())
+            .hearingType(hearingType)
             .hearingDescription(hearing.getHearingDescription())
             .listNote(hearing.getListNote())
             .courtSittings(enrichedCourtSittings)
