@@ -221,7 +221,7 @@ public class CaseDetailsService {
     private boolean validateSittingDateNotInPast(final String courtSittingStartDate) {
         if (Optional.ofNullable(courtSittingStartDate).isPresent()) {
             LocalDate sittingDate = parse(courtSittingStartDate).toLocalDate();
-            return !sittingDate.isBefore(LocalDate.now());
+            return !( sittingDate.isBefore(LocalDate.now()) || sittingDate.isAfter(LocalDate.now().plusYears(10)));
         }
         return false;
     }
@@ -230,7 +230,7 @@ public class CaseDetailsService {
         if (nonNull(weekCommencingStartDate) && !weekCommencingStartDate.isEmpty()) {
             try {
                 LocalDate weekCommencingDate = LocalDate.parse(weekCommencingStartDate);
-                return !weekCommencingDate.isBefore(LocalDate.now());
+                return !(weekCommencingDate.isBefore(LocalDate.now()) || weekCommencingDate.isAfter(LocalDate.now().plusYears(10)));
             } catch (Exception e) {
                 return false;
             }
