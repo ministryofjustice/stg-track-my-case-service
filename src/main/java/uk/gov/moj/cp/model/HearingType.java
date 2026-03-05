@@ -1,12 +1,15 @@
 package uk.gov.moj.cp.model;
 
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+
 import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.Objects.isNull;
 
-
+@Getter
 public enum HearingType {
 
     TRIAL("Trial"),
@@ -37,11 +40,7 @@ public enum HearingType {
         this.value = type;
     }
 
-    public String getValue() {
-        return value;
-    }
-
-    private static final Map<String, HearingType> lookUp =
+    private static final Map<String, HearingType> HEARING_TYPES_MAP =
         Arrays.stream(values())
             .collect(Collectors.toMap(
                 v -> v.value.toLowerCase(),
@@ -52,6 +51,22 @@ public enum HearingType {
         if (isNull(value)) {
             return null;
         }
-        return lookUp.get(value.toLowerCase());
+        String key = value.toLowerCase();
+        if (HEARING_TYPES_MAP.containsKey(key)) {
+            return HEARING_TYPES_MAP.get(key);
+        }
+        return null;
+    }
+
+    public static HearingType filterHearingType(@NotNull String hearingTypeValue) {
+        HearingType hearingType = HearingType.fromValue(hearingTypeValue);
+        if (hearingType != null) {
+            if (hearingType.getValue().toLowerCase().contains(HearingType.TRIAL.getValue().toLowerCase())) {
+                return HearingType.TRIAL;
+            } else if (hearingType.getValue().toLowerCase().contains(HearingType.SENTENCE.getValue().toLowerCase())) {
+                return HearingType.SENTENCE;
+            }
+        }
+        throw new IllegalArgumentException(hearingTypeValue + " is not an expected hearing type Trial or Sentence");
     }
 }
