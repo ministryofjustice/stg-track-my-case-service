@@ -2,6 +2,7 @@ package uk.gov.moj.cp.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import uk.gov.moj.cp.dto.inbound.CourtScheduleDto;
 import uk.gov.moj.cp.dto.inbound.CourtSittingDto;
@@ -177,8 +178,12 @@ public class CaseDetailsService {
 
     private CaseDetailsWeekCommencingDto getWeekCommencing(final HearingDto hearing) {
         final WeekCommencingDto weekCommencingDto = hearing.getWeekCommencing();
-        final boolean hasValidWeekCommencingDate = validateWeekCommencingDateNotInPast(weekCommencingDto.getStartDate())
-            || validateWeekCommencingDateNotInPast(weekCommencingDto.getEndDate());
+        if(Strings.isEmpty(weekCommencingDto.getStartDate()) || Strings.isEmpty(weekCommencingDto.getEndDate())) {
+            return null;
+        }
+
+        final boolean hasValidWeekCommencingDate = validateDateNotInPastAndNotAfterTenYears(LocalDate.parse(weekCommencingDto.getStartDate()))
+            || validateDateNotInPastAndNotAfterTenYears(LocalDate.parse(weekCommencingDto.getEndDate()));
         if (!hasValidWeekCommencingDate) {
             return null;
         }
@@ -201,7 +206,7 @@ public class CaseDetailsService {
         final List<CourtSittingDto> sittings = hearing.getCourtSittings();
         final boolean hasAnyCurrentOrFutureSitting = (nonNull(sittings) && !sittings.isEmpty())
             && sittings.stream()
-            .anyMatch(s -> validateSittingDateNotInPast(s.getSittingStart()));
+            .anyMatch(s -> validateDateNotInPastAndNotAfterTenYears(parse(s.getSittingStart()).toLocalDate()));
 
         if (!hasAnyCurrentOrFutureSitting) {
             return null;
@@ -226,19 +231,10 @@ public class CaseDetailsService {
             .build();
     }
 
-    private boolean validateSittingDateNotInPast(final String courtSittingStartDate) {
-        if (Optional.ofNullable(courtSittingStartDate).isPresent()) {
-            LocalDate sittingDate = parse(courtSittingStartDate).toLocalDate();
-            return !sittingDate.isBefore(LocalDate.now());
-        }
-        return false;
-    }
-
-    private boolean validateWeekCommencingDateNotInPast(final String weekCommencingStartDate) {
-        if (nonNull(weekCommencingStartDate) && !weekCommencingStartDate.isEmpty()) {
+    private boolean validateDateNotInPastAndNotAfterTenYears(final LocalDate hearingDate) {
+        if (nonNull(hearingDate) ) {
             try {
-                LocalDate weekCommencingDate = LocalDate.parse(weekCommencingStartDate);
-                return !weekCommencingDate.isBefore(LocalDate.now());
+                return !(hearingDate.isBefore(LocalDate.now()) || hearingDate.isAfter(LocalDate.now().plusYears(10)));
             } catch (Exception e) {
                 return false;
             }

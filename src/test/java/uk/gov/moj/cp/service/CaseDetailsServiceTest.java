@@ -1159,6 +1159,114 @@ class CaseDetailsServiceTest {
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
 
+    @Test
+    void testGetCaseDetailsByCaseUrnWhenSittingDateAndWeekCommencingDateAreAfter10Years() {
+        final LocalDate now = LocalDate.now();
+        final LocalDateTime in10Years = now.plusYears(10).plusDays(1).atStartOfDay();
+        final LocalDateTime in1Years = now.plusYears(1).plusDays(1).atStartOfDay();
+
+        String sittingStart10Years = in10Years.toString();
+        String sittingEnd10Years = in10Years.plusHours(2).toString();
+        String weekCommencingStart10Years = now.plusYears(10).plusDays(1).toString();
+        String weekCommencingEnd10Years = now.plusYears(10).plusDays(7).toString();
+
+        String sittingStart1Years = in1Years.toString();
+        String sittingEnd1Years = in1Years.plusHours(2).toString();
+        String weekCommencingStart5Years = now.plusYears(5).plusDays(1).toString();
+        String weekCommencingEnd5Years = now.plusYears(5).plusDays(7).toString();
+
+        final List<CourtSittingDto> courtSittings = List.of(
+            createCourtSitting(sittingStart10Years, sittingEnd10Years)
+        );
+        final HearingDto hearingWithSitting = createHearing("1", HearingType.TRIAL.getValue(), courtSittings);
+        final HearingDto hearingWithSitting1 = createHearing("3", HearingType.TRIAL.getValue(), List.of(
+            createCourtSitting(sittingStart1Years, sittingEnd1Years)
+        ));
+        final HearingDto hearingWithWeekCommencing = createHearingWithWeeks(
+            "2",
+            HearingType.SENTENCE.getValue(),
+            weekCommencingStart10Years,
+            weekCommencingEnd10Years,
+            1
+        );
+        final HearingDto hearingWithWeekCommencing1 = createHearingWithWeeks(
+            "2",
+            HearingType.SENTENCE.getValue(),
+            weekCommencingStart5Years,
+            weekCommencingEnd5Years,
+            1
+        );
+
+
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingWithSitting, hearingWithWeekCommencing, hearingWithSitting1, hearingWithWeekCommencing1 ))
+            .build();
+
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+            createCourtHouse(courtRoomDto, addressDto));
+        when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
+        when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(scheduleDto));
+
+        final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
+
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(1, caseDetails.getCourtSchedules().getFirst().getHearings().size());
+
+        CaseDetailsHearingDto sittingHearing = caseDetails.getCourtSchedules().getFirst().getHearings().stream()
+            .filter(h -> "3".equals(h.getHearingId()))
+            .findFirst()
+            .orElseThrow();
+        assertEquals(HearingType.TRIAL.getValue(), sittingHearing.getHearingType());
+        assertNull(sittingHearing.getWeekCommencing());
+        assertNotNull(sittingHearing.getCourtSittings());
+        assertEquals(1, sittingHearing.getCourtSittings().size());
+        assertEquals(sittingStart1Years, sittingHearing.getCourtSittings().getFirst().getSittingStart());
+        assertEquals(sittingEnd1Years, sittingHearing.getCourtSittings().getFirst().getSittingEnd());
+
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
+    }
+
+
+    @Test
+    void testGetCaseDetailsWithWeekCommencingDateAreAfter10Years() {
+        final LocalDate now = LocalDate.now();
+        final LocalDateTime in10Years = now.plusYears(10).plusDays(1).atStartOfDay();
+
+        String sittingStart10Years = in10Years.toString();
+        String sittingEnd10Years = in10Years.plusHours(2).toString();
+        String weekCommencingStart10Years = now.plusYears(10).plusDays(1).toString();
+        String weekCommencingEnd10Years = now.plusYears(10).plusDays(7).toString();
+
+        final List<CourtSittingDto> courtSittings = List.of(
+            createCourtSitting(sittingStart10Years, sittingEnd10Years)
+        );
+        final HearingDto hearingWithSitting = createHearing("1", HearingType.TRIAL.getValue(), courtSittings);
+
+        final HearingDto hearingWithWeekCommencing = createHearingWithWeeks(
+            "2",
+            HearingType.SENTENCE.getValue(),
+            weekCommencingStart10Years,
+            weekCommencingEnd10Years,
+            1
+        );
+
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(hearingWithSitting, hearingWithWeekCommencing ))
+            .build();
+
+        when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
+        when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(scheduleDto));
+
+        final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
+
+        assertEquals(caseUrn, caseDetails.getCaseUrn());
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(0, caseDetails.getCourtSchedules().getFirst().getHearings().size());
+
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
+    }
+
     private CourtSittingDto createCourtSitting(final String sittingStartDate, final String sittingEndDate) {
         return CourtSittingDto.builder()
            .sittingStart(sittingStartDate)
