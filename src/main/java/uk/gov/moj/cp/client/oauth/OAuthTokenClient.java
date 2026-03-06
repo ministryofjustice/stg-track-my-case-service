@@ -1,4 +1,4 @@
-package uk.gov.moj.cp.client;
+package uk.gov.moj.cp.client.oauth;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
