@@ -223,10 +223,10 @@ public class CaseDetailsService {
             .build();
     }
 
-    private boolean validateDateNotInPastAndNotAfterTenYears(final LocalDate localDate) {
-        if (nonNull(localDate) ) {
+    private boolean validateDateNotInPastAndNotAfterTenYears(final LocalDate hearingDate) {
+        if (nonNull(hearingDate) ) {
             try {
-                return !(localDate.isBefore(LocalDate.now()) || localDate.isAfter(LocalDate.now().plusYears(10)));
+                return !(hearingDate.isBefore(LocalDate.now()) || hearingDate.isAfter(LocalDate.now().plusYears(10)));
             } catch (Exception e) {
                 return false;
             }
