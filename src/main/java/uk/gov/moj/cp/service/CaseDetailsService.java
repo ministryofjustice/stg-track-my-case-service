@@ -2,6 +2,7 @@ package uk.gov.moj.cp.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import uk.gov.moj.cp.dto.inbound.CourtScheduleDto;
 import uk.gov.moj.cp.dto.inbound.CourtSittingDto;
@@ -21,6 +22,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 import static java.time.LocalDateTime.parse;
 import static java.util.Objects.isNull;
@@ -35,6 +37,11 @@ public class CaseDetailsService {
     private final CourtHouseService courtHouseService;
     private final OAuthTokenService oauthTokenService;
     private final TrackMyCaseMetricsService trackMyCaseMetricsService;
+
+    private static final Pattern HEARING_TYPE_TRIAL_PATTERN = Pattern.compile(
+        "\\b" + HearingType.TRIAL.getValue() + "\\b",
+        Pattern.CASE_INSENSITIVE
+    );
 
     public CaseDetailsDto getCaseDetailsByCaseUrn(final String caseUrn) {
         String accessToken = oauthTokenService.getJwtToken();
@@ -69,7 +76,7 @@ public class CaseDetailsService {
         CaseDetailsWeekCommencingDto weekCommencing = null;
         List<CaseDetailsCourtSittingDto> courtSittings = null;
 
-        if (isNull(hearing) || !isTrailOrSentenceHearing(hearing.getHearingType())) {
+        if (isNull(hearing) || !isValidHearingType(hearing.getHearingType())) {
             return null;
         }
 
@@ -102,7 +109,9 @@ public class CaseDetailsService {
             )
             .thenComparing((CaseDetailsHearingDto dto) -> hasFixedDateHearing(dto) ? 0 : 1)
             .thenComparingInt((CaseDetailsHearingDto dto) ->
-                                  HearingType.TRIAL.getValue().equalsIgnoreCase(dto.getHearingType()) ? 0 : 1
+                                  nonNull(dto.getHearingType())
+                                      && HEARING_TYPE_TRIAL_PATTERN.matcher(dto.getHearingType()).find() ?
+                                      0 : 1
             );
     }
 
@@ -238,9 +247,21 @@ public class CaseDetailsService {
         return false;
     }
 
-    private boolean isTrailOrSentenceHearing(final String hearingType) {
-        return HearingType.TRIAL.getValue().equalsIgnoreCase(hearingType)
-            || HearingType.SENTENCE.getValue().equalsIgnoreCase(hearingType);
+    private static boolean isValidHearingType(final String hearingType) {
+        if (isNull(hearingType)) {
+            return false;
+        }
+        HearingType fromValue = HearingType.fromValue(hearingType);
+        if (nonNull(fromValue)) {
+            return true;
+        }
+        final String hearingTypeInLowerCase = hearingType.toLowerCase();
+        if (hearingTypeInLowerCase.contains(HearingType.TRIAL.getValue().toLowerCase()) || hearingTypeInLowerCase.contains(HearingType.SENTENCE.getValue().toLowerCase())) {
+            // this is a case if you missed any hearing type in HearingType enum, which has "trial" or "sentence" in the value
+            log.atError().log("Hearing type does match Trail or Sentence filtering and not included in the enum {}", hearingType);
+            return false;
+        }
+        return false;
     }
 
     private CaseDetailsHearingDto enrichHearingWithCourtDetails(final String caseUrn, final String accessToken, final CaseDetailsHearingDto hearing) {
@@ -279,9 +300,10 @@ public class CaseDetailsService {
             }
         }
 
+        HearingType filteredHearingType = HearingType.filterHearingType(hearing.getHearingType());
         return CaseDetailsHearingDto.builder()
             .hearingId(hearing.getHearingId())
-            .hearingType(hearing.getHearingType())
+            .hearingType(filteredHearingType.getValue())
             .hearingDescription(hearing.getHearingDescription())
             .listNote(hearing.getListNote())
             .courtSittings(enrichedCourtSittings)

@@ -28,6 +28,7 @@ spec:
           for: 15m
           labels:
             severity: {{ .Values.alertLabels.severity }}
+            job: {{ .Values.serviceName }}
         - alert: KubeQuota-Exceeded # ‼️ Critical alert
           annotations:
             message: Namespace {{ .Values.namespace }} is using {{ "{{" }} printf "%0.0f" $value
@@ -41,6 +42,7 @@ spec:
           for: 15m
           labels:
             severity: {{ .Values.alertLabels.severity }}
+            job: {{ .Values.serviceName }}
         - alert: KubePodCrashLooping # ‼️ Critical alert
           # pint file/disable alerts/template
           annotations:
@@ -52,6 +54,7 @@ spec:
           for: 5m
           labels:
             severity: {{ .Values.alertLabels.severity }}
+            job: {{ .Values.serviceName }}
         - alert: KubePodNotReady
           annotations:
             message: A single pod {{ .Values.namespace }}/{{ "{{" }} $labels.pod {{ "}}" }} has been in a non-ready
@@ -63,6 +66,7 @@ spec:
           for: 5m
           labels:
             severity: {{ .Values.alertLabels.severity }}
+            job: {{ .Values.serviceName }}
         - alert: KubePodsMultipleNotReady # ‼️ Critical alert
           annotations:
             message: 2 or more pods in {{ .Values.namespace }} namespace have been in a non-ready
@@ -74,6 +78,7 @@ spec:
           for: 5m
           labels:
             severity: {{ .Values.alertLabels.severity }}
+            job: {{ .Values.serviceName }}
         - alert: KubeDeploymentGenerationMismatch # ‼️ Critical alert
           annotations:
             message: Deployment generation for {{ .Values.namespace }}/{{ "{{" }} $labels.deployment {{ "}}" }} does not match, this indicates that the Deployment has failed but has not been rolled back.
@@ -85,6 +90,7 @@ spec:
           for: 15m
           labels:
             severity: {{ .Values.alertLabels.severity }}
+            job: {{ .Values.serviceName }}
         - alert: TrackMyCaseServiceDown
           annotations:
             message: >-
@@ -95,6 +101,7 @@ spec:
           for: 2m
           labels:
             severity: {{ .Values.alertLabels.severity }}
+            job: {{ .Values.serviceName }}
         - alert: HighPodMemoryUsage
           annotations:
             message: >-
@@ -106,3 +113,4 @@ spec:
           for: 5m
           labels:
             severity: {{ .Values.alertLabels.severity }}
+            job: {{ .Values.serviceName }}
