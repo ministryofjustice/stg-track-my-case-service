@@ -58,7 +58,7 @@ public class ApplicationExceptionHandler {
     }
 
     @ExceptionHandler(HttpServerErrorException.class)
-    public ResponseEntity<String> handleHttpServerErrorException(HttpStatusCodeException e, HttpServletRequest request) {
+    public ResponseEntity<String> handleHttpServerErrorException(HttpServerErrorException e, HttpServletRequest request) {
 
         log.error("Downstream service error for request [{}]: status={}, body={}",
                   request.getRequestURI(), e.getStatusCode(), e.getResponseBodyAsString(), e);
