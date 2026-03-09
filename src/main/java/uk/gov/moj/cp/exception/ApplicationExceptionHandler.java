@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 
 @Slf4j
@@ -13,7 +14,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 public class ApplicationExceptionHandler {
 
     @ExceptionHandler(HttpClientErrorException.NotFound.class)
-    public ResponseEntity<String> handleHttpStatusCodeException404(HttpStatusCodeException e, HttpServletRequest request) {
+    public ResponseEntity<String> handleHttpStatusCodeExceptionNotFound(HttpStatusCodeException e, HttpServletRequest request) {
 
         log.error("Case not found for request [{}]: status={}",
                   request.getRequestURI(), e.getStatusCode());
@@ -23,10 +24,21 @@ public class ApplicationExceptionHandler {
             .body(e.getResponseBodyAsString());
     }
 
-    @ExceptionHandler(HttpStatusCodeException.class)
+    @ExceptionHandler(HttpClientErrorException.TooManyRequests.class)
+    public ResponseEntity<String> handleHttpStatusCodeExceptionTooManyRequests(HttpStatusCodeException e, HttpServletRequest request) {
+
+        log.error("Downstream service error (Too Many Requests) for request [{}]: status={}, body={}",
+                  request.getRequestURI(), e.getStatusCode(), e.getResponseBodyAsString(), e);
+
+        return ResponseEntity
+            .status(e.getStatusCode())
+            .body(e.getResponseBodyAsString());
+    }
+
+    @ExceptionHandler(HttpServerErrorException.ServiceUnavailable.class)
     public ResponseEntity<String> handleHttpStatusCodeException(HttpStatusCodeException e, HttpServletRequest request) {
 
-        log.error("Downstream service error for request [{}]: status={}, body={}",
+        log.error("Downstream service error (Service Unavailable) for request [{}]: status={}, body={}",
                   request.getRequestURI(), e.getStatusCode(), e.getResponseBodyAsString(), e);
 
         return ResponseEntity

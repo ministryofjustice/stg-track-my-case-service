@@ -77,9 +77,12 @@ public class CourtHouseAPIClient implements CourtHouseClient {
                 getRequestEntity(accessToken),
                 CourtHouse.class
             );
+
         } catch (HttpStatusCodeException e) {
-            log.atError().log("Error while calling CourtHouse API. status: {}, body: {}",
-                              e.getStatusCode(), e.getResponseBodyAsString());
+            throw e;
+        } catch (Exception e) {
+            log.error("Error while calling CourtHouse API: courtId: {}, exception: {}",
+                      courtId, e.getMessage());
             throw e;
         }
     }
