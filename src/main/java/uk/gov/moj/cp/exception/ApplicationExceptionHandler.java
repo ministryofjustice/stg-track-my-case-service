@@ -36,9 +36,31 @@ public class ApplicationExceptionHandler {
     }
 
     @ExceptionHandler(HttpServerErrorException.ServiceUnavailable.class)
-    public ResponseEntity<String> handleHttpStatusCodeException(HttpStatusCodeException e, HttpServletRequest request) {
+    public ResponseEntity<String> handleHttpStatusCodeExceptionServiceUnavailable(HttpStatusCodeException e, HttpServletRequest request) {
 
         log.error("Downstream service error (Service Unavailable) for request [{}]: status={}, body={}",
+                  request.getRequestURI(), e.getStatusCode(), e.getResponseBodyAsString(), e);
+
+        return ResponseEntity
+            .status(e.getStatusCode())
+            .body(e.getResponseBodyAsString());
+    }
+
+    @ExceptionHandler(HttpStatusCodeException.class)
+    public ResponseEntity<String> handleHttpStatusCodeException(HttpStatusCodeException e, HttpServletRequest request) {
+
+        log.error("Downstream service error for request [{}]: status={}, body={}",
+                  request.getRequestURI(), e.getStatusCode(), e.getResponseBodyAsString(), e);
+
+        return ResponseEntity
+            .status(e.getStatusCode())
+            .body(e.getResponseBodyAsString());
+    }
+
+    @ExceptionHandler(HttpServerErrorException.class)
+    public ResponseEntity<String> handleHttpServerErrorException(HttpStatusCodeException e, HttpServletRequest request) {
+
+        log.error("Downstream service error for request [{}]: status={}, body={}",
                   request.getRequestURI(), e.getStatusCode(), e.getResponseBodyAsString(), e);
 
         return ResponseEntity
