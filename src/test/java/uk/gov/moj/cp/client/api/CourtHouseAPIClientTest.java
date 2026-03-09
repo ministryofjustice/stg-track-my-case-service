@@ -6,15 +6,18 @@ import com.moj.generated.hmcts.CourtRoom;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -87,21 +90,32 @@ class CourtHouseAPIClientTest {
         assertThat(courtHouse).isEqualTo(actual.getBody());
     }
 
+
     @Test
-    void shouldLogErrorAndReturnNull_whenRestTemplateThrowsException() {
+    void shouldRethrowHttpStatusCodeException_whenRestTemplateReturnsHttpError() {
         String courtId = "courtId-123";
         String courtRoomId = "courtRoomId-456";
         String expectedUrl = "https://some.dev.environment.com/courthouses/courtId-123/courtrooms/courtRoomId-456";
+
+        HttpClientErrorException exception =
+            HttpClientErrorException.create(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "Service Unavailable",
+                HttpHeaders.EMPTY,
+                null,
+                null
+            );
 
         when(restTemplate.exchange(
             eq(expectedUrl),
             eq(HttpMethod.GET),
             eq(courtHouseClient.getRequestEntity(accessToken)),
             eq(CourtHouse.class)
-        )).thenThrow(new RestClientException("Timeout"));
+        )).thenThrow(exception);
 
-        HttpEntity<CourtHouse> result = courtHouseClient.getCourtHouseById(accessToken, courtId, courtRoomId);
-        assertThat(result).isNull();
+        assertThatThrownBy(() -> courtHouseClient.getCourtHouseById(accessToken, courtId, courtRoomId))
+            .isInstanceOf(HttpClientErrorException.class)
+            .hasMessageContaining("503");
     }
 }
 

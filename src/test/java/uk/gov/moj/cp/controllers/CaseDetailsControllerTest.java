@@ -7,9 +7,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.client.HttpClientErrorException;
+
+import uk.gov.moj.cp.config.ApiPaths;
 import uk.gov.moj.cp.dto.outbound.CaseDetailsDto;
 import uk.gov.moj.cp.dto.outbound.CaseDetailsCourtScheduleDto;
 import uk.gov.moj.cp.dto.outbound.CaseDetailsHearingDto;
@@ -18,6 +23,7 @@ import uk.gov.moj.cp.dto.outbound.CourtHouseDto;
 import uk.gov.moj.cp.dto.outbound.CourtRoomDto;
 import uk.gov.moj.cp.dto.outbound.AddressDto;
 import uk.gov.moj.cp.dto.outbound.CaseDetailsWeekCommencingDto;
+import uk.gov.moj.cp.exception.ApplicationExceptionHandler;
 import uk.gov.moj.cp.service.CaseDetailsService;
 
 import java.time.LocalDate;
@@ -27,11 +33,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
 public class CaseDetailsControllerTest {
@@ -44,9 +52,16 @@ public class CaseDetailsControllerTest {
     @InjectMocks
     private CaseDetailsController caseDetailsController;
 
+    private static final String GENERIC_ERROR_MESSAGE =
+        "An error occurred while processing, see the logs for more details";
+
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(caseDetailsController).build();
+
+        mockMvc = MockMvcBuilders
+            .standaloneSetup(caseDetailsController)
+            .setControllerAdvice(new ApplicationExceptionHandler())
+            .build();
     }
 
     @Test
@@ -155,23 +170,21 @@ public class CaseDetailsControllerTest {
             .andExpect(jsonPath("$.courtSchedule.length()").value(0));
     }
 
-
     @Test
-    @DisplayName("GET /api/cases/{case_urn}/casedetails - service throws IllegalArgumentException")
+    @DisplayName("GET /api/cases/{case_urn}/casedetails - should return 400 when IllegalArgumentException is thrown")
     void shouldHandleIllegalArgumentException() throws Exception {
-        String caseUrn = "INVALID_FORMAT";
+        final String caseUrn = "INVALID_FORMAT";
+        final String errorMessage = "Invalid case URN format";
 
-        when(caseDetailsService.getCaseDetailsByCaseUrn(caseUrn))
-            .thenThrow(new IllegalArgumentException("Invalid case URN format"));
+        given(caseDetailsService.getCaseDetailsByCaseUrn(eq(caseUrn)))
+            .willThrow(new IllegalArgumentException(errorMessage));
 
-        mockMvc.perform(get("/api/cases/{case_urn}/casedetails", caseUrn)
-                            .contentType(MediaType.APPLICATION_JSON))
-                            .andExpect(status().isNotFound())
-                            .andExpect(content().string(
-                                "An error occurred while processing the request either caseUrn is not available,"
-                                    + "or see the logs for more details."
-                            ));
+        mockMvc.perform(get(ApiPaths.PATH_API_CASES + "/{case_urn}/casedetails", caseUrn)
+                            .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isBadRequest())
+            .andExpect(content().string(errorMessage));
     }
+
 
     @Test
     @DisplayName("GET /api/cases/{case_urn}/casedetails - service throws NullPointerException")
@@ -179,15 +192,47 @@ public class CaseDetailsControllerTest {
         String caseUrn = "NULL_CASE";
 
         when(caseDetailsService.getCaseDetailsByCaseUrn(caseUrn))
-            .thenThrow(new NullPointerException("Null pointer in service"));
+            .thenThrow(new NullPointerException());
 
         mockMvc.perform(get("/api/cases/{case_urn}/casedetails", caseUrn)
                             .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNotFound())
-            .andExpect(content().string(
-                "An error occurred while processing the request either caseUrn is not available,"
-                    + "or see the logs for more details."
-            ));
+            .andExpect(status().isInternalServerError())
+            .andExpect(content().string("An error occurred while processing, see the logs for more details"));
     }
+
+    @Test
+    @DisplayName("GET /api/cases/{case_urn}/casedetails - service throws HttpStatusCodeException")
+    void shouldHandleHttpStatusCodeException() throws Exception {
+        String caseUrn = "RATE_LIMITED_CASE";
+
+        when(caseDetailsService.getCaseDetailsByCaseUrn(caseUrn))
+            .thenThrow(HttpClientErrorException.create(
+                HttpStatus.TOO_MANY_REQUESTS,
+                "Too Many Requests",
+                HttpHeaders.EMPTY,
+                "Too Many Requests".getBytes(),
+                null
+            ));
+
+        mockMvc.perform(get("/api/cases/{case_urn}/casedetails", caseUrn)
+                            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isTooManyRequests())
+            .andExpect(content().string("Too Many Requests"));
+    }
+
+    @Test
+    @DisplayName("GET /api/cases/{case_urn}/casedetails - service throws RuntimeException")
+    void shouldHandleRuntimeException() throws Exception {
+        String caseUrn = "NULL_CASE";
+
+        when(caseDetailsService.getCaseDetailsByCaseUrn(caseUrn))
+            .thenThrow(new RuntimeException());
+
+        mockMvc.perform(get("/api/cases/{case_urn}/casedetails", caseUrn)
+                            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isInternalServerError())
+            .andExpect(content().string("An error occurred while processing, see the logs for more details"));
+    }
+
 
 }

@@ -12,6 +12,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -64,21 +65,22 @@ public class CourtHouseAPIClient implements CourtHouseClient {
 
 
     public ResponseEntity<CourtHouse> getCourtHouseById(String accessToken, String courtId, String courtRoomId) {
-        try {
-            String courtHouseAmpUrl = (courtRoomId == null || courtRoomId.isEmpty())
-                ? buildCourtHearingCourtHousesByIdUrl(courtId)
-                : buildCourtHearingCourtHousesAndCourtRoomsByIdUrl(courtId, courtRoomId);
+        String courtHouseAmpUrl = (courtRoomId == null || courtRoomId.isEmpty())
+            ? buildCourtHearingCourtHousesByIdUrl(courtId)
+            : buildCourtHearingCourtHousesAndCourtRoomsByIdUrl(courtId, courtRoomId);
 
+        try {
             return restTemplate.exchange(
                 courtHouseAmpUrl,
                 HttpMethod.GET,
                 getRequestEntity(accessToken),
                 CourtHouse.class
             );
-        } catch (Exception e) {
-            log.atError().log("Error while calling CourtHouse API", e);
+        } catch (HttpStatusCodeException e) {
+            log.atError().log("Error while calling CourtHouse API. status: {}, body: {}",
+                              e.getStatusCode(), e.getResponseBodyAsString());
+            throw e;
         }
-        return null;
     }
 
     protected HttpEntity<String> getRequestEntity(String accessToken) {
