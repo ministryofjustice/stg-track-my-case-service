@@ -15,6 +15,7 @@ import uk.gov.moj.cp.dto.outbound.AddressDto;
 
 import java.util.List;
 
+import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 @Slf4j
@@ -27,14 +28,14 @@ public class CourtHouseService {
     public CourtHouseDto getCourtHouseById(String accessToken, String courtId, String courtRoomId) {
         HttpEntity<CourtHouse> result = courtHouseClient.getCourtHouseById(accessToken, courtId, courtRoomId);
 
-        if (result == null || result.getBody() == null) {
+        if (isNull(result) || isNull(result.getBody())) {
             log.atError().log("Response body is null or empty");
             return null;
         }
-        return convertToJudiciaryResult(result.getBody(), courtId, courtRoomId);
+        return convertToCourtHouseDto(result.getBody(), courtId, courtRoomId);
     }
 
-    private CourtHouseDto convertToJudiciaryResult(CourtHouse courtHouse, String id, String courtRoomId) {
+    private CourtHouseDto convertToCourtHouseDto(CourtHouse courtHouse, String id, String courtRoomId) {
         CourtHouseType courtHouseType = courtHouse.getCourtHouseType();
         List<CourtRoomDto> courtRoomDtos = nonNull(courtHouse.getCourtRoom())
             ? courtHouse.getCourtRoom().stream()
