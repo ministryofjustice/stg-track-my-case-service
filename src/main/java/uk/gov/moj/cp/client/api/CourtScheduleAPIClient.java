@@ -59,8 +59,10 @@ public class CourtScheduleAPIClient implements CourtScheduleClient {
                 CourtScheduleSchema.class
             );
         } catch (HttpStatusCodeException e) {
-            log.error("Error while calling CourtSchedule API: caseUrn: {}, status: {}, body: {}",
-                      caseUrn, e.getStatusCode(), e.getResponseBodyAsString());
+            throw e;
+        } catch (Exception e) {
+            log.error("Error while calling CourtSchedule API: caseUrn: {}, exception: {}",
+                      caseUrn, e.getMessage());
             throw e;
         }
     }
