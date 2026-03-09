@@ -32,10 +32,10 @@ public class CourtHouseService {
             log.atError().log("Response body is null or empty");
             return null;
         }
-        return convertToCourtHouseResult(result.getBody(), courtId, courtRoomId);
+        return convertToCourtHouseDto(result.getBody(), courtId, courtRoomId);
     }
 
-    private CourtHouseDto convertToCourtHouseResult(CourtHouse courtHouse, String id, String courtRoomId) {
+    private CourtHouseDto convertToCourtHouseDto(CourtHouse courtHouse, String id, String courtRoomId) {
         CourtHouseType courtHouseType = courtHouse.getCourtHouseType();
         List<CourtRoomDto> courtRoomDtos = nonNull(courtHouse.getCourtRoom())
             ? courtHouse.getCourtRoom().stream()

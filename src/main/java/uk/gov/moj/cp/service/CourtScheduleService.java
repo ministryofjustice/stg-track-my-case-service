@@ -38,10 +38,10 @@ public class CourtScheduleService {
         if (isNull(result) || isNull(result.getBody())) {
             throw new RuntimeException("Response body is null or empty for caseUrn: " + caseUrn);
         }
-        return convertToCourtScheduleResult(caseUrn, result.getBody().getCourtSchedule());
+        return convertToCourtScheduleDto(caseUrn, result.getBody().getCourtSchedule());
     }
 
-    private List<CourtScheduleDto> convertToCourtScheduleResult(String caseUrn,
+    private List<CourtScheduleDto> convertToCourtScheduleDto(String caseUrn,
                                                                 List<CourtSchedule> courtScheduleResultList) {
         String hearingIdList = courtScheduleResultList.stream()
             .map(courtSchedule -> courtSchedule.getHearings().stream()
