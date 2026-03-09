@@ -5,11 +5,8 @@ import com.moj.generated.hmcts.CourtScheduleSchema;
 import com.moj.generated.hmcts.CourtSitting;
 import com.moj.generated.hmcts.Hearing;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.moj.cp.client.api.CourtScheduleClient;
 import uk.gov.moj.cp.model.HearingType;
 import uk.gov.moj.cp.model.mock.MockDataSummary;
@@ -33,13 +30,6 @@ public class MockCourtScheduleAPIClient implements CourtScheduleClient {
     public ResponseEntity<CourtScheduleSchema> getCourtScheduleByCaseUrn(String accessToken, String caseUrn) {
 
         return ResponseEntity.ok(new CourtScheduleSchema(customData(caseUrn)));
-        /*throw HttpServerErrorException.create(
-            HttpStatus.SERVICE_UNAVAILABLE,
-            "Service Unavailable",
-            HttpHeaders.EMPTY,
-            "Downstream service unavailable".getBytes(),
-            null
-        );*/
     }
 
     public List<CourtSchedule> customData(final String caseUrn) {

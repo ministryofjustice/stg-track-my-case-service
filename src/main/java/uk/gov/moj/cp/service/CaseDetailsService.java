@@ -178,8 +178,8 @@ public class CaseDetailsService {
 
     private CaseDetailsWeekCommencingDto getWeekCommencing(final HearingDto hearing) {
         final WeekCommencingDto weekCommencingDto = hearing.getWeekCommencing();
-        final boolean hasValidWeekCommencingDate = validateWeekCommencingDateNotInPastAndAfterTenYears(weekCommencingDto.getStartDate())
-            || validateWeekCommencingDateNotInPastAndAfterTenYears(weekCommencingDto.getEndDate());
+        final boolean hasValidWeekCommencingDate = validateWeekCommencingDateNotInPast(weekCommencingDto.getStartDate())
+            || validateWeekCommencingDateNotInPast(weekCommencingDto.getEndDate());
         if (!hasValidWeekCommencingDate) {
             return null;
         }
@@ -202,7 +202,7 @@ public class CaseDetailsService {
         final List<CourtSittingDto> sittings = hearing.getCourtSittings();
         final boolean hasAnyCurrentOrFutureSitting = (nonNull(sittings) && !sittings.isEmpty())
             && sittings.stream()
-            .anyMatch(s -> validateSittingDateNotInPastAndAfterTenYears(s.getSittingStart()));
+            .anyMatch(s -> validateSittingDateNotInPast(s.getSittingStart()));
 
         if (!hasAnyCurrentOrFutureSitting) {
             return null;
@@ -227,19 +227,19 @@ public class CaseDetailsService {
             .build();
     }
 
-    private boolean validateSittingDateNotInPastAndAfterTenYears(final String courtSittingStartDate) {
+    private boolean validateSittingDateNotInPast(final String courtSittingStartDate) {
         if (Optional.ofNullable(courtSittingStartDate).isPresent()) {
             LocalDate sittingDate = parse(courtSittingStartDate).toLocalDate();
-            return !( sittingDate.isBefore(LocalDate.now()) || sittingDate.isAfter(LocalDate.now().plusYears(10)));
+            return !sittingDate.isBefore(LocalDate.now());
         }
         return false;
     }
 
-    private boolean validateWeekCommencingDateNotInPastAndAfterTenYears(final String weekCommencingStartDate) {
+    private boolean validateWeekCommencingDateNotInPast(final String weekCommencingStartDate) {
         if (nonNull(weekCommencingStartDate) && !weekCommencingStartDate.isEmpty()) {
             try {
                 LocalDate weekCommencingDate = LocalDate.parse(weekCommencingStartDate);
-                return !(weekCommencingDate.isBefore(LocalDate.now()) || weekCommencingDate.isAfter(LocalDate.now().plusYears(10)));
+                return !weekCommencingDate.isBefore(LocalDate.now());
             } catch (Exception e) {
                 return false;
             }

@@ -171,6 +171,27 @@ public class CaseDetailsControllerTest {
     }
 
     @Test
+    @DisplayName("GET /api/cases/{case_urn}/casedetails - service throws HttpStatusCodeException")
+    void shouldHandleHttpStatusCodeException() throws Exception {
+        String caseUrn = "RATE_LIMITED_CASE";
+
+        when(caseDetailsService.getCaseDetailsByCaseUrn(caseUrn))
+            .thenThrow(HttpClientErrorException.create(
+                HttpStatus.TOO_MANY_REQUESTS,
+                "Too Many Requests",
+                HttpHeaders.EMPTY,
+                "Too Many Requests".getBytes(),
+                null
+            ));
+
+        mockMvc.perform(get("/api/cases/{case_urn}/casedetails", caseUrn)
+                            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isTooManyRequests())
+            .andExpect(content().string("Too Many Requests"));
+    }
+
+
+    @Test
     @DisplayName("GET /api/cases/{case_urn}/casedetails - should return 400 when IllegalArgumentException is thrown")
     void shouldHandleIllegalArgumentException() throws Exception {
         final String caseUrn = "INVALID_FORMAT";
@@ -200,25 +221,6 @@ public class CaseDetailsControllerTest {
             .andExpect(content().string("An error occurred while processing, see the logs for more details"));
     }
 
-    @Test
-    @DisplayName("GET /api/cases/{case_urn}/casedetails - service throws HttpStatusCodeException")
-    void shouldHandleHttpStatusCodeException() throws Exception {
-        String caseUrn = "RATE_LIMITED_CASE";
-
-        when(caseDetailsService.getCaseDetailsByCaseUrn(caseUrn))
-            .thenThrow(HttpClientErrorException.create(
-                HttpStatus.TOO_MANY_REQUESTS,
-                "Too Many Requests",
-                HttpHeaders.EMPTY,
-                "Too Many Requests".getBytes(),
-                null
-            ));
-
-        mockMvc.perform(get("/api/cases/{case_urn}/casedetails", caseUrn)
-                            .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isTooManyRequests())
-            .andExpect(content().string("Too Many Requests"));
-    }
 
     @Test
     @DisplayName("GET /api/cases/{case_urn}/casedetails - service throws RuntimeException")
@@ -233,6 +235,4 @@ public class CaseDetailsControllerTest {
             .andExpect(status().isInternalServerError())
             .andExpect(content().string("An error occurred while processing, see the logs for more details"));
     }
-
-
 }

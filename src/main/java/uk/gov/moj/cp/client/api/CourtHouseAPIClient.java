@@ -17,6 +17,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.List;
+import static java.util.Objects.isNull;
 
 @Slf4j
 @Component
@@ -65,7 +66,7 @@ public class CourtHouseAPIClient implements CourtHouseClient {
 
 
     public ResponseEntity<CourtHouse> getCourtHouseById(String accessToken, String courtId, String courtRoomId) {
-        String courtHouseAmpUrl = (courtRoomId == null || courtRoomId.isEmpty())
+        String courtHouseAmpUrl = (isNull(courtRoomId) || courtRoomId.isEmpty())
             ? buildCourtHearingCourtHousesByIdUrl(courtId)
             : buildCourtHearingCourtHousesAndCourtRoomsByIdUrl(courtId, courtRoomId);
 
