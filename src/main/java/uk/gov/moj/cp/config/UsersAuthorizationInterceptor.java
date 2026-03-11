@@ -2,6 +2,7 @@ package uk.gov.moj.cp.config;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.entity.ContentType;
@@ -9,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.web.servlet.HandlerInterceptor;
 import uk.gov.moj.cp.util.ApiUtils;
 
+@Slf4j
 public class UsersAuthorizationInterceptor implements HandlerInterceptor {
     private final String requiredHeaderValue;
 
@@ -21,9 +23,13 @@ public class UsersAuthorizationInterceptor implements HandlerInterceptor {
                              HttpServletResponse response,
                              Object handler) throws Exception {
         final String fullAuthorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+
+        log.atInfo().log("**** read from env ****** {}", requiredHeaderValue);
+
         if (StringUtils.isNotEmpty(fullAuthorizationHeader) && StringUtils.isNotEmpty(requiredHeaderValue)) {
             final String bearerTokenPrefix = ApiUtils.BEARER_TOKEN_PREFIX;
             if (fullAuthorizationHeader.startsWith(bearerTokenPrefix)) {
+                log.atInfo().log("**** bearer ****** {}", bearerTokenPrefix);
                 final String authorizationHeader = fullAuthorizationHeader.substring(bearerTokenPrefix.length());
                 if (requiredHeaderValue.equals(authorizationHeader)) {
                     return true;
