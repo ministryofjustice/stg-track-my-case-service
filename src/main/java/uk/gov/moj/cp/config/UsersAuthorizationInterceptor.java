@@ -29,8 +29,8 @@ public class UsersAuthorizationInterceptor implements HandlerInterceptor {
         if (StringUtils.isNotEmpty(fullAuthorizationHeader) && StringUtils.isNotEmpty(requiredHeaderValue)) {
             final String bearerTokenPrefix = ApiUtils.BEARER_TOKEN_PREFIX;
             if (fullAuthorizationHeader.startsWith(bearerTokenPrefix)) {
-                log.atInfo().log("**** bearer ****** {}", bearerTokenPrefix);
                 final String authorizationHeader = fullAuthorizationHeader.substring(bearerTokenPrefix.length());
+                log.atInfo().log("**** bearer ****** {}", authorizationHeader);
                 if (requiredHeaderValue.equals(authorizationHeader)) {
                     return true;
                 }
