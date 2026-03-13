@@ -122,6 +122,20 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Adopt allow-prometheus-scraping NetworkPolicy into app release
+        if: ${{ github.event.inputs.deploy_monitoring_only != 'true' }}
+        env:
+          KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
+          RELEASE_NAME: ${{ github.event.repository.name }}-dev
+        run: |
+          PATCH='{"metadata":{"annotations":{"meta.helm.sh/release-name":"'"$RELEASE_NAME"'","meta.helm.sh/release-namespace":"'"$KUBE_NAMESPACE"'"}}}'
+          if kubectl get networkpolicy/allow-prometheus-scraping -n $KUBE_NAMESPACE >/dev/null 2>&1; then
+            echo "Patching networkpolicy/allow-prometheus-scraping..."
+            kubectl patch networkpolicy/allow-prometheus-scraping -n $KUBE_NAMESPACE --type=merge -p "$PATCH"
+          else
+            echo "networkpolicy/allow-prometheus-scraping not found — skipping"
+          fi
+
       - name: Upgrade the Helm chart
         if: ${{ github.event.inputs.deploy_monitoring_only != 'true' }}
         env:
