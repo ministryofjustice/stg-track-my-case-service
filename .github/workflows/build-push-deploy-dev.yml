@@ -256,6 +256,11 @@ jobs:
           for resource in \
             "prometheusrule/alerting-rules-$KUBE_NAMESPACE" \
             "configmap/monitoring-helmcharts-monitoring-addon-dashboard" ; do
+            if kubectl get $resource -n $KUBE_NAMESPACE >/dev/null 2>&1; then
+              echo "Patching $resource..."
+              kubectl patch $resource -n $KUBE_NAMESPACE --type=merge -p "$PATCH"
+            else
+              echo "$resource not found — skipping"
             fi
           done
 
