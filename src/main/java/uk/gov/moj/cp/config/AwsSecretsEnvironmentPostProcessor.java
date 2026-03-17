@@ -34,7 +34,7 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
         String secretName = environment.getProperty(SECRET_NAME_ENV);
         if (secretName == null || secretName.isBlank()) {
-            log.debug("TMC_AWS_SECRET_NAME not set; skipping AWS Secrets Manager load");
+            log.info("AWS Secrets Manager: TMC_AWS_SECRET_NAME not set; TMC_DB_URL and TMC_TOKEN_CLIENT_ID will not be loaded from AWS");
             return;
         }
 
