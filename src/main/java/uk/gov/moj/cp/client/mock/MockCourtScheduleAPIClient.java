@@ -5,8 +5,12 @@ import com.moj.generated.hmcts.CourtScheduleSchema;
 import com.moj.generated.hmcts.CourtSitting;
 import com.moj.generated.hmcts.Hearing;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import uk.gov.moj.cp.client.api.CourtScheduleClient;
 import uk.gov.moj.cp.model.HearingType;
 import uk.gov.moj.cp.model.mock.MockDataSummary;
@@ -28,7 +32,39 @@ public class MockCourtScheduleAPIClient implements CourtScheduleClient {
 
     @Override
     public ResponseEntity<CourtScheduleSchema> getCourtScheduleByCaseUrn(String accessToken, String caseUrn) {
-
+        if("TNOTFOUND".equals(caseUrn)){
+            throw HttpClientErrorException.create(
+                    HttpStatus.NOT_FOUND,
+                    "not found",
+                    HttpHeaders.EMPTY,
+                    "case not found".getBytes(),
+                    null
+            );
+        } else if("TTOOMANY".equals(caseUrn)){
+            throw HttpClientErrorException.create(
+                    HttpStatus.TOO_MANY_REQUESTS,
+                    "too many requests",
+                    HttpHeaders.EMPTY,
+                    "too many requests".getBytes(),
+                    null
+            );
+        } else if("TSERVICEDOWN".equals(caseUrn)) {
+            throw HttpServerErrorException.create(
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    "Service Unavailable",
+                    HttpHeaders.EMPTY,
+                    "Downstream service unavailable".getBytes(),
+                    null
+            );
+        }  else if("TBADREQUEST".equals(caseUrn)) {
+            throw HttpClientErrorException.create(
+                    HttpStatus.BAD_REQUEST,
+                    "bad request",
+                    HttpHeaders.EMPTY,
+                    "bad request".getBytes(),
+                    null
+            );
+        }
         return ResponseEntity.ok(new CourtScheduleSchema(customData(caseUrn)));
     }
 
