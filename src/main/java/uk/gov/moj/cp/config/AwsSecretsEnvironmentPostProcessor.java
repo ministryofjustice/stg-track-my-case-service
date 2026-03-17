@@ -52,8 +52,6 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
             return;
         }
 
-        String loadMsg = "AWS Secrets Manager: Loading TMC_DB_URL and TMC_TOKEN_CLIENT_ID from AWS, secretName=" + secretName;
-        System.out.println(loadMsg);
         log.info("Loading TMC_DB_URL and TMC_TOKEN_CLIENT_ID from AWS Secrets Manager: secretName={}", secretName);
 
         String region = environment.getProperty(REGION_ENV);
@@ -63,12 +61,15 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
 
         Map<String, String> secrets = AwsSecretsLoader.loadSecret(secretName, region);
         if (secrets.isEmpty()) {
+            String warnMsg = "AWS Secrets Manager: No secrets loaded for secretName=" + secretName;
+            System.out.println(warnMsg);
             log.warn("No secrets loaded from AWS Secrets Manager for secretName={}", secretName);
             return;
         }
         String str = secrets.keySet().stream().collect(Collectors.joining(", "));
+        String keysMsg = "AWS Secrets Manager: Keys loaded from secret " + secretName + ": " + str;
+        System.out.println(keysMsg);
         log.info("Keys loaded from AWS Secrets Manager secret {}: {}", secretName, str);
-        System.out.println("AWS Secrets Manager: Loaded keys from AWS secret: " + str);
 
         Map<String, Object> props = new HashMap<>();
         putIfPresent(secrets, props, TMC_DB_URL);
