@@ -48,7 +48,7 @@ public class MockCourtScheduleAPIClient implements CourtScheduleClient {
                     "too many requests".getBytes(),
                     null
             );
-        } else if("TSERVICEDOWN".equals(caseUrn)) {
+        } else if("TSERVEDOWN".equals(caseUrn)) {
             throw HttpServerErrorException.create(
                     HttpStatus.SERVICE_UNAVAILABLE,
                     "Service Unavailable",
