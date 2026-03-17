@@ -32,6 +32,9 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
 
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
+        // Trace so we know the processor ran (visible even if logging is not yet configured)
+        System.err.println("[AwsSecretsEnvironmentPostProcessor] postProcessEnvironment called (runs before config/beans)");
+
         String secretName = environment.getProperty(SECRET_NAME_ENV);
         if (secretName == null || secretName.isBlank()) {
             log.info("AWS Secrets Manager: TMC_AWS_SECRET_NAME not set; TMC_DB_URL and TMC_TOKEN_CLIENT_ID will not be loaded from AWS");
