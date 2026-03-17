@@ -145,6 +145,7 @@ jobs:
         env:
           APP_ROLE_ARN: ${{ secrets.APP_ROLE_ARN }}
           AUTHENTICATION_REQUIRED: ${{ vars.AUTHENTICATION_REQUIRED }}
+          DEV_ECR_REGION: ${{ vars.DEV_ECR_REGION }}
           ECR_REPO_WEBAPP: ${{ steps.login-ecr.outputs.registry }}/${{ vars.DEV_ECR_REPOSITORY }}
           IP_RANGES: ${{ secrets.IP_RANGES }}
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
@@ -181,6 +182,9 @@ jobs:
               custom_variables_array+=("--set-string" "${custom_key}=${safe_value}")
              fi
           done
+
+          # Pass AWS region from vars.DEV_ECR_REGION so app can use it (e.g. tmc.aws.region / TMC_AWS_REGION)
+          custom_variables_array+=("--set-string" "Secrets.WebApp.Parameters.TMC_AWS_REGION=$DEV_ECR_REGION")
 
           # Debug
           echo "=== DEBUG: custom_variables_array ==="
