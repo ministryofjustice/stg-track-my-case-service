@@ -9,6 +9,7 @@ import org.springframework.core.env.MapPropertySource;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Loads TMC_DB_URL and TMC_TOKEN_CLIENT_ID from AWS Secrets Manager before the application context
@@ -32,15 +33,21 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
 
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
-        // Trace so we know the processor ran (visible even if logging is not yet configured)
-        System.err.println("[AwsSecretsEnvironmentPostProcessor] postProcessEnvironment called (runs before config/beans)");
+        // Unconditional console trace so we know the processor ran (logging may not be ready yet)
+        String trace = "[AwsSecretsEnvironmentPostProcessor] postProcessEnvironment called (before Flyway/context)";
+        System.out.println(trace);
+        System.err.println(trace);
 
         String secretName = environment.getProperty(SECRET_NAME_ENV);
         if (secretName == null || secretName.isBlank()) {
-            log.info("AWS Secrets Manager: TMC_AWS_SECRET_NAME not set; TMC_DB_URL and TMC_TOKEN_CLIENT_ID will not be loaded from AWS");
+            String msg = "AWS Secrets Manager: TMC_AWS_SECRET_NAME not set; TMC_DB_URL and TMC_TOKEN_CLIENT_ID will not be loaded from AWS";
+            System.out.println(msg);
+            log.info(msg);
             return;
         }
 
+        String loadMsg = "AWS Secrets Manager: Loading TMC_DB_URL and TMC_TOKEN_CLIENT_ID from AWS, secretName=" + secretName;
+        System.out.println(loadMsg);
         log.info("Loading TMC_DB_URL and TMC_TOKEN_CLIENT_ID from AWS Secrets Manager: secretName={}", secretName);
 
         String region = environment.getProperty(REGION_ENV);
@@ -53,6 +60,9 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
             log.warn("No secrets loaded from AWS Secrets Manager for secretName={}", secretName);
             return;
         }
+        String str = secrets.keySet().stream().collect(Collectors.joining(", "));
+        log.info("Keys loaded from AWS Secrets Manager secret {}: {}", secretName, str);
+        System.out.println("AWS Secrets Manager: Loaded keys from AWS secret: " + str);
 
         Map<String, Object> props = new HashMap<>();
         putIfPresent(secrets, props, TMC_DB_URL);
@@ -61,6 +71,8 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
         if (!props.isEmpty()) {
             environment.getPropertySources()
                 .addLast(new MapPropertySource(PROPERTY_SOURCE_NAME, props));
+            String populated = "AWS Secrets Manager: Populated TMC_DB_URL and TMC_TOKEN_CLIENT_ID from AWS";
+            System.out.println(populated);
             for (String key : props.keySet()) {
                 log.info("TMC config populated from AWS Secrets Manager: {} (value length={})",
                     key, ((String) props.get(key)).length());
