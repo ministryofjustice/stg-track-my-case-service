@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * Only runs when a secret name is set via env {@code TMC_AWS_SECRET_NAME} or config
  * {@code tmc.aws.secret-name} in application.yaml. The secret in AWS should be a JSON
  * object with keys {@code TMC_DB_URL} and {@code TMC_TOKEN_CLIENT_ID}.
- * Region can be set via {@code AWS_REGION} or {@code TMC_AWS_REGION}.
+ * Region: env {@code TMC_AWS_REGION} or {@code AWS_REGION}, or config {@code tmc.aws.region} (e.g. same as vars.DEV_ECR_REGION).
  */
 public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProcessor {
 
@@ -29,6 +29,9 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
     private static final String SECRET_NAME_PROPERTY = "tmc.aws.secret-name";
     private static final String REGION_ENV = "TMC_AWS_REGION";
     private static final String AWS_REGION_ENV = "AWS_REGION";
+    private static final String REGION_PROPERTY = "tmc.aws.region";
+    /** Fallback when no env/config set (e.g. match vars.DEV_ECR_REGION for UK). */
+    private static final String DEFAULT_REGION = "eu-west-2";
 
     private static final String TMC_DB_URL = "TMC_DB_URL";
     private static final String TMC_TOKEN_CLIENT_ID = "TMC_TOKEN_CLIENT_ID";
@@ -54,9 +57,16 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
 
         log.info("Loading TMC_DB_URL and TMC_TOKEN_CLIENT_ID from AWS Secrets Manager: secretName={}", secretName);
 
+        // Region: env TMC_AWS_REGION or AWS_REGION, then config tmc.aws.region (e.g. same as vars.DEV_ECR_REGION in deployment)
         String region = environment.getProperty(REGION_ENV);
         if (region == null || region.isBlank()) {
             region = environment.getProperty(AWS_REGION_ENV);
+        }
+        if (region == null || region.isBlank()) {
+            region = environment.getProperty(REGION_PROPERTY);
+        }
+        if (region == null || region.isBlank()) {
+            region = DEFAULT_REGION;
         }
 
         Map<String, String> secrets = AwsSecretsLoader.loadSecret(secretName, region);
