@@ -16,8 +16,9 @@ import java.util.stream.Collectors;
  * starts, so they are available for {@code ${TMC_DB_URL}} and {@code ${TMC_TOKEN_CLIENT_ID}} in
  * application.yaml.
  * <p>
- * Only runs when {@code TMC_AWS_SECRET_NAME} is set (e.g. in Kubernetes). The secret in AWS
- * should be a JSON object with keys {@code TMC_DB_URL} and {@code TMC_TOKEN_CLIENT_ID}.
+ * Only runs when a secret name is set via env {@code TMC_AWS_SECRET_NAME} or config
+ * {@code tmc.aws.secret-name} in application.yaml. The secret in AWS should be a JSON
+ * object with keys {@code TMC_DB_URL} and {@code TMC_TOKEN_CLIENT_ID}.
  * Region can be set via {@code AWS_REGION} or {@code TMC_AWS_REGION}.
  */
 public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProcessor {
@@ -25,6 +26,7 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
     private static final Logger log = LoggerFactory.getLogger(AwsSecretsEnvironmentPostProcessor.class);
     private static final String PROPERTY_SOURCE_NAME = "awsSecretsManager";
     private static final String SECRET_NAME_ENV = "TMC_AWS_SECRET_NAME";
+    private static final String SECRET_NAME_PROPERTY = "tmc.aws.secret-name";
     private static final String REGION_ENV = "TMC_AWS_REGION";
     private static final String AWS_REGION_ENV = "AWS_REGION";
 
@@ -38,7 +40,11 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
         System.out.println(trace);
         System.err.println(trace);
 
+        // Env var overrides; fallback to application.yaml tmc.aws.secret-name
         String secretName = environment.getProperty(SECRET_NAME_ENV);
+        if (secretName == null || secretName.isBlank()) {
+            secretName = environment.getProperty(SECRET_NAME_PROPERTY);
+        }
         if (secretName == null || secretName.isBlank()) {
             String msg = "AWS Secrets Manager: TMC_AWS_SECRET_NAME not set; TMC_DB_URL and TMC_TOKEN_CLIENT_ID will not be loaded from AWS";
             System.out.println(msg);
