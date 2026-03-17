@@ -33,6 +33,8 @@ public final class AwsSecretsLoader {
      * @return map of secret keys to values, or empty map on error
      */
     public static Map<String, String> loadSecret(String secretName, String region) {
+        log.info("Attempting to load secret from AWS Secrets Manager: secretName={}, region={}", secretName, region);
+
         if (secretName == null || secretName.isBlank()) {
             return Collections.emptyMap();
         }
