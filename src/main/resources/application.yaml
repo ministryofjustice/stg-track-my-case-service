@@ -18,6 +18,10 @@ springdoc:
   packagesToScan: uk.gov.moj.cp.controllers
   writer-with-order-by-keys: true
 
+logging:
+  level:
+    uk.gov.moj.cp.config: INFO
+
 # When TMC_AWS_SECRET_NAME is set (e.g. in Kubernetes), TMC_DB_URL and TMC_TOKEN_CLIENT_ID
 # are loaded from AWS Secrets Manager before config is bound (see AwsSecretsEnvironmentPostProcessor).
 spring:
