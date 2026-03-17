@@ -188,6 +188,7 @@ jobs:
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
           --set Networkpolicy.Ingress="track-my-case-dev" \
+          --set ServiceAccount.RoleARN=$TMC_APP_ROLE \
           "${custom_variables_array[@]}"
           # > rendered.yaml
 
@@ -207,6 +208,7 @@ jobs:
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
           --set Networkpolicy.Ingress="track-my-case-dev" \
+          --set ServiceAccount.RoleARN=$TMC_APP_ROLE \
           "${custom_variables_array[@]}"
 
           echo "Labeling the service"
