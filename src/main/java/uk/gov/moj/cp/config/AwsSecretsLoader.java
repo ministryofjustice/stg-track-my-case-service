@@ -33,6 +33,9 @@ public final class AwsSecretsLoader {
      * @return map of secret keys to values, or empty map on error
      */
     public static Map<String, String> loadSecret(String secretName, String region) {
+        // System.out so messages appear in pod/container logs even when Logback isn't ready for this package
+        String attemptMsg = "AwsSecretsLoader: Attempting to load secret from AWS Secrets Manager: secretName=" + secretName + ", region=" + region;
+        System.out.println(attemptMsg);
         log.info("Attempting to load secret from AWS Secrets Manager: secretName={}, region={}", secretName, region);
 
         if (secretName == null || secretName.isBlank()) {
@@ -49,6 +52,7 @@ public final class AwsSecretsLoader {
             GetSecretValueResponse response = client.getSecretValue(request);
             String secretString = response.secretString();
             if (secretString == null || secretString.isBlank()) {
+                System.out.println("AwsSecretsLoader: Secret string empty for secretName=" + secretName);
                 return Collections.emptyMap();
             }
 
@@ -57,10 +61,13 @@ public final class AwsSecretsLoader {
                 new TypeReference<>() {
                 }
             );
+            String successMsg = "AwsSecretsLoader: Loaded " + parsed.size() + " keys from AWS Secrets Manager secret " + secretName + " (keys: " + parsed.keySet() + ")";
+            System.out.println(successMsg);
             log.info("Loaded {} keys from AWS Secrets Manager secret: {} (keys: {})",
                 parsed.size(), secretName, parsed.keySet());
             return parsed;
         } catch (Exception e) {
+            System.out.println("AwsSecretsLoader: Failed to load secret from AWS: secretName=" + secretName + ", error=" + e.getMessage());
             log.error("Failed to load secret from AWS Secrets Manager: secretName={}", secretName, e);
             return Collections.emptyMap();
         }
