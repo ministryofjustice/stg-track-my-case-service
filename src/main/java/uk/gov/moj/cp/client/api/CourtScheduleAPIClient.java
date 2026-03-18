@@ -12,6 +12,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -57,10 +58,13 @@ public class CourtScheduleAPIClient implements CourtScheduleClient {
                 getRequestEntity(accessToken),
                 CourtScheduleSchema.class
             );
+        } catch (HttpStatusCodeException e) {
+            throw e;
         } catch (Exception e) {
-            log.error("Error while calling CourtSchedule API", e);
+            log.error("Error while calling CourtSchedule API: caseUrn: {}, exception: {}",
+                      caseUrn, e.getMessage());
+            throw e;
         }
-        return null;
     }
 
     protected HttpEntity<String> getRequestEntity(String accessToken) {

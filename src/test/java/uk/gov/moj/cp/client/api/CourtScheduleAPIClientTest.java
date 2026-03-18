@@ -1,5 +1,6 @@
 package uk.gov.moj.cp.client.api;
 
+import com.moj.generated.hmcts.CourtHouse;
 import com.moj.generated.hmcts.CourtSchedule;
 import com.moj.generated.hmcts.CourtScheduleSchema;
 import com.moj.generated.hmcts.CourtSitting;
@@ -7,9 +8,11 @@ import com.moj.generated.hmcts.Hearing;
 import com.moj.generated.hmcts.WeekCommencing;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -18,6 +21,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -105,7 +109,6 @@ class CourtScheduleAPIClientTest {
 
         ResponseEntity<CourtScheduleSchema> actual = courtScheduleAPIClient.getCourtScheduleByCaseUrn(accessToken,
                                                                                                       caseUrn);
-
         assertThat(actual).isNotNull();
         assertThat(courtScheduleSchema).isEqualTo(actual.getBody());
     }
@@ -115,15 +118,24 @@ class CourtScheduleAPIClientTest {
         String caseUrn = "CASE123";
         String expectedUrl = "https://some.dev.environment.com/case/CASE123/courtschedule";
 
+        HttpClientErrorException exception =
+            HttpClientErrorException.create(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "Service Unavailable",
+                HttpHeaders.EMPTY,
+                null,
+                null
+            );
+
         when(restTemplate.exchange(
             eq(expectedUrl),
             eq(HttpMethod.GET),
             eq(courtScheduleAPIClient.getRequestEntity(accessToken)),
             eq(CourtScheduleSchema.class)
-        )).thenThrow(new RestClientException("Service unavailable"));
+        )).thenThrow(exception);
 
-        ResponseEntity<CourtScheduleSchema> response = courtScheduleAPIClient.getCourtScheduleByCaseUrn(accessToken,
-                                                                                                        caseUrn);
-        assertThat(response).isNull();
+        assertThatThrownBy(() -> courtScheduleAPIClient.getCourtScheduleByCaseUrn(accessToken, caseUrn))
+            .isInstanceOf(HttpClientErrorException.class)
+            .hasMessageContaining("503");
     }
 }

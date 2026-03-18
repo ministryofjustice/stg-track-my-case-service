@@ -1,4 +1,4 @@
-name: CI/CD preprod
+name: CI/CD sit
 
 on:
   workflow_dispatch:
@@ -12,17 +12,17 @@ on:
         type: boolean
         default: false
 permissions: {}
-concurrency: preprod
+concurrency: sit
 
 jobs:
-  build-push-preprod:
+  build-push-sit:
     name: Build & Push New Image
     if: ${{ github.event.inputs.deploy_monitoring_only != 'true' }}
     runs-on: ubuntu-latest
     permissions:
       id-token: write # This is required for requesting the JWT
       contents: write # This is required for actions/checkout
-    environment: preprod
+    environment: sit
     outputs:
       new_tag: ${{ steps.set-version-tag-output.outputs.new_tag }}
     steps:
@@ -37,7 +37,7 @@ jobs:
           WITH_V: true
           DEFAULT_BUMP: patch
           PRERELEASE: true
-          PRERELEASE_SUFFIX: preprod
+          PRERELEASE_SUFFIX: sit
 
       - name: Set Version tag output
         id: set-version-tag-output
@@ -57,8 +57,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6
         with:
-          role-to-assume: ${{ secrets.PREPROD_ECR_ROLE_TO_ASSUME }}
-          aws-region: ${{ vars.PREPROD_ECR_REGION }}
+          role-to-assume: ${{ secrets.SIT_ECR_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.SIT_ECR_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -67,22 +67,22 @@ jobs:
       - name: Tag, and push image to Amazon ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ vars.PREPROD_ECR_REPOSITORY }}
+          ECR_REPOSITORY: ${{ vars.SIT_ECR_REPOSITORY }}
           NEW_TAG_V: ${{ steps.set-version-tag-output.outputs.new_tag }}
         shell: bash
         run: |
           docker tag working_image:$NEW_TAG_V $ECR_REGISTRY/$ECR_REPOSITORY:$NEW_TAG_V
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$NEW_TAG_V
 
-  deploy-preprod:
-    needs: build-push-preprod
+  deploy-sit:
+    needs: build-push-sit
     name: Deploy Helm Chart into Cloud Platform
-    if: ${{ always() && (needs.build-push-preprod.result == 'success' || needs.build-push-preprod.result == 'skipped') }}
+    if: ${{ always() && (needs.build-push-sit.result == 'success' || needs.build-push-sit.result == 'skipped') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write # This is required for actions/checkout
       id-token: write # This is required for requesting the JWT
-    environment: preprod
+    environment: sit
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -107,8 +107,8 @@ jobs:
         if: ${{ github.event.inputs.deploy_monitoring_only != 'true' }}
         uses: aws-actions/configure-aws-credentials@v6
         with:
-          role-to-assume: ${{ secrets.PREPROD_ECR_ROLE_TO_ASSUME }}
-          aws-region: ${{ vars.PREPROD_ECR_REGION }}
+          role-to-assume: ${{ secrets.SIT_ECR_ROLE_TO_ASSUME }}
+          aws-region: ${{ vars.SIT_ECR_REGION }}
 
       - name: Login to Amazon ECR
         if: ${{ github.event.inputs.deploy_monitoring_only != 'true' }}
@@ -119,7 +119,7 @@ jobs:
         if: ${{ github.event.inputs.deploy_monitoring_only != 'true' }}
         env:
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
-          RELEASE_NAME: ${{ github.event.repository.name }}-preprod
+          RELEASE_NAME: ${{ github.event.repository.name }}-sit
         run: |
           PATCH='{"metadata":{"annotations":{"meta.helm.sh/release-name":"'"$RELEASE_NAME"'","meta.helm.sh/release-namespace":"'"$KUBE_NAMESPACE"'"}}}'
           for resource in \
@@ -138,11 +138,11 @@ jobs:
         env:
           APP_ROLE_ARN: ${{ secrets.APP_ROLE_ARN }}
           AUTHENTICATION_REQUIRED: ${{ vars.AUTHENTICATION_REQUIRED }}
-          ECR_REPO_WEBAPP: ${{ steps.login-ecr.outputs.registry }}/${{ vars.PREPROD_ECR_REPOSITORY }}
+          ECR_REPO_WEBAPP: ${{ steps.login-ecr.outputs.registry }}/${{ vars.SIT_ECR_REPOSITORY }}
           IP_RANGES: ${{ secrets.IP_RANGES }}
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
-          NEW_TAG_V: ${{ needs.build-push-preprod.outputs.new_tag }}
-          RELEASE_NAME: ${{ github.event.repository.name }}-preprod
+          NEW_TAG_V: ${{ needs.build-push-sit.outputs.new_tag }}
+          RELEASE_NAME: ${{ github.event.repository.name }}-sit
           SECRETS_CONTEXT:  ${{ toJson(secrets) }}
           VARS_CONTEXT:  ${{ toJson(vars) }}
         run: |
@@ -215,7 +215,7 @@ jobs:
           --set securityContext.capabilities.drop=["ALL"] \
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
-          --set Networkpolicy.Ingress="track-my-case-preprod" \
+          --set Networkpolicy.Ingress="track-my-case-sit" \
           --set ServiceAccount.RoleARN=$TMC_APP_ROLE \
           "${custom_variables_array[@]}"
           # > rendered.yaml
@@ -235,7 +235,7 @@ jobs:
           --set securityContext.capabilities.drop=["ALL"] \
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
-          --set Networkpolicy.Ingress="track-my-case-preprod" \
+          --set Networkpolicy.Ingress="track-my-case-sit" \
           --set ServiceAccount.RoleARN=$TMC_APP_ROLE \
           "${custom_variables_array[@]}"
 
@@ -246,7 +246,7 @@ jobs:
         if: ${{ github.event.inputs.deploy_monitoring_only == 'true' || github.event.inputs.deploy_monitoring != 'false' }}
         id: extract-values
         env:
-          RELEASE_NAME: ${{ github.event.repository.name }}-preprod
+          RELEASE_NAME: ${{ github.event.repository.name }}-sit
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
         run: |
           echo "Extracting deployed Helm values..."
@@ -284,5 +284,5 @@ jobs:
         run: |
           helm upgrade --install stg-track-my-case-monitoring \
             ./track-my-case-cloud-platform/charts/stg-track-my-case-monitoring \
-            -f ./track-my-case-cloud-platform/charts/stg-track-my-case-monitoring/values-preprod.yaml \
+            -f ./track-my-case-cloud-platform/charts/stg-track-my-case-monitoring/values-sit.yaml \
             --namespace $KUBE_NAMESPACE --wait
