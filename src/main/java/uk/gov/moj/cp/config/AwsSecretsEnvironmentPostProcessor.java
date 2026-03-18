@@ -68,8 +68,17 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
         if (region == null || region.isBlank()) {
             region = DEFAULT_REGION;
         }
+        Map<String, String> secrets = null;
 
-        Map<String, String> secrets = AwsSecretsLoader.loadSecret(secretName, region);
+        try {
+            secrets = AwsSecretsLoader.loadSecret(secretName, region);
+        } catch (Exception e) {
+            String errorMsg = "Error loading secrets from AWS Secrets Manager for secretName=" + secretName + ": " + e.getMessage();
+            System.out.println(errorMsg);
+            log.error(errorMsg, e);
+            return;
+        }
+
         if (secrets.isEmpty()) {
             String warnMsg = "AWS Secrets Manager: No secrets loaded for secretName=" + secretName;
             System.out.println(warnMsg);
