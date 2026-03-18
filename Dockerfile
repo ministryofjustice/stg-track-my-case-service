@@ -1,5 +1,5 @@
 # Use Amazon Corretto for building the application
-FROM amazoncorretto:25-alpine AS builder
+FROM amazoncorretto:26-alpine AS builder
 
 # Set the working directory
 WORKDIR /app
