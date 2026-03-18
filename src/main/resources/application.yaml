@@ -18,6 +18,19 @@ springdoc:
   packagesToScan: uk.gov.moj.cp.controllers
   writer-with-order-by-keys: true
 
+logging:
+  level:
+    uk.gov.moj.cp.config: INFO
+
+# AWS Secrets Manager: secret name and region for loading TMC_DB_URL and TMC_TOKEN_CLIENT_ID.
+# TMC_AWS_REGION is set by Helm from vars.DEV_ECR_REGION (dev) / TEST_ECR_REGION (test) etc.
+tmc:
+  aws:
+    secret-name: live-stg-track-my-case-service-dev-8d7479818dc21d0a
+    region: ${TMC_AWS_REGION}
+
+# When tmc.aws.secret-name or TMC_AWS_SECRET_NAME is set, TMC_DB_URL and TMC_TOKEN_CLIENT_ID
+# are loaded from AWS Secrets Manager before config is bound (see AwsSecretsEnvironmentPostProcessor).
 spring:
   config:
     import: "optional:configtree:/mnt/secrets/rpe/"
