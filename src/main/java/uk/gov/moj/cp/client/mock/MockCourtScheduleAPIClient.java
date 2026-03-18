@@ -163,7 +163,7 @@ public class MockCourtScheduleAPIClient implements CourtScheduleClient {
 
     private static MockDataSummary defaultSummary() {
         return MockDataSummary.builder()
-            .hearingType(null)
+            .hearingType(HearingType.UNKNOWN)
             .months(0)
             .days(0)
             .totalHearings(1)

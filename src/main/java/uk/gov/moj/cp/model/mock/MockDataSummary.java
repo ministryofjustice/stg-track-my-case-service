@@ -14,7 +14,6 @@ public class MockDataSummary {
 
     int days;
 
-    @Builder.Default
-    int totalHearings = 1;
+    int totalHearings;
 
 }

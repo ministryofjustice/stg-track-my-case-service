@@ -32,7 +32,9 @@ public enum HearingType {
     SENTENCE_OFFICER_TO_ATTEND("Sentence (Officer to Attend)"),
     SENTENCE_PROSECUTION_TO_ATTEND("Sentence (Prosecution to Attend)"),
     SENTENCE_PROSECUTION_AND_OFFICER_TO_ATTEND("Sentence (Prosecution and Officer to Attend)"),
-    SENTENCE_PROSECUTION_RELEASED("Sentence (Prosecution Released)");
+    SENTENCE_PROSECUTION_RELEASED("Sentence (Prosecution Released)"),
+
+    UNKNOWN("Unknown");
 
     private final String value;
 
