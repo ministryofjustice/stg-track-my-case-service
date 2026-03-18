@@ -51,16 +51,20 @@ public final class AwsSecretsLoader {
 
             GetSecretValueResponse response = client.getSecretValue(request);
             String secretString = response.secretString();
+            System.out.println("secretString = "  + secretString);
             if (secretString == null || secretString.isBlank()) {
                 System.out.println("AwsSecretsLoader: Secret string empty for secretName=" + secretName);
                 return Collections.emptyMap();
             }
+
 
             Map<String, String> parsed = OBJECT_MAPPER.readValue(
                 secretString,
                 new TypeReference<>() {
                 }
             );
+            System.out.println("parsed = " + parsed);
+
             String successMsg = "AwsSecretsLoader: Loaded " + parsed.size() + " keys from AWS Secrets Manager secret " + secretName + " (keys: " + parsed.keySet() + ")";
             System.out.println(successMsg);
             log.info("Loaded {} keys from AWS Secrets Manager secret: {} (keys: {})",
