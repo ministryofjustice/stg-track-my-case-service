@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "http://justice.gov.uk/prosecution.schema.json",
+  "title": "prosecutioncase",
+  "type": "object",
+  "properties": {
+    "prosecutionCase": {
+      "description": "The case status schema",
+      "type": "object",
+      "properties": {
+        "caseStatus": {
+          "description": "caseStatus",
+          "type": "string"
+        },
+        "reportingRestrictions": {
+          "description": "reportingRestrictions",
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

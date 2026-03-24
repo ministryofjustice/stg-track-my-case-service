@@ -26,10 +26,13 @@ management:
 services:
   amp-url: https://dummy
   amp-subscription-key: dummy-key
+  pcd-amp-subscription-key: dummy-pcd-amp-subscription-key
   api-cp-crime-schedulingandlisting-courtschedule:
     path: /some-api-cp-crime-schedulingandlisting-courtschedule
   api-cp-refdata-courthearing-courthouses:
     path: /some-api-cp-refdata-courthearing-courthouses
+  api-cp-pcd-courtstatus:
+    path: /cases/{case_urn}
   users:
     authorization-header: test-token
     aes-encryption-secret: FmkCWyCPfsuVD3r1SHqS3BFtB4YI1i7QdiZrfGKjv4k=
@@ -42,3 +45,7 @@ services:
     client-id: client-id
     client-secret: client-secret
     scope: api://scope/.default
+    prosecutioncase-tenant-id: tenant
+    prosecutioncase-client-id: client-id
+    prosecutioncase-client-secret: client-secret
+    prosecutioncase-scope: api://scope/.default
