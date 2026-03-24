@@ -51,7 +51,7 @@ public class ProsecutionCaseOAuthTokenClient {
     private String scope;
 
 
-    protected String buildTokenPathUrl(String tenantId, String version) {
+    protected String buildTokenPathUrl(final String tenantId, final String version) {
         return UriComponentsBuilder
             .fromUriString(getUrl())
             .path(getPath())

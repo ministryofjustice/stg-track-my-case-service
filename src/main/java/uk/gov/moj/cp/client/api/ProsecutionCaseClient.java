@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 
 public interface ProsecutionCaseClient {
 
-    ResponseEntity<ProsecutionCase> getCaseStatus(
+    ResponseEntity<ProsecutionCase> getCaseDetails(
         String accessToken,
         String caseUrn
     );

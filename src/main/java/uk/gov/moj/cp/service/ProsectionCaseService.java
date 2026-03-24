@@ -6,7 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
 import uk.gov.moj.cp.client.api.ProsecutionCaseClient;
-import uk.gov.moj.cp.dto.outbound.CaseStatusDto;
+import uk.gov.moj.cp.dto.outbound.ProsecutionCaseDTO;
 
 import static java.util.Objects.isNull;
 
@@ -17,8 +17,8 @@ public class ProsectionCaseService {
 
     private final ProsecutionCaseClient prosecutionCaseClient;
 
-    public CaseStatusDto getCaseStatus(String accessToken, String caseUrn) {
-        HttpEntity<ProsecutionCase> result = prosecutionCaseClient.getCaseStatus(accessToken, caseUrn);
+    public ProsecutionCaseDTO getCaseStatus(final String accessToken, final String caseUrn) {
+        HttpEntity<ProsecutionCase> result = prosecutionCaseClient.getCaseDetails(accessToken, caseUrn);
 
         if (isNull(result) || isNull(result.getBody())) {
             log.atError().log("Response body is null or empty");
@@ -27,10 +27,10 @@ public class ProsectionCaseService {
         return convertToCaseStatusDto(result.getBody());
     }
 
-    private CaseStatusDto convertToCaseStatusDto(ProsecutionCase prosecutionCase) {
-        return CaseStatusDto.builder()
+    private ProsecutionCaseDTO convertToCaseStatusDto(final ProsecutionCase prosecutionCase) {
+        return ProsecutionCaseDTO.builder()
             .caseStatus(prosecutionCase.getCaseStatus())
-            .reportingRestrictions(prosecutionCase.getReportingRestrictions())
+            .reportingRestrictions(prosecutionCase.isReportingRestrictions())
             .build();
     }
 }

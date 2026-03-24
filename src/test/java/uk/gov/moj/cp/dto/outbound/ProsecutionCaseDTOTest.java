@@ -7,74 +7,73 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static uk.gov.moj.cp.util.Utils.objectMapper;
 
-class CaseStatusDtoTest {
+class ProsecutionCaseDTOTest {
 
     @Test
     void testJsonSerialization_allFields() throws JsonProcessingException {
-        CaseStatusDto dto = CaseStatusDto.builder()
+        ProsecutionCaseDTO dto = ProsecutionCaseDTO.builder()
             .caseStatus("Active")
-            .reportingRestrictions("Reporting restrictions apply")
+            .reportingRestrictions(true)
             .build();
 
         assertEquals(
-            "{\"caseStatus\":\"Active\",\"reportingRestrictions\":\"Reporting restrictions apply\"}",
+            "{\"caseStatus\":\"Active\",\"reportingRestrictions\":true}",
             objectMapper.writeValueAsString(dto)
         );
     }
 
     @Test
     void testJsonSerialization_caseStatusOnly() throws JsonProcessingException {
-        CaseStatusDto dto = CaseStatusDto.builder()
+        ProsecutionCaseDTO dto = ProsecutionCaseDTO.builder()
             .caseStatus("Listed")
             .build();
 
         assertEquals(
-            "{\"caseStatus\":\"Listed\"}",
+            "{\"caseStatus\":\"Listed\",\"reportingRestrictions\":false}",
             objectMapper.writeValueAsString(dto)
         );
     }
 
     @Test
     void testJsonSerialization_reportingRestrictionsOnly() throws JsonProcessingException {
-        CaseStatusDto dto = CaseStatusDto.builder()
-            .reportingRestrictions("Anonymity order in place")
+        ProsecutionCaseDTO dto = ProsecutionCaseDTO.builder()
+            .reportingRestrictions(true)
             .build();
 
         assertEquals(
-            "{\"reportingRestrictions\":\"Anonymity order in place\"}",
+            "{\"reportingRestrictions\":true}",
             objectMapper.writeValueAsString(dto)
         );
     }
 
     @Test
     void testJsonSerialization_emptyWhenAllNull() throws JsonProcessingException {
-        CaseStatusDto dto = CaseStatusDto.builder().build();
+        ProsecutionCaseDTO dto = ProsecutionCaseDTO.builder().build();
 
-        assertEquals("{}", objectMapper.writeValueAsString(dto));
+        assertEquals("{\"reportingRestrictions\":false}", objectMapper.writeValueAsString(dto));
     }
 
     @Test
     void testEqualsAndHashCode() {
-        CaseStatusDto a = CaseStatusDto.builder()
+        ProsecutionCaseDTO a = ProsecutionCaseDTO.builder()
             .caseStatus("Active")
-            .reportingRestrictions("None")
+            .reportingRestrictions(true)
             .build();
-        CaseStatusDto b = CaseStatusDto.builder()
+        ProsecutionCaseDTO b = ProsecutionCaseDTO.builder()
             .caseStatus("Active")
-            .reportingRestrictions("None")
+            .reportingRestrictions(true)
             .build();
-        CaseStatusDto differentStatus = CaseStatusDto.builder()
+        ProsecutionCaseDTO differentStatus = ProsecutionCaseDTO.builder()
             .caseStatus("Closed")
-            .reportingRestrictions("None")
+            .reportingRestrictions(true)
             .build();
-        CaseStatusDto differentRestrictions = CaseStatusDto.builder()
+        ProsecutionCaseDTO differentRestrictions = ProsecutionCaseDTO.builder()
             .caseStatus("Active")
-            .reportingRestrictions("Restricted")
+            .reportingRestrictions(true)
             .build();
 
         assertEquals(a, b);
         assertEquals(a.hashCode(), b.hashCode());
         assertNotEquals(a, differentStatus);
-        assertNotEquals(a, differentRestrictions);
     }
 }

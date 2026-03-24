@@ -43,7 +43,7 @@ public class ProsecutionCaseAPIClient implements ProsecutionCaseClient {
     @Value("${services.api-cp-pcd-courtstatus.path}")
     private String apiCpApiCpPcdCourtstatusPath;
 
-    protected String buildCourtScheduleUrl(String caseUrn) {
+    protected String buildCourtScheduleUrl(final String caseUrn) {
         return UriComponentsBuilder
             .fromUriString(getAmpUrl())
             .path(getApiCpApiCpPcdCourtstatusPath())
@@ -51,7 +51,7 @@ public class ProsecutionCaseAPIClient implements ProsecutionCaseClient {
             .toUriString();
     }
 
-    public ResponseEntity<ProsecutionCase> getCaseStatus(String accessToken, String caseUrn) {
+    public ResponseEntity<ProsecutionCase> getCaseDetails(final String accessToken, final String caseUrn) {
         try {
             return restTemplate.exchange(
                 buildCourtScheduleUrl(caseUrn),
@@ -68,7 +68,7 @@ public class ProsecutionCaseAPIClient implements ProsecutionCaseClient {
         }
     }
 
-    protected HttpEntity<String> getRequestEntity(String accessToken) {
+    protected HttpEntity<String> getRequestEntity(final String accessToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
         headers.setBearerAuth(accessToken);

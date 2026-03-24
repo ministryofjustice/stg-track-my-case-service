@@ -10,12 +10,12 @@ import lombok.Value;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonPropertyOrder({"caseStatus", "reportingRestrictions"})
-public class CaseStatusDto {
+public class ProsecutionCaseDTO {
 
     @JsonProperty("caseStatus")
     String caseStatus;
 
     @JsonProperty("reportingRestrictions")
-    String reportingRestrictions;
+    boolean reportingRestrictions;
 }
 

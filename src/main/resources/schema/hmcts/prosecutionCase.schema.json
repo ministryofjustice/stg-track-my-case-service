@@ -14,7 +14,7 @@
         },
         "reportingRestrictions": {
           "description": "reportingRestrictions",
-          "type": "string"
+          "type": "boolean"
         }
       }
     }

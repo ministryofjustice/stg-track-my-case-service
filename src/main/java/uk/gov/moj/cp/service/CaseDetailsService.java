@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
-import uk.gov.moj.cp.client.oauth.ProsecutionCaseOAuthTokenClient;
 import uk.gov.moj.cp.dto.inbound.CourtScheduleDto;
 import uk.gov.moj.cp.dto.inbound.CourtSittingDto;
 import uk.gov.moj.cp.dto.inbound.HearingDto;
@@ -14,7 +13,7 @@ import uk.gov.moj.cp.dto.outbound.CaseDetailsCourtSittingDto;
 import uk.gov.moj.cp.dto.outbound.CaseDetailsDto;
 import uk.gov.moj.cp.dto.outbound.CaseDetailsHearingDto;
 import uk.gov.moj.cp.dto.outbound.CaseDetailsWeekCommencingDto;
-import uk.gov.moj.cp.dto.outbound.CaseStatusDto;
+import uk.gov.moj.cp.dto.outbound.ProsecutionCaseDTO;
 import uk.gov.moj.cp.dto.outbound.CourtHouseDto;
 import uk.gov.moj.cp.metrics.TrackMyCaseMetricsService;
 import uk.gov.moj.cp.model.HearingType;
@@ -47,10 +46,10 @@ public class CaseDetailsService {
     );
 
     public CaseDetailsDto getCaseDetailsByCaseUrn(final String caseUrn) {
-        String accessToken = oauthTokenService.getJwtToken();
-        String prosecutionCaseAcessToken = oauthTokenService.getProsecutionCaseJwtToken();
+        final String accessToken = oauthTokenService.getJwtToken();
+        final String prosecutionCaseAcessToken = oauthTokenService.getProsecutionCaseJwtToken();
         List<CourtScheduleDto> courtSchedule = courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn);
-        CaseStatusDto caseDetailsDto = prosectionCaseService.getCaseStatus(prosecutionCaseAcessToken, caseUrn);
+        ProsecutionCaseDTO caseDetailsDto = prosectionCaseService.getCaseStatus(prosecutionCaseAcessToken, caseUrn);
 
         List<CaseDetailsCourtScheduleDto> caseDetailsCourtSchedules = courtSchedule.stream()
             .map(schedule -> {

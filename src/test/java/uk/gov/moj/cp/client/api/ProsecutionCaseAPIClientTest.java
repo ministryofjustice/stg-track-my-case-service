@@ -61,7 +61,7 @@ class ProsecutionCaseAPIClientTest {
         String caseUrn = "URN-456";
         String expectedUrl = "https://some.dev.environment.com/cases/URN-456";
 
-        ProsecutionCase caseStatus = new ProsecutionCase("Active", "Reporting restrictions apply");
+        ProsecutionCase caseStatus = new ProsecutionCase("Active", true);
         ResponseEntity<ProsecutionCase> response = new ResponseEntity<>(caseStatus, HttpStatus.OK);
 
         when(restTemplate.exchange(
@@ -71,7 +71,7 @@ class ProsecutionCaseAPIClientTest {
             eq(ProsecutionCase.class)
         )).thenReturn(response);
 
-        ResponseEntity<ProsecutionCase> actual = pcdAPIClient.getCaseStatus(accessToken, caseUrn);
+        ResponseEntity<ProsecutionCase> actual = pcdAPIClient.getCaseDetails(accessToken, caseUrn);
 
         assertThat(actual).isNotNull();
         assertThat(caseStatus).isEqualTo(actual.getBody());
@@ -97,7 +97,7 @@ class ProsecutionCaseAPIClientTest {
             eq(ProsecutionCase.class)
         )).thenThrow(exception);
 
-        assertThatThrownBy(() -> pcdAPIClient.getCaseStatus(accessToken, caseUrn))
+        assertThatThrownBy(() -> pcdAPIClient.getCaseDetails(accessToken, caseUrn))
             .isInstanceOf(HttpClientErrorException.class)
             .hasMessageContaining("503");
     }
