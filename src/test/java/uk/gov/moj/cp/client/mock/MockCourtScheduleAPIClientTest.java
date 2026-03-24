@@ -52,7 +52,7 @@ class MockCourtScheduleAPIClientTest {
             of("TMCSEN9M", SENTENCE, -9, 0, 1),
             of("TMCSEN1D3", SENTENCE, 0, -1, 3),
             of("TMCSEN2D5", SENTENCE, 0, -2, 5),  // sentence 2 days before, multi-day 5 days
-            // Edge cases
+            // Edge cases (invalid URN -> defaultSummary uses HearingType.UNKNOWN)
             of("X", UNKNOWN, 0, 0, 1),
             of("TMCXX", UNKNOWN, 0, 0, 1),
             of("XXXTR", UNKNOWN, 0, 0, 1),
