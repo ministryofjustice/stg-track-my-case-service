@@ -49,7 +49,7 @@ public class CaseDetailsService {
         final String accessToken = oauthTokenService.getJwtToken();
         final String prosecutionCaseAcessToken = oauthTokenService.getProsecutionCaseJwtToken();
         List<CourtScheduleDto> courtSchedule = courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn);
-        ProsecutionCaseDTO caseDetailsDto = prosectionCaseService.getCaseStatus(prosecutionCaseAcessToken, caseUrn);
+        ProsecutionCaseDTO prosecutionCaseDTO = prosectionCaseService.getCaseStatus(prosecutionCaseAcessToken, caseUrn);
 
         List<CaseDetailsCourtScheduleDto> caseDetailsCourtSchedules = courtSchedule.stream()
             .map(schedule -> {
@@ -70,7 +70,7 @@ public class CaseDetailsService {
         trackMyCaseMetricsService.incrementCaseDetailsCount(caseUrn);
         return CaseDetailsDto.builder()
             .caseUrn(caseUrn)
-            .caseStatus(caseDetailsDto.getCaseStatus())
+            .caseStatus(prosecutionCaseDTO.getCaseStatus())
             .courtSchedules(caseDetailsCourtSchedules)
             .build();
     }
