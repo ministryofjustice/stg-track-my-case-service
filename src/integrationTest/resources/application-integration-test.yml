@@ -32,7 +32,6 @@ services:
   api-cp-refdata-courthearing-courthouses:
     path: /some-api-cp-refdata-courthearing-courthouses
   api-cp-pcd-courtstatus:
-
     path: /cases/{case_urn}
   users:
     authorization-header: test-token

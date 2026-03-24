@@ -16,8 +16,6 @@
           "description": "reportingRestrictions",
           "type": "string"
         }
-
-
       }
     }
   }
