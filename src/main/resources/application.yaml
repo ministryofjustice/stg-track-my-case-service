@@ -58,7 +58,7 @@ services:
     path: /case/{case_urn}/courtschedule
 
   api-cp-pcd-courtstatus:
-    path: /cases/{case_urn}
+    path: /pcd/cases/{case_urn}
 
   refdata-courthearing-judges:
     url: https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-judges
