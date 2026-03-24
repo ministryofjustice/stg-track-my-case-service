@@ -1,0 +1,79 @@
+package uk.gov.moj.cp.service;
+
+import com.moj.generated.hmcts.ProsecutionCase;
+import com.moj.generated.hmcts.ProsecutionCase;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import uk.gov.moj.cp.client.api.ProsecutionCaseClient;
+import uk.gov.moj.cp.dto.outbound.CaseStatusDto;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class ProsectionCaseServiceTest {
+
+    @Mock
+    private ProsecutionCaseClient prosecutionCaseClient;
+
+    @InjectMocks
+    private ProsectionCaseService prosectionCaseService;
+
+    private final String accessToken = "testToken";
+    private final String caseUrn = "URN12345";
+
+    @Test
+    void getCaseStatus_returnsMappedDto_whenClientReturnsBody() {
+        ProsecutionCase caseStatus = new ProsecutionCase("Active", "Reporting restrictions apply");
+        ResponseEntity<ProsecutionCase> entity = ResponseEntity.ok(caseStatus);
+        when(prosecutionCaseClient.getCaseStatus(accessToken, caseUrn)).thenReturn(entity);
+
+        CaseStatusDto dto = prosectionCaseService.getCaseStatus(accessToken, caseUrn);
+
+        assertNotNull(dto);
+        assertEquals("Active", dto.getCaseStatus());
+        assertEquals("Reporting restrictions apply", dto.getReportingRestrictions());
+        verify(prosecutionCaseClient).getCaseStatus(eq(accessToken), eq(caseUrn));
+    }
+
+    @Test
+    void getCaseStatus_returnsNull_whenResponseBodyIsNull() {
+        when(prosecutionCaseClient.getCaseStatus(anyString(), anyString()))
+            .thenReturn(new ResponseEntity<>(null, HttpStatus.OK));
+
+        CaseStatusDto result = prosectionCaseService.getCaseStatus(accessToken, caseUrn);
+
+        assertNull(result);
+    }
+
+    @Test
+    void getCaseStatus_returnsNull_whenClientReturnsNullEntity() {
+        when(prosecutionCaseClient.getCaseStatus(accessToken, caseUrn)).thenReturn(null);
+
+        CaseStatusDto result = prosectionCaseService.getCaseStatus(accessToken, caseUrn);
+
+        assertNull(result);
+    }
+
+    @Test
+    void getCaseStatus_mapsNullFieldsFromCaseStatus_whenPresent() {
+        ProsecutionCase caseStatus = new ProsecutionCase(null, null);
+        when(prosecutionCaseClient.getCaseStatus(accessToken, caseUrn)).thenReturn(ResponseEntity.ok(caseStatus));
+
+        CaseStatusDto dto = prosectionCaseService.getCaseStatus(accessToken, caseUrn);
+
+        assertNotNull(dto);
+        assertNull(dto.getCaseStatus());
+        assertNull(dto.getReportingRestrictions());
+    }
+}

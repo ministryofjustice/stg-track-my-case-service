@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
+import uk.gov.moj.cp.client.oauth.ProsecutionCaseOAuthTokenClient;
 import uk.gov.moj.cp.dto.inbound.CourtScheduleDto;
 import uk.gov.moj.cp.dto.inbound.CourtSittingDto;
 import uk.gov.moj.cp.dto.inbound.HearingDto;
@@ -13,6 +14,7 @@ import uk.gov.moj.cp.dto.outbound.CaseDetailsCourtSittingDto;
 import uk.gov.moj.cp.dto.outbound.CaseDetailsDto;
 import uk.gov.moj.cp.dto.outbound.CaseDetailsHearingDto;
 import uk.gov.moj.cp.dto.outbound.CaseDetailsWeekCommencingDto;
+import uk.gov.moj.cp.dto.outbound.CaseStatusDto;
 import uk.gov.moj.cp.dto.outbound.CourtHouseDto;
 import uk.gov.moj.cp.metrics.TrackMyCaseMetricsService;
 import uk.gov.moj.cp.model.HearingType;
@@ -34,6 +36,7 @@ import static java.util.Objects.nonNull;
 public class CaseDetailsService {
 
     private final CourtScheduleService courtScheduleService;
+    private final ProsectionCaseService prosectionCaseService;
     private final CourtHouseService courtHouseService;
     private final OAuthTokenService oauthTokenService;
     private final TrackMyCaseMetricsService trackMyCaseMetricsService;
@@ -45,7 +48,9 @@ public class CaseDetailsService {
 
     public CaseDetailsDto getCaseDetailsByCaseUrn(final String caseUrn) {
         String accessToken = oauthTokenService.getJwtToken();
+        String prosecutionCaseAcessToken = oauthTokenService.getProsecutionCaseJwtToken();
         List<CourtScheduleDto> courtSchedule = courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn);
+        CaseStatusDto caseDetailsDto = prosectionCaseService.getCaseStatus(prosecutionCaseAcessToken, caseUrn);
 
         List<CaseDetailsCourtScheduleDto> caseDetailsCourtSchedules = courtSchedule.stream()
             .map(schedule -> {
@@ -64,9 +69,9 @@ public class CaseDetailsService {
             .toList();
 
         trackMyCaseMetricsService.incrementCaseDetailsCount(caseUrn);
-
         return CaseDetailsDto.builder()
             .caseUrn(caseUrn)
+            .caseStatus(caseDetailsDto.getCaseStatus())
             .courtSchedules(caseDetailsCourtSchedules)
             .build();
     }
