@@ -29,9 +29,13 @@ public class SecurityConfig implements WebMvcConfigurer {
             .addPathPatterns(List.of(
                 PATH_API_USERS + "/**"
             ));
-        registry.addInterceptor(new CaseAuthorizationInterceptor(userService))
+
+        // commenting this as we need to remove whitelisting and allow user to access after successful OneLogin
+
+        /* registry.addInterceptor(new CaseAuthorizationInterceptor(userService))
             .addPathPatterns(List.of(
                 PATH_API_CASES + "/**"
             ));
+       */
     }
 }
