@@ -39,7 +39,7 @@ spring:
   datasource:
     url: ${AWS_TMC_DB_URL}
     username: ${AWS_TMC_DB_USERNAME}
-    password: ${AWS_TMC_DB_PASSWORD}
+    password: ${AWS_TMC_DB_PASSWORD1}
     driver-class-name: org.postgresql.Driver
 
   jpa:
