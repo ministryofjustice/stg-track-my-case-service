@@ -12,13 +12,15 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Loads TMC_DB_URL and TMC_TOKEN_CLIENT_ID from AWS Secrets Manager before the application context
- * starts, so they are available for {@code ${TMC_DB_URL}} and {@code ${TMC_TOKEN_CLIENT_ID}} in
- * application.yaml.
+ * Loads DB config from AWS Secrets Manager before the application context starts.
+ * Supported keys:
+ * - {@code AWS_TMC_DB_URL}
+ * - {@code AWS_TMC_DB_USERNAME}
+ * - {@code AWS_TMC_DB_PASSWORD}
  * <p>
  * Only runs when a secret name is set via env {@code TMC_AWS_SECRET_NAME} or config
  * {@code tmc.aws.secret-name} in application.yaml. The secret in AWS should be a JSON
- * object with keys {@code TMC_DB_URL} and {@code TMC_TOKEN_CLIENT_ID}.
+ * object with keys matching the names above.
  * Region: env {@code TMC_AWS_REGION} or {@code AWS_REGION}, or config {@code tmc.aws.region} (e.g. same as vars.DEV_ECR_REGION).
  */
 public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProcessor {
@@ -33,9 +35,9 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
     /** Fallback when no env/config set (e.g. match vars.DEV_ECR_REGION for UK). */
     private static final String DEFAULT_REGION = "eu-west-2";
 
-    private static final String TMC_DB_URL = "TMC_DB_URL";
-    private static final String TMC_TOKEN_CLIENT_ID = "TMC_TOKEN_CLIENT_ID";
-
+    private static final String AWS_TMC_DB_URL = "AWS_TMC_DB_URL";
+    private static final String AWS_TMC_DB_USERNAME = "AWS_TMC_DB_USERNAME";
+    private static final String AWS_TMC_DB_PASSWORD = "AWS_TMC_DB_PASSWORD";
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
         // Unconditional console trace so we know the processor ran (logging may not be ready yet)
@@ -49,13 +51,13 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
             secretName = environment.getProperty(SECRET_NAME_PROPERTY);
         }
         if (secretName == null || secretName.isBlank()) {
-            String msg = "AWS Secrets Manager: TMC_AWS_SECRET_NAME not set; TMC_DB_URL and TMC_TOKEN_CLIENT_ID will not be loaded from AWS";
+            String msg = "AWS Secrets Manager: TMC_AWS_SECRET_NAME not set; DB config will not be loaded from AWS";
             System.out.println(msg);
             log.info(msg);
             return;
         }
 
-        log.info("Loading TMC_DB_URL and TMC_TOKEN_CLIENT_ID from AWS Secrets Manager: secretName={}", secretName);
+        log.info("Loading DB secrets from AWS Secrets Manager: secretName={}", secretName);
 
         // Region: env TMC_AWS_REGION or AWS_REGION, then config tmc.aws.region (e.g. same as vars.DEV_ECR_REGION in deployment)
         String region = environment.getProperty(REGION_ENV);
@@ -91,20 +93,21 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
         log.info("Keys loaded from AWS Secrets Manager secret {}: {}", secretName, str);
 
         Map<String, Object> props = new HashMap<>();
-        putIfPresent(secrets, props, TMC_DB_URL);
-        putIfPresent(secrets, props, TMC_TOKEN_CLIENT_ID);
+        putIfPresent(secrets, props, AWS_TMC_DB_URL);
+        putIfPresent(secrets, props, AWS_TMC_DB_USERNAME);
+        putIfPresent(secrets, props, AWS_TMC_DB_PASSWORD);
 
         if (!props.isEmpty()) {
             environment.getPropertySources()
                 .addLast(new MapPropertySource(PROPERTY_SOURCE_NAME, props));
-            String populated = "AWS Secrets Manager: Populated TMC_DB_URL and TMC_TOKEN_CLIENT_ID from AWS";
+            String populated = "AWS Secrets Manager: Populated DB keys from AWS";
             System.out.println(populated);
             for (String key : props.keySet()) {
                 log.info("TMC config populated from AWS Secrets Manager: {} (value length={})",
                     key, ((String) props.get(key)).length());
             }
         } else {
-            log.warn("AWS secret did not contain TMC_DB_URL or TMC_TOKEN_CLIENT_ID; keys in secret: {}",
+            log.warn("AWS secret did not contain any known DB keys; keys in secret: {}",
                 secrets.keySet());
         }
     }
