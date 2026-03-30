@@ -12,11 +12,6 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRespon
 import java.util.Collections;
 import java.util.Map;
 
-/**
- * Loads secrets from AWS Secrets Manager.
- * Expects the secret to be stored as JSON with keys such as TMC_DB_URL, TMC_TOKEN_CLIENT_ID.
- * Used by {@link AwsSecretsEnvironmentPostProcessor} before the Spring context starts.
- */
 public final class AwsSecretsLoader {
 
     private static final Logger log = LoggerFactory.getLogger(AwsSecretsLoader.class);
