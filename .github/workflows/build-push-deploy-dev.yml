@@ -144,6 +144,8 @@ jobs:
         if: ${{ github.event.inputs.deploy_monitoring_only != 'true' }}
         env:
           APP_ROLE_ARN: ${{ secrets.APP_ROLE_ARN }}
+          AUTHENTICATION_REQUIRED: ${{ vars.AUTHENTICATION_REQUIRED }}
+          DEV_ECR_REGION: ${{ vars.DEV_ECR_REGION }}
           ECR_REPO_WEBAPP: ${{ steps.login-ecr.outputs.registry }}/${{ vars.DEV_ECR_REPOSITORY }}
           IP_RANGES: ${{ secrets.IP_RANGES }}
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
@@ -165,21 +167,27 @@ jobs:
             value=$(echo "$row" | base64 --decode | jq -r '.value')
 
             if [[ $key == TMC_* ]]; then
-              continue
-            fi
+              custom_key="Secrets.WebApp.Parameters.${key}"
 
-            custom_key="Secrets.WebApp.Parameters.${key}"
+              # Trim spaces from both ends
+              safe_value="$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
 
-            safe_value="$(echo "$value" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')"
-            if [[ "$value" != "$safe_value" ]]; then
-              echo "ERROR: Value for key '${custom_key}' has leading/trailing whitespace"
-              exit 1
-            fi
+              # Compare raw vs. trimmed
+              if [[ "$value" != "$safe_value" ]]; then
+                echo "ERROR: Value for key '${custom_key}' has leading/trailing whitespace"
+                exit 1
+              fi
 
-            custom_variables_array+=("--set-string" "${custom_key}=${safe_value}")
+              # Wrap in quotes to keep value intact for Helm/YAML
+              custom_variables_array+=("--set-string" "${custom_key}=${safe_value}")
+             fi
           done
 
-          echo "=== DEBUG: custom_variables_array (excludes TMC_* from GitHub) ==="
+          # Pass AWS region from vars.DEV_ECR_REGION so app can use it (e.g. tmc.aws.region / TMC_AWS_REGION)
+          custom_variables_array+=("--set-string" "Secrets.WebApp.Parameters.TMC_AWS_REGION=$DEV_ECR_REGION")
+
+          # Debug
+          echo "=== DEBUG: custom_variables_array ==="
           printf '%s\n' "${custom_variables_array[@]}"
 
           if helm status "$RELEASE_NAME" -n "$KUBE_NAMESPACE" >/dev/null 2>&1; then
