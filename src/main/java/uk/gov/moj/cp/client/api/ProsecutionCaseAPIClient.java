@@ -53,6 +53,8 @@ public class ProsecutionCaseAPIClient implements ProsecutionCaseClient {
 
     public ResponseEntity<ProsecutionCase> getCaseDetails(final String accessToken, final String caseUrn) {
         try {
+            log.info("pcdSubscriptionKey ============ " + getPcdSubscriptionKey());
+            log.info("apiCpApiCpPcdCourtstatusPath ============ " + getApiCpApiCpPcdCourtstatusPath());
             return restTemplate.exchange(
                 buildCourtScheduleUrl(caseUrn),
                 HttpMethod.GET,
