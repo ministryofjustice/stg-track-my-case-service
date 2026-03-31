@@ -94,8 +94,9 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
         putAllTmcPrefixed(secrets, props);
 
         if (!props.isEmpty()) {
+            // Highest precedence so AWS-secret values override same-named env vars from deploy tooling.
             environment.getPropertySources()
-                .addLast(new MapPropertySource(PROPERTY_SOURCE_NAME, props));
+                .addFirst(new MapPropertySource(PROPERTY_SOURCE_NAME, props));
             String populated = "AWS Secrets Manager: Populated " + props.size() + " TMC* keys from AWS";
             System.out.println(populated);
             for (String key : props.keySet()) {
