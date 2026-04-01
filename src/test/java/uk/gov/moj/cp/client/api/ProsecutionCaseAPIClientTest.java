@@ -42,7 +42,7 @@ class ProsecutionCaseAPIClientTest {
             }
 
             @Override
-            public String getApiCpApiCpPcdCourtstatusPath() {
+            public String getApiCpApiCpPcdCourtStatusPath() {
                 return apiCpPcdCourtstatusPath;
             }
         };
