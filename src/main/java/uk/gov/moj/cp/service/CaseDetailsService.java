@@ -68,6 +68,7 @@ public class CaseDetailsService {
             .toList();
 
         trackMyCaseMetricsService.incrementCaseDetailsCount(caseUrn);
+
         return CaseDetailsDto.builder()
             .caseUrn(caseUrn)
             .caseStatus(prosecutionCaseDTO.getCaseStatus())

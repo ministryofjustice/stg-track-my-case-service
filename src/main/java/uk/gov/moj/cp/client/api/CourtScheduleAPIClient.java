@@ -52,8 +52,6 @@ public class CourtScheduleAPIClient implements CourtScheduleClient {
 
     public ResponseEntity<CourtScheduleSchema> getCourtScheduleByCaseUrn(String accessToken, String caseUrn) {
         try {
-            log.info("TMC_AMP_SUBSCRIPTION_KEY ============ " + getAmpSubscriptionKey());
-            log.info("apiCpCrimeSchedulingAndListingCourtSchedulePath ============ " + getApiCpCrimeSchedulingAndListingCourtSchedulePath());
             return restTemplate.exchange(
                 buildCourtScheduleUrl(caseUrn),
                 HttpMethod.GET,
