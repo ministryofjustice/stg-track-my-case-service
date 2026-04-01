@@ -40,13 +40,13 @@ public class ProsecutionCaseAPIClient implements ProsecutionCaseClient {
     private String pcdSubscriptionKey;
 
     @Getter
-    @Value("${services.api-cp-pcd-courtstatus.path}")
-    private String apiCpApiCpPcdCourtstatusPath;
+    @Value("${services.api-cp-pcd-prosecution-case-details.path}")
+    private String apiCpApiCpPcdCourtStatusPath;
 
     protected String buildCourtScheduleUrl(final String caseUrn) {
         return UriComponentsBuilder
             .fromUriString(getAmpUrl())
-            .path(getApiCpApiCpPcdCourtstatusPath())
+            .path(getApiCpApiCpPcdCourtStatusPath())
             .buildAndExpand(caseUrn)
             .toUriString();
     }
