@@ -57,7 +57,7 @@ services:
   api-cp-crime-schedulingandlisting-courtschedule:
     path: /case/{case_urn}/courtschedule
 
-  api-cp-pcd-courtstatus:
+  api-cp-pcd-prosecution-case-details:
     path: /pcd/cases/{case_urn}
 
   refdata-courthearing-judges:
