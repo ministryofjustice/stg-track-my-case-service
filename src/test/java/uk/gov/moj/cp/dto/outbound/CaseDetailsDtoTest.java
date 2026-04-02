@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static uk.gov.moj.cp.util.Utils.objectMapper;
 
 class CaseDetailsDtoTest {
@@ -63,6 +64,7 @@ class CaseDetailsDtoTest {
 
         CaseDetailsDto dto1 = CaseDetailsDto.builder()
             .caseUrn("URN123")
+            .caseStatus("Active")
             .courtSchedules(List.of(courtSchedule))
             .build();
         CaseDetailsDto dto2 = CaseDetailsDto.builder().build();
@@ -73,10 +75,53 @@ class CaseDetailsDtoTest {
         String expectedHearing = "{\"hearingId\":\"H001\",\"hearingType\":\"Trial\",\"hearingDescription\":\"Main hearing\",\"listNote\":\"List note\",\"courtSittings\":[" + expectedSitting + "],\"weekCommencing\":" + expectedWeekCommencing + "}";
         String expectedCourtSchedule = "{\"hearings\":[" + expectedHearing + "]}";
         assertEquals(
-            "{\"caseUrn\":\"URN123\",\"courtSchedule\":[" + expectedCourtSchedule + "]}",
+            "{\"caseUrn\":\"URN123\",\"caseStatus\":\"Active\",\"courtSchedule\":[" + expectedCourtSchedule + "]}",
             objectMapper.writeValueAsString(dto1)
         );
         assertEquals("{}", objectMapper.writeValueAsString(dto2));
+    }
+
+    @Test
+    void testJsonInclude_caseStatusOnlyWithUrn() throws JsonProcessingException {
+        CaseDetailsDto withStatus = CaseDetailsDto.builder()
+            .caseUrn("URN-456")
+            .caseStatus("Listed")
+            .build();
+        assertEquals(
+            "{\"caseUrn\":\"URN-456\",\"caseStatus\":\"Listed\"}",
+            objectMapper.writeValueAsString(withStatus)
+        );
+
+        CaseDetailsDto urnNoStatus = CaseDetailsDto.builder()
+            .caseUrn("URN-789")
+            .build();
+        assertEquals(
+            "{\"caseUrn\":\"URN-789\"}",
+            objectMapper.writeValueAsString(urnNoStatus)
+        );
+    }
+
+    @Test
+    void testEqualsAndHashCode_includesCaseStatus() {
+        CaseDetailsDto a = CaseDetailsDto.builder()
+            .caseUrn("URN1")
+            .caseStatus("Active")
+            .courtSchedules(List.of())
+            .build();
+        CaseDetailsDto b = CaseDetailsDto.builder()
+            .caseUrn("URN1")
+            .caseStatus("Active")
+            .courtSchedules(List.of())
+            .build();
+        CaseDetailsDto differentStatus = CaseDetailsDto.builder()
+            .caseUrn("URN1")
+            .caseStatus("Closed")
+            .courtSchedules(List.of())
+            .build();
+
+        assertEquals(a, b);
+        assertEquals(a.hashCode(), b.hashCode());
+        assertNotEquals(a, differentStatus);
     }
 
     @Test

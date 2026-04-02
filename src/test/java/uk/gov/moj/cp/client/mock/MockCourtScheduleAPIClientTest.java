@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.of;
 import static uk.gov.moj.cp.model.HearingType.SENTENCE;
 import static uk.gov.moj.cp.model.HearingType.TRIAL;
+import static uk.gov.moj.cp.model.HearingType.UNKNOWN;
 import static uk.gov.moj.cp.client.mock.MockCourtScheduleAPIClient.parseCaseUrn;
 
 class MockCourtScheduleAPIClientTest {
@@ -52,10 +53,10 @@ class MockCourtScheduleAPIClientTest {
             of("TMCSEN1D3", SENTENCE, 0, -1, 3),
             of("TMCSEN2D5", SENTENCE, 0, -2, 5),  // sentence 2 days before, multi-day 5 days
             // Edge cases
-            of("X", null, 0, 0, 1),
-            of("TMCXX", null, 0, 0, 1),
-            of("XXXTR", null, 0, 0, 1),
-            of("XXXSE", null, 0, 0, 1),
+            of("X", HearingType.UNKNOWN, 0, 0, 1),
+            of("TMCXX", HearingType.UNKNOWN, 0, 0, 1),
+            of("XXXTR", HearingType.UNKNOWN, 0, 0, 1),
+            of("XXXSE", HearingType.UNKNOWN, 0, 0, 1),
             of("TMCTR", TRIAL, 0, 0, 1),
             of("TMCSE", SENTENCE, 0, 0, 1),
             of("TMCTRD", TRIAL, 0, 0, 1),

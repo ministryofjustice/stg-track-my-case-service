@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.moj.cp.dto.outbound.CaseDetailsDto;
 import uk.gov.moj.cp.dto.outbound.CaseDetailsHearingDto;
+import uk.gov.moj.cp.dto.outbound.ProsecutionCaseDTO;
 import uk.gov.moj.cp.dto.outbound.CourtHouseDto;
 import uk.gov.moj.cp.dto.outbound.CourtRoomDto;
 import uk.gov.moj.cp.dto.outbound.AddressDto;
@@ -39,6 +40,9 @@ class CaseDetailsServiceTest {
 
     @Mock
     private CourtScheduleService courtScheduleService;
+
+    @Mock
+    private ProsectionCaseService prosectionCaseService;
 
     @Mock
     private CourtHouseService courtHouseService;
@@ -110,6 +114,9 @@ class CaseDetailsServiceTest {
             .postalCode("CB4 3MX")
             .country("UK")
             .build();
+
+        when(oauthTokenService.getProsecutionCaseJwtToken()).thenReturn(accessToken);
+        when(prosectionCaseService.getCaseStatus(accessToken, caseUrn)).thenReturn(ProsecutionCaseDTO.builder().caseStatus("Active").build());
     }
 
     @Test
@@ -1143,6 +1150,7 @@ class CaseDetailsServiceTest {
             createCourtHouse(courtRoomDto, addressDto));
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
         when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
+        when(prosectionCaseService.getCaseStatus(accessToken, caseUrn)).thenReturn(ProsecutionCaseDTO.builder().caseStatus("Active").build());
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
