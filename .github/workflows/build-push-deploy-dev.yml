@@ -271,7 +271,7 @@ jobs:
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
         run: |
           NEW_RELEASE="stg-track-my-case-monitoring"
-          PATCH='{"metadata":{"annotations":{"meta.helm.sh/release-name":"'"$NEW_RELEASE"'","meta.helm.sh/release-namespace":"'"$KUBE_NAMESPACE"'"}}}'  
+          PATCH='{"metadata":{"annotations":{"meta.helm.sh/release-name":"'"$NEW_RELEASE"'","meta.helm.sh/release-namespace":"'"$KUBE_NAMESPACE"'"}}}'
 
           for resource in \
             "prometheusrule/alerting-rules-$KUBE_NAMESPACE" \
