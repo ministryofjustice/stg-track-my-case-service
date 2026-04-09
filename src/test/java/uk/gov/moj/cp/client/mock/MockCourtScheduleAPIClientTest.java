@@ -53,10 +53,10 @@ class MockCourtScheduleAPIClientTest {
             of("TMCSEN1D3", SENTENCE, 0, -1, 3),
             of("TMCSEN2D5", SENTENCE, 0, -2, 5),  // sentence 2 days before, multi-day 5 days
             // Edge cases
-            of("X", HearingType.UNKNOWN, 0, 0, 1),
-            of("TMCXX", HearingType.UNKNOWN, 0, 0, 1),
-            of("XXXTR", HearingType.UNKNOWN, 0, 0, 1),
-            of("XXXSE", HearingType.UNKNOWN, 0, 0, 1),
+            of("X", UNKNOWN, 0, 0, 1),
+            of("TMCXX", UNKNOWN, 0, 0, 1),
+            of("XXXTR", UNKNOWN, 0, 0, 1),
+            of("XXXSE", UNKNOWN, 0, 0, 1),
             of("TMCTR", TRIAL, 0, 0, 1),
             of("TMCSE", SENTENCE, 0, 0, 1),
             of("TMCTRD", TRIAL, 0, 0, 1),
