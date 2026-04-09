@@ -12,25 +12,23 @@ class ProsecutionCaseDTOTest {
     @Test
     void testJsonSerialization_allFields() throws JsonProcessingException {
         ProsecutionCaseDTO dto = ProsecutionCaseDTO.builder()
-            .caseStatus("Active")
+            .caseStatus(CaseStatus.ACTIVE)
             .reportingRestrictions(true)
             .build();
 
         assertEquals(
-            "{\"caseStatus\":\"Active\",\"reportingRestrictions\":true}",
+            "{\"caseStatus\":\"ACTIVE\",\"reportingRestrictions\":true}",
             objectMapper.writeValueAsString(dto)
         );
     }
 
     @Test
     void testJsonSerialization_caseStatusOnly() throws JsonProcessingException {
-        ProsecutionCaseDTO dto = ProsecutionCaseDTO.builder()
-            .caseStatus("Listed")
-            .build();
-
         assertEquals(
-            "{\"caseStatus\":\"Listed\",\"reportingRestrictions\":false}",
-            objectMapper.writeValueAsString(dto)
+            "{\"caseStatus\":\"SJP_REFERRAL\",\"reportingRestrictions\":false}",
+            objectMapper.writeValueAsString(ProsecutionCaseDTO.builder()
+                .caseStatus("SJP_REFERRAL")
+                .build())
         );
     }
 
@@ -55,25 +53,26 @@ class ProsecutionCaseDTOTest {
 
     @Test
     void testEqualsAndHashCode() {
-        ProsecutionCaseDTO a = ProsecutionCaseDTO.builder()
-            .caseStatus("Active")
+        ProsecutionCaseDTO active1 = ProsecutionCaseDTO.builder()
+            .caseStatus(CaseStatus.ACTIVE)
             .reportingRestrictions(true)
             .build();
-        ProsecutionCaseDTO b = ProsecutionCaseDTO.builder()
-            .caseStatus("Active")
+        ProsecutionCaseDTO active2 = ProsecutionCaseDTO.builder()
+            .caseStatus(CaseStatus.ACTIVE)
             .reportingRestrictions(true)
             .build();
-        ProsecutionCaseDTO differentStatus = ProsecutionCaseDTO.builder()
-            .caseStatus("Closed")
+        ProsecutionCaseDTO inactive = ProsecutionCaseDTO.builder()
+            .caseStatus(CaseStatus.INACTIVE)
             .reportingRestrictions(true)
             .build();
         ProsecutionCaseDTO differentRestrictions = ProsecutionCaseDTO.builder()
-            .caseStatus("Active")
-            .reportingRestrictions(true)
+            .caseStatus(CaseStatus.ACTIVE)
+            .reportingRestrictions(false)
             .build();
 
-        assertEquals(a, b);
-        assertEquals(a.hashCode(), b.hashCode());
-        assertNotEquals(a, differentStatus);
+        assertEquals(active1, active2);
+        assertEquals(active1.hashCode(), active2.hashCode());
+        assertNotEquals(active1, inactive);
+        assertNotEquals(active1, differentRestrictions);
     }
 }
