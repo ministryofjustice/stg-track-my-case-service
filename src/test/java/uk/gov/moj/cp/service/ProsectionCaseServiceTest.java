@@ -9,6 +9,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import uk.gov.moj.cp.client.api.ProsecutionCaseClient;
+import uk.gov.moj.cp.dto.outbound.CaseStatus;
 import uk.gov.moj.cp.dto.outbound.ProsecutionCaseDTO;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,15 +36,15 @@ class ProsectionCaseServiceTest {
 
     @Test
     void getCaseStatus_returnsMappedDto_whenClientReturnsBody() {
-        ProsecutionCase caseStatus = new ProsecutionCase("Active", true);
+        ProsecutionCase caseStatus = new ProsecutionCase(CaseStatus.ACTIVE, true);
         ResponseEntity<ProsecutionCase> entity = ResponseEntity.ok(caseStatus);
         when(prosecutionCaseClient.getCaseDetails(accessToken, caseUrn)).thenReturn(entity);
 
         ProsecutionCaseDTO dto = prosectionCaseService.getCaseStatus(accessToken, caseUrn);
 
         assertNotNull(dto);
-        assertEquals("Active", dto.getCaseStatus());
-        assertEquals(true, dto.isReportingRestrictions());
+        assertEquals(CaseStatus.ACTIVE, dto.getCaseStatus());
+        assertTrue(dto.isReportingRestrictions());
         verify(prosecutionCaseClient).getCaseDetails(eq(accessToken), eq(caseUrn));
     }
 
