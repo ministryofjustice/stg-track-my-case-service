@@ -154,9 +154,7 @@ jobs:
         run: |
           process_ip_range=$(echo $IP_RANGES | sed "s/,/\\\,/g")
 
-          combined_json=$(jq -n \
-              --argjson vars_json "$VARS_CONTEXT" \
-              $vars_json')
+          combined_json=$VARS_CONTEXT
 
           custom_variables_array=()
           for row in $(echo "$combined_json" | jq -r 'to_entries[] | @base64'); do
