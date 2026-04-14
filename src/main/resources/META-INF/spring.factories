@@ -1,2 +1,2 @@
 org.springframework.boot.env.EnvironmentPostProcessor=\
-uk.gov.moj.cp.config.AwsSecretsEnvironmentPostProcessor
+uk.gov.moj.cp.config.aws.AwsSecretsEnvironmentPostProcessor

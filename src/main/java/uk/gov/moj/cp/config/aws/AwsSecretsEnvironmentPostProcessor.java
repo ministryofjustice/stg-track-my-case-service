@@ -1,7 +1,7 @@
-package uk.gov.moj.cp.config;
+package uk.gov.moj.cp.config.aws;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.core.env.ConfigurableEnvironment;
@@ -11,9 +11,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProcessor {
 
-    private static final Logger log = LoggerFactory.getLogger(AwsSecretsEnvironmentPostProcessor.class);
     private static final String PROPERTY_SOURCE_NAME = "awsSecretsManager";
     private static final String SECRET_NAME_ENV = "TMC_AWS_SECRET_NAME";
     private static final String SECRET_NAME_PROPERTY = "tmc.aws.secret-name";
@@ -27,27 +27,25 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
     private static final String TMC_KEY_PREFIX = "TMC";
 
     @Override
-    public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
+    public void postProcessEnvironment(final ConfigurableEnvironment environment, final SpringApplication application) {
         String secretName = environment.getProperty(SECRET_NAME_ENV);
-        if (secretName == null || secretName.isBlank()) {
+        if (Strings.isEmpty(secretName)) {
             secretName = environment.getProperty(SECRET_NAME_PROPERTY);
         }
-        if (secretName == null || secretName.isBlank()) {
+        if (Strings.isEmpty(secretName)) {
             String msg = "AWS Secrets Manager: TMC_AWS_SECRET_NAME not set; TMC* keys will not be loaded from AWS";
             log.info(msg);
             return;
         }
 
-        log.info("Loading TMC* secrets from AWS Secrets Manager: secretName={}", secretName);
-
         String region = environment.getProperty(REGION_ENV);
-        if (region == null || region.isBlank()) {
+        if (Strings.isEmpty(region)) {
             region = environment.getProperty(AWS_REGION_ENV);
         }
-        if (region == null || region.isBlank()) {
+        if (Strings.isEmpty(region)) {
             region = environment.getProperty(REGION_PROPERTY);
         }
-        if (region == null || region.isBlank()) {
+        if (Strings.isEmpty(region)) {
             region = DEFAULT_REGION;
         }
         Map<String, String> secrets = null;
@@ -61,34 +59,32 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
         }
 
         if (secrets.isEmpty()) {
-            String warnMsg = "AWS Secrets Manager: No secrets loaded for secretName=" + secretName;
             log.warn("No secrets loaded from AWS Secrets Manager for secretName={}", secretName);
             return;
         }
-        String str = secrets.keySet().stream().collect(Collectors.joining(", "));
-        String keysMsg = "AWS Secrets Manager: Keys loaded from secret " + secretName + ": " + str;
-        log.info("Keys loaded from AWS Secrets Manager secret {}: {}", secretName, str);
+        String secretString = secrets.keySet().stream().collect(Collectors.joining(", "));
+        log.info("Keys loaded from AWS Secrets Manager secret {}: {}", secretName, secretString);
 
-        Map<String, Object> props = new HashMap<>();
-        putAllTmcPrefixed(secrets, props);
+        Map<String, Object> properties = new HashMap<>();
+        getAllTMCSecrets(secrets, properties);
 
-        if (!props.isEmpty()) {
+        if (!properties.isEmpty()) {
             // Highest precedence so AWS-secret values override same-named env vars from deploy tooling.
             environment.getPropertySources()
-                .addFirst(new MapPropertySource(PROPERTY_SOURCE_NAME, props));
-            String populated = "AWS Secrets Manager: Populated " + props.size() + " TMC* keys from AWS";
+                .addFirst(new MapPropertySource(PROPERTY_SOURCE_NAME, properties));
+            String populated = "AWS Secrets Manager: Populated " + properties.size() + " TMC* keys from AWS";
             System.out.println(populated);
-            for (String key : props.keySet()) {
-                log.info("TMC config populated from AWS Secrets Manager: {} (value length={})",
-                    key, ((String) props.get(key)).length());
-            }
+            properties.keySet().forEach( key ->
+                    log.info("TMC config populated from AWS Secrets Manager: {} (value length={})",
+                            key, ((String) properties.get(key)).length())
+            );
         } else {
             log.warn("AWS secret contained no TMC-prefixed keys; keys in secret: {}",
                 secrets.keySet());
         }
     }
 
-    private static void putAllTmcPrefixed(Map<String, String> secrets, Map<String, Object> target) {
+    private static void getAllTMCSecrets(Map<String, String> secrets, Map<String, Object> target) {
         for (Map.Entry<String, String> entry : secrets.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();
