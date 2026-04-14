@@ -147,19 +147,14 @@ jobs:
           AUTHENTICATION_REQUIRED: ${{ vars.AUTHENTICATION_REQUIRED }}
           DEV_ECR_REGION: ${{ vars.DEV_ECR_REGION }}
           ECR_REPO_WEBAPP: ${{ steps.login-ecr.outputs.registry }}/${{ vars.DEV_ECR_REPOSITORY }}
-          IP_RANGES: ${{ secrets.IP_RANGES }}
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
           NEW_TAG_V: ${{ needs.build-push-dev.outputs.new_tag }}
           RELEASE_NAME: ${{ github.event.repository.name }}-dev
-          SECRETS_CONTEXT:  ${{ toJson(secrets) }}
           VARS_CONTEXT:  ${{ toJson(vars) }}
         run: |
           process_ip_range=$(echo $IP_RANGES | sed "s/,/\\\,/g")
 
-          combined_json=$(jq -n \
-              --argjson secrets_json "$SECRETS_CONTEXT" \
-              --argjson vars_json "$VARS_CONTEXT" \
-              '$secrets_json + $vars_json')
+          combined_json=$VARS_CONTEXT
 
           custom_variables_array=()
           for row in $(echo "$combined_json" | jq -r 'to_entries[] | @base64'); do
