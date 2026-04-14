@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import uk.gov.moj.cp.dto.outbound.CaseStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -42,7 +43,7 @@ class ProsecutionCaseAPIClientTest {
             }
 
             @Override
-            public String getApiCpApiCpPcdCourtstatusPath() {
+            public String getApiCpApiCpPcdCourtStatusPath() {
                 return apiCpPcdCourtstatusPath;
             }
         };
@@ -61,7 +62,7 @@ class ProsecutionCaseAPIClientTest {
         String caseUrn = "URN-456";
         String expectedUrl = "https://some.dev.environment.com/cases/URN-456";
 
-        ProsecutionCase caseStatus = new ProsecutionCase("Active", true);
+        ProsecutionCase caseStatus = new ProsecutionCase(CaseStatus.ACTIVE, true);
         ResponseEntity<ProsecutionCase> response = new ResponseEntity<>(caseStatus, HttpStatus.OK);
 
         when(restTemplate.exchange(

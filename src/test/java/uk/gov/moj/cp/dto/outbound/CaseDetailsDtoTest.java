@@ -64,7 +64,7 @@ class CaseDetailsDtoTest {
 
         CaseDetailsDto dto1 = CaseDetailsDto.builder()
             .caseUrn("URN123")
-            .caseStatus("Active")
+            .caseStatus(CaseStatus.ACTIVE)
             .courtSchedules(List.of(courtSchedule))
             .build();
         CaseDetailsDto dto2 = CaseDetailsDto.builder().build();
@@ -75,7 +75,7 @@ class CaseDetailsDtoTest {
         String expectedHearing = "{\"hearingId\":\"H001\",\"hearingType\":\"Trial\",\"hearingDescription\":\"Main hearing\",\"listNote\":\"List note\",\"courtSittings\":[" + expectedSitting + "],\"weekCommencing\":" + expectedWeekCommencing + "}";
         String expectedCourtSchedule = "{\"hearings\":[" + expectedHearing + "]}";
         assertEquals(
-            "{\"caseUrn\":\"URN123\",\"caseStatus\":\"Active\",\"courtSchedule\":[" + expectedCourtSchedule + "]}",
+            "{\"caseUrn\":\"URN123\",\"caseStatus\":\"ACTIVE\",\"courtSchedule\":[" + expectedCourtSchedule + "]}",
             objectMapper.writeValueAsString(dto1)
         );
         assertEquals("{}", objectMapper.writeValueAsString(dto2));
@@ -105,17 +105,17 @@ class CaseDetailsDtoTest {
     void testEqualsAndHashCode_includesCaseStatus() {
         CaseDetailsDto a = CaseDetailsDto.builder()
             .caseUrn("URN1")
-            .caseStatus("Active")
+            .caseStatus(CaseStatus.ACTIVE)
             .courtSchedules(List.of())
             .build();
         CaseDetailsDto b = CaseDetailsDto.builder()
             .caseUrn("URN1")
-            .caseStatus("Active")
+            .caseStatus(CaseStatus.ACTIVE)
             .courtSchedules(List.of())
             .build();
         CaseDetailsDto differentStatus = CaseDetailsDto.builder()
             .caseUrn("URN1")
-            .caseStatus("Closed")
+            .caseStatus(CaseStatus.INACTIVE)
             .courtSchedules(List.of())
             .build();
 
