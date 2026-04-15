@@ -154,13 +154,16 @@ jobs:
           VARS_CONTEXT:  ${{ toJson(vars) }}
         run: |
           process_ip_range=$(echo $IP_RANGES | sed "s/,/\\\,/g")
+          # use below after secret manager change has gone in
+          # combined_json=$VARS_CONTEXT
 
-          combined_json=$VARS_CONTEXT
+          combined_json=$(jq -n \
+              --argjson secrets_json "$SECRETS_CONTEXT" \
+              --argjson vars_json "$VARS_CONTEXT" \
+              '$secrets_json + $vars_json')
 
-          kubectl label service --overwrite=true $KUBE_NAMESPACE app=$KUBE_NAMESPACE
-
-          secrets_hash=`kubectl get secrets $KUBE_NAMESPACE-secrets -o json  | jq '.data | map_values(@base64d)' | md5sum`
-          custom_vars_hash=`echo "$combined_json" | md5sum`
+          secrets_hash=`kubectl get secrets $KUBE_NAMESPACE-secrets -o json  | jq '.data | map_values(@base64d)' | md5sum | awk '{print $1}'`
+          custom_vars_hash=`echo "$combined_json" | md5sum | awk '{print $1}'`
           variables_hash="$secrets_hash$custom_vars_hash"
           echo "variable hash is : $variables_hash"
 
