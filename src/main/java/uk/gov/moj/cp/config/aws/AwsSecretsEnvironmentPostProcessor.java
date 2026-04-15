@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProcessor {
-
     private static final String PROPERTY_SOURCE_NAME = "awsSecretsManager";
     private static final String SECRET_NAME_ENV = "TMC_AWS_SECRET_NAME";
     private static final String SECRET_NAME_PROPERTY = "tmc.aws.secret-name";
@@ -33,8 +32,8 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
             secretName = environment.getProperty(SECRET_NAME_PROPERTY);
         }
         if (Strings.isEmpty(secretName)) {
-            String msg = "AWS Secrets Manager: TMC_AWS_SECRET_NAME not set; TMC* keys will not be loaded from AWS";
-            log.info(msg);
+            String logMessage = "AWS Secrets Manager: TMC_AWS_SECRET_NAME not set; TMC* keys will not be loaded from AWS";
+            log.info(logMessage);
             return;
         }
 
@@ -62,18 +61,18 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
             log.warn("No secrets loaded from AWS Secrets Manager for secretName={}", secretName);
             return;
         }
-        String secretString = secrets.keySet().stream().collect(Collectors.joining(", "));
+        final String secretString = secrets.keySet().stream().collect(Collectors.joining(", "));
         log.info("Keys loaded from AWS Secrets Manager secret {}: {}", secretName, secretString);
 
-        Map<String, Object> properties = new HashMap<>();
+        final Map<String, Object> properties = new HashMap<>();
         getAllTMCSecrets(secrets, properties);
 
         if (!properties.isEmpty()) {
             // Highest precedence so AWS-secret values override same-named env vars from deploy tooling.
             environment.getPropertySources()
                 .addFirst(new MapPropertySource(PROPERTY_SOURCE_NAME, properties));
-            String populated = "AWS Secrets Manager: Populated " + properties.size() + " TMC* keys from AWS";
-            System.out.println(populated);
+            String populatedVariables = "AWS Secrets Manager: Populated " + properties.size() + " TMC* keys from AWS";
+            System.out.println(populatedVariables);
             properties.keySet().forEach( key ->
                     log.info("TMC config populated from AWS Secrets Manager: {} (value length={})",
                             key, ((String) properties.get(key)).length())
@@ -84,7 +83,7 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
         }
     }
 
-    private static void getAllTMCSecrets(Map<String, String> secrets, Map<String, Object> target) {
+    private static void getAllTMCSecrets(final Map<String, String> secrets, final Map<String, Object> target) {
         for (Map.Entry<String, String> entry : secrets.entrySet()) {
             String key = entry.getKey();
             String value = entry.getValue();

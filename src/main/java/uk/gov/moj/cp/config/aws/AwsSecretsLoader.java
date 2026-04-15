@@ -14,14 +14,11 @@ import java.util.Map;
 
 @Slf4j
 public final class AwsSecretsLoader {
-
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-
     private AwsSecretsLoader() {
     }
 
     public static Map<String, String> loadSecret(final String secretName, final String region) {
-        String attemptMsg = "AwsSecretsLoader: Attempting to load secret from AWS Secrets Manager: secretName=" + secretName + ", region=" + region;
         log.info("Attempting to load secret from AWS Secrets Manager: secretName={}, region={}", secretName, region);
 
         if (Strings.isEmpty(secretName)) {
