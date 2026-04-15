@@ -108,7 +108,7 @@ jobs:
       - name: Clone Helm chart repo
         run: |
           git clone https://github.com/ministryofjustice/track-my-case-cloud-platform.git
-          git -C track-my-case-cloud-platform checkout main
+          git -C track-my-case-cloud-platform checkout feature/VP-586-pod-restart
 
       - name: Configure AWS credentials
         if: ${{ github.event.inputs.deploy_monitoring_only != 'true' }}
@@ -155,10 +155,14 @@ jobs:
         run: |
           process_ip_range=$(echo $IP_RANGES | sed "s/,/\\\,/g")
 
-          combined_json=$(jq -n \
-              --argjson secrets_json "$SECRETS_CONTEXT" \
-              --argjson vars_json "$VARS_CONTEXT" \
-              '$secrets_json + $vars_json')
+          combined_json=$VARS_CONTEXT
+
+          kubectl label service --overwrite=true $KUBE_NAMESPACE app=$KUBE_NAMESPACE
+
+          secrets_hash=`kubectl get secrets $KUBE_NAMESPACE-secrets -o json  | jq '.data | map_values(@base64d)' | md5sum`
+          custom_vars_hash=`echo "$combined_json" | md5sum`
+          variables_hash="$secrets_hash$custom_vars_hash"
+          echo "variable hash is : $variables_hash"
 
           custom_variables_array=()
           for row in $(echo "$combined_json" | jq -r 'to_entries[] | @base64'); do
@@ -217,6 +221,7 @@ jobs:
           --set WebApp.Image.Repository=$ECR_REPO_WEBAPP \
           --set WebApp.Image.Tag=$NEW_TAG_V \
           --set WebApp.Name=$KUBE_NAMESPACE \
+          --set-string WebApp.variables_hash=$variables_hash \
           --set Ingress.ModSec.Enabled=true \
           --set securityContext.allowPrivilegeEscalation=false \
           --set securityContext.capabilities.drop=["ALL"] \
@@ -237,6 +242,7 @@ jobs:
           --set WebApp.Image.Repository=$ECR_REPO_WEBAPP \
           --set WebApp.Image.Tag=$NEW_TAG_V \
           --set WebApp.Name=$KUBE_NAMESPACE \
+          --set-string WebApp.variables_hash=$variables_hash \
           --set Ingress.ModSec.Enabled=true \
           --set securityContext.allowPrivilegeEscalation=false \
           --set securityContext.capabilities.drop=["ALL"] \
