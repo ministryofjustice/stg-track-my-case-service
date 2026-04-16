@@ -72,7 +72,7 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
             environment.getPropertySources()
                 .addFirst(new MapPropertySource(PROPERTY_SOURCE_NAME, properties));
             String populatedVariables = "AWS Secrets Manager: Populated " + properties.size() + " TMC* keys from AWS";
-            System.out.println(populatedVariables);
+            log.info("variables populated : {} ", populatedVariables);
             properties.keySet().forEach( key ->
                     log.info("TMC config populated from AWS Secrets Manager: {} (value length={})",
                             key, ((String) properties.get(key)).length())
