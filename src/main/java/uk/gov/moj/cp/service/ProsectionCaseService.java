@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
-import uk.gov.moj.cp.client.api.ProsecutionCaseClient;
+import uk.gov.moj.cp.client.api.ProsecutionCaseAPIClient;
 import uk.gov.moj.cp.dto.outbound.ProsecutionCaseDTO;
 
 import static java.util.Objects.isNull;
@@ -15,7 +15,7 @@ import static java.util.Objects.isNull;
 @RequiredArgsConstructor
 public class ProsectionCaseService {
 
-    private final ProsecutionCaseClient prosecutionCaseClient;
+    private final ProsecutionCaseAPIClient prosecutionCaseClient;
 
     public ProsecutionCaseDTO getCaseStatus(final String accessToken, final String caseUrn) {
         HttpEntity<ProsecutionCase> result = prosecutionCaseClient.getCaseDetails(accessToken, caseUrn);

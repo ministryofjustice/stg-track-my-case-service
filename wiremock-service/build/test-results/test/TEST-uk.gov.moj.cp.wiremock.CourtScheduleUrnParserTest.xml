@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" tests="36" skipped="0" failures="0" errors="0" timestamp="2026-04-20T10:03:16.772Z" hostname="MJ004284" time="0.09">
+  <properties/>
+  <testcase name="parse(TMCTR99M99D) -&gt; Trial, M=99, D=99, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.066"/>
+  <testcase name="parse(TMCTR99D) -&gt; Trial, M=0, D=99, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.001"/>
+  <testcase name="parse(TMCTR99M) -&gt; Trial, M=99, D=0, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.001"/>
+  <testcase name="parse(TMCTRN1D) -&gt; Trial, M=0, D=-1, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(TMCTRN9D) -&gt; Trial, M=0, D=-9, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(TMCTRN1D5) -&gt; Trial, M=0, D=-1, hearings=5" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.001"/>
+  <testcase name="parse(TMCTR1MN1D2) -&gt; Trial, M=1, D=-1, hearings=2" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(TMCTR0D) -&gt; Trial, M=0, D=0, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(TMCTRN1D2) -&gt; Trial, M=0, D=-1, hearings=2" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.001"/>
+  <testcase name="parse(TMCTR11M99D) -&gt; Trial, M=11, D=99, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(TMCTR0D1) -&gt; Trial, M=0, D=0, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(TMCTR0D12) -&gt; Trial, M=0, D=0, hearings=12" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.001"/>
+  <testcase name="parse(TMCTR0D123) -&gt; Trial, M=0, D=0, hearings=123" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(TMCSE99M99D) -&gt; Sentence, M=99, D=99, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(TMCSE99D) -&gt; Sentence, M=0, D=99, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.001"/>
+  <testcase name="parse(TMCSE99M) -&gt; Sentence, M=99, D=0, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(TMCSEN9M) -&gt; Sentence, M=-9, D=0, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(TMCSEN1D3) -&gt; Sentence, M=0, D=-1, hearings=3" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(TMCSEN2D5) -&gt; Sentence, M=0, D=-2, hearings=5" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(X) -&gt; Unknown, M=0, D=0, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.001"/>
+  <testcase name="parse(TMCXX) -&gt; Unknown, M=0, D=0, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(XXXTR) -&gt; Unknown, M=0, D=0, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.001"/>
+  <testcase name="parse(XXXSE) -&gt; Unknown, M=0, D=0, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(TMCTR) -&gt; Trial, M=0, D=0, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(TMCSE) -&gt; Sentence, M=0, D=0, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(TMCTRD) -&gt; Trial, M=0, D=0, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(TMCTRM) -&gt; Trial, M=0, D=0, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.001"/>
+  <testcase name="parse(TMCTRMD) -&gt; Trial, M=0, D=0, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(TMCTRDM) -&gt; Trial, M=0, D=0, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.001"/>
+  <testcase name="parse(TMCTRN) -&gt; Trial, M=0, D=0, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(TMCTRND) -&gt; Trial, M=0, D=0, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(TMCTRMN) -&gt; Trial, M=0, D=0, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(TMCTRMN5) -&gt; Trial, M=0, D=0, hearings=5" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(TMCTRMN5X) -&gt; Trial, M=0, D=0, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(TMCTRN5DX) -&gt; Trial, M=0, D=0, hearings=1" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.0"/>
+  <testcase name="parse(TMCTR5) -&gt; Trial, M=0, D=0, hearings=5" classname="uk.gov.moj.cp.wiremock.CourtScheduleUrnParserTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

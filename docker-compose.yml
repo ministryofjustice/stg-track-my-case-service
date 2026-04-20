@@ -37,3 +37,9 @@ services:
       timeout: 10s
       retries: 3
       start_period: 5s
+
+  wiremock-service:
+    image: wiremock/wiremock:3.13.0
+    ports:
+      - "8089:8089"
+    command: ["--port", "8089"]

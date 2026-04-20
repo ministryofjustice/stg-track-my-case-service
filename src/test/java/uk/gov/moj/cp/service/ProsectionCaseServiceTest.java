@@ -8,7 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import uk.gov.moj.cp.client.api.ProsecutionCaseClient;
+import uk.gov.moj.cp.client.api.ProsecutionCaseAPIClient;
 import uk.gov.moj.cp.dto.outbound.CaseStatus;
 import uk.gov.moj.cp.dto.outbound.ProsecutionCaseDTO;
 
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
 class ProsectionCaseServiceTest {
 
     @Mock
-    private ProsecutionCaseClient prosecutionCaseClient;
+    private ProsecutionCaseAPIClient prosecutionCaseClient;
 
     @InjectMocks
     private ProsectionCaseService prosectionCaseService;

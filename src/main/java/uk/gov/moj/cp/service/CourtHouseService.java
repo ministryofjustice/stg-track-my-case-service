@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
-import uk.gov.moj.cp.client.api.CourtHouseClient;
+import uk.gov.moj.cp.client.api.CourtHouseAPIClient;
 import uk.gov.moj.cp.dto.outbound.CourtHouseDto;
 import uk.gov.moj.cp.dto.outbound.CourtRoomDto;
 import uk.gov.moj.cp.dto.outbound.AddressDto;
@@ -23,7 +23,7 @@ import static java.util.Objects.nonNull;
 @RequiredArgsConstructor
 public class CourtHouseService {
 
-    private final CourtHouseClient courtHouseClient;
+    private final CourtHouseAPIClient courtHouseClient;
 
     public CourtHouseDto getCourtHouseById(String accessToken, String courtId, String courtRoomId) {
         HttpEntity<CourtHouse> result = courtHouseClient.getCourtHouseById(accessToken, courtId, courtRoomId);
