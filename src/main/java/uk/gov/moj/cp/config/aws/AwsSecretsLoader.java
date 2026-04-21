@@ -2,7 +2,7 @@ package uk.gov.moj.cp.config.aws;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.logging.Log;
 import org.apache.logging.log4j.util.Strings;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
@@ -12,14 +12,19 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRespon
 import java.util.Collections;
 import java.util.Map;
 
-@Slf4j
+/**
+ * Loads secrets from AWS; logging uses the caller's {@link org.springframework.boot.logging.DeferredLog}
+ * so output is replayed after Logback starts.
+ */
 public final class AwsSecretsLoader {
+
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     private AwsSecretsLoader() {
     }
 
-    public static Map<String, String> loadSecret(final String secretName, final String region) {
-        log.info("Attempting to load secret from AWS Secrets Manager: secretName={}, region={}", secretName, region);
+    public static Map<String, String> loadSecret(final Log log, final String secretName, final String region) {
+        log.info("AwsSecretsLoader: Attempting to load secret from AWS Secrets Manager: secretName=" + secretName + ", region=" + region);
 
         if (Strings.isEmpty(secretName)) {
             return Collections.emptyMap();
@@ -35,6 +40,7 @@ public final class AwsSecretsLoader {
             GetSecretValueResponse response = client.getSecretValue(request);
             String secretString = response.secretString();
             if (Strings.isEmpty(secretString)) {
+                log.warn("AwsSecretsLoader: Secret string empty for secretName=" + secretName);
                 return Collections.emptyMap();
             }
 
@@ -43,11 +49,11 @@ public final class AwsSecretsLoader {
                 new TypeReference<>() {
                 }
             );
-            log.info("Loaded {} keys from AWS Secrets Manager secret: {} (keys: {})",
-                parsedSecrets.size(), secretName, parsedSecrets.keySet());
+            log.info("AwsSecretsLoader: Loaded " + parsedSecrets.size() + " keys from AWS Secrets Manager secret "
+                + secretName + " (keys: " + parsedSecrets.keySet() + ")");
             return parsedSecrets;
         } catch (Exception e) {
-            log.error("Failed to load secret from AWS Secrets Manager: secretName={}", secretName, e);
+            log.error("AwsSecretsLoader: Failed to load secret from AWS Secrets Manager: secretName=" + secretName, e);
             return Collections.emptyMap();
         }
     }
