@@ -1,5 +1,6 @@
 package uk.gov.moj.cp.config.aws;
 
+import org.apache.commons.logging.Log;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
@@ -11,8 +12,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * Uses a single static {@link DeferredLog} so {@link AwsSecretsDeferredLogReplayListener} can replay
+ * it after the logging system is initialised (see class javadoc there).
+ */
 public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProcessor {
-    private final DeferredLog deferredLog = new DeferredLog();
+
+    /** Shared with {@link AwsSecretsDeferredLogReplayListener#contextLoaded}. */
+    private static final DeferredLog DEFERRED_LOG = new DeferredLog();
 
     private static final String PROPERTY_SOURCE_NAME = "awsSecretsManager";
     private static final String SECRET_NAME_ENV = "TMC_AWS_SECRET_NAME";
@@ -26,6 +33,10 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
     /** Secret JSON keys with this prefix are exposed as Spring properties. */
     private static final String TMC_KEY_PREFIX = "TMC";
 
+    static void replayDeferredLogTo(final Log target) {
+        DEFERRED_LOG.replayTo(target);
+    }
+
     @Override
     public void postProcessEnvironment(final ConfigurableEnvironment environment, final SpringApplication application) {
         String secretName = environment.getProperty(SECRET_NAME_ENV);
@@ -33,7 +44,7 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
             secretName = environment.getProperty(SECRET_NAME_PROPERTY);
         }
         if (Strings.isEmpty(secretName)) {
-            deferredLog.info("AWS Secrets Manager: TMC_AWS_SECRET_NAME not set; TMC* keys will not be loaded from AWS");
+            DEFERRED_LOG.info("AWS Secrets Manager: TMC_AWS_SECRET_NAME not set; TMC* keys will not be loaded from AWS");
             return;
         }
 
@@ -50,18 +61,18 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
         Map<String, String> secrets;
 
         try {
-            secrets = AwsSecretsLoader.loadSecret(deferredLog, secretName, region);
+            secrets = AwsSecretsLoader.loadSecret(DEFERRED_LOG, secretName, region);
         } catch (Exception e) {
-            deferredLog.error("Error loading secrets from AWS Secrets Manager for secretName=" + secretName + ": " + e.getMessage(), e);
+            DEFERRED_LOG.error("Error loading secrets from AWS Secrets Manager for secretName=" + secretName + ": " + e.getMessage(), e);
             return;
         }
 
         if (secrets.isEmpty()) {
-            deferredLog.warn("No secrets loaded from AWS Secrets Manager for secretName=" + secretName);
+            DEFERRED_LOG.warn("No secrets loaded from AWS Secrets Manager for secretName=" + secretName);
             return;
         }
         final String secretString = secrets.keySet().stream().collect(Collectors.joining(", "));
-        deferredLog.info("Keys loaded from AWS Secrets Manager secret " + secretName + ": " + secretString);
+        DEFERRED_LOG.info("Keys loaded from AWS Secrets Manager secret " + secretName + ": " + secretString);
 
         final Map<String, Object> properties = new HashMap<>();
         getAllTMCSecrets(secrets, properties);
@@ -70,12 +81,12 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
             // Highest precedence so AWS-secret values override same-named env vars from deploy tooling.
             environment.getPropertySources()
                 .addFirst(new MapPropertySource(PROPERTY_SOURCE_NAME, properties));
-            deferredLog.info("AWS Secrets Manager: Populated " + properties.size() + " TMC* keys from AWS");
+            DEFERRED_LOG.info("AWS Secrets Manager: Populated " + properties.size() + " TMC* keys from AWS");
             properties.keySet().forEach(key ->
-                deferredLog.info("TMC config populated from AWS Secrets Manager: " + key + " (value length="
+                DEFERRED_LOG.info("TMC config populated from AWS Secrets Manager: " + key + " (value length="
                     + ((String) properties.get(key)).length() + ")"));
         } else {
-            deferredLog.warn("AWS secret contained no TMC-prefixed keys; keys in secret: " + secrets.keySet());
+            DEFERRED_LOG.warn("AWS secret contained no TMC-prefixed keys; keys in secret: " + secrets.keySet());
         }
     }
 
