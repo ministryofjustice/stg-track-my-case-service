@@ -12,13 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Uses a single static {@link DeferredLog} so {@link AwsSecretsDeferredLogReplayListener} can replay
- * it after the logging system is initialised (see class javadoc there).
- */
 public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProcessor {
-
-    /** Shared with {@link AwsSecretsDeferredLogReplayListener#contextLoaded}. */
     private static final DeferredLog DEFERRED_LOG = new DeferredLog();
 
     private static final String PROPERTY_SOURCE_NAME = "awsSecretsManager";
@@ -34,7 +28,9 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
     private static final String TMC_KEY_PREFIX = "TMC";
 
     static void replayDeferredLogTo(final Log target) {
-        DEFERRED_LOG.replayTo(target);
+        // Use switchTo (not replayTo): replay buffered lines then delegate further logging to the real Log.
+        // replayTo alone replays and clears but leaves destination null (see DeferredLog.switchTo).
+        DEFERRED_LOG.switchTo(target);
     }
 
     @Override

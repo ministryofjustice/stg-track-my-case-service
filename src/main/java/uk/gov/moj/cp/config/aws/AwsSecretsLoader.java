@@ -24,8 +24,6 @@ public final class AwsSecretsLoader {
     }
 
     public static Map<String, String> loadSecret(final Log log, final String secretName, final String region) {
-        log.info("AwsSecretsLoader: Attempting to load secret from AWS Secrets Manager: secretName=" + secretName + ", region=" + region);
-
         if (Strings.isEmpty(secretName)) {
             return Collections.emptyMap();
         }
