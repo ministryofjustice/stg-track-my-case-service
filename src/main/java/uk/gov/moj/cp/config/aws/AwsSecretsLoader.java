@@ -12,10 +12,6 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRespon
 import java.util.Collections;
 import java.util.Map;
 
-/**
- * Loads secrets from AWS; logging uses the caller's {@link org.springframework.boot.logging.DeferredLog}
- * so output is replayed after Logback starts.
- */
 public final class AwsSecretsLoader {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
