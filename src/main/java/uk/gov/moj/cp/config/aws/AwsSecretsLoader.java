@@ -12,13 +12,7 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRespon
 import java.util.Collections;
 import java.util.Map;
 
-/**
- * Loads secrets from AWS. The {@code log} is typically from
- * {@link org.springframework.boot.logging.DeferredLogFactory#getLog(Class)} in {@link AwsSecretsEnvironmentPostProcessor}
- * (Spring-injected), so it participates in Spring Boot’s deferred logging lifecycle.
- */
 public final class AwsSecretsLoader {
-
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private AwsSecretsLoader() {

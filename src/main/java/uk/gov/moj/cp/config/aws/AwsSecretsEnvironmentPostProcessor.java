@@ -5,7 +5,6 @@ import org.apache.logging.log4j.util.Strings;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.boot.logging.DeferredLogFactory;
-import org.springframework.boot.logging.DeferredLogs;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 
@@ -14,7 +13,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProcessor {
-
     private static final String PROPERTY_SOURCE_NAME = "awsSecretsManager";
     private static final String SECRET_NAME_ENV = "TMC_AWS_SECRET_NAME";
     private static final String SECRET_NAME_PROPERTY = "tmc.aws.secret-name";
@@ -23,11 +21,8 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
     private static final String REGION_PROPERTY = "tmc.aws.region";
     /** Fallback when no env/config set (e.g. match vars.DEV_ECR_REGION for UK). */
     private static final String DEFAULT_REGION = "eu-west-2";
-
-    /** Secret JSON keys with this prefix are exposed as Spring properties. */
     private static final String TMC_KEY_PREFIX = "TMC";
 
-    //private static Log log  = new DeferredLogs().getLog(AwsSecretsEnvironmentPostProcessor.class);
     private final Log log;
 
     public AwsSecretsEnvironmentPostProcessor(final DeferredLogFactory logFactory) {
