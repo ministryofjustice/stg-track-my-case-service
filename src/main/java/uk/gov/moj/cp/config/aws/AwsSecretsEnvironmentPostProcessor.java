@@ -27,11 +27,12 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
     /** Secret JSON keys with this prefix are exposed as Spring properties. */
     private static final String TMC_KEY_PREFIX = "TMC";
 
-    private static Log log  = new DeferredLogs().getLog(AwsSecretsEnvironmentPostProcessor.class);
+    //private static Log log  = new DeferredLogs().getLog(AwsSecretsEnvironmentPostProcessor.class);
+    private final Log log;
 
-//    public AwsSecretsEnvironmentPostProcessor(final DeferredLogFactory logFactory) {
-//        this.log = logFactory.getLog(AwsSecretsEnvironmentPostProcessor.class);
-//    }
+    public AwsSecretsEnvironmentPostProcessor(final DeferredLogFactory logFactory) {
+        this.log = logFactory.getLog(AwsSecretsEnvironmentPostProcessor.class);
+    }
 
     @Override
     public void postProcessEnvironment(final ConfigurableEnvironment environment, final SpringApplication application) {
