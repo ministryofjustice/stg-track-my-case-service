@@ -5,6 +5,7 @@ import org.apache.logging.log4j.util.Strings;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.boot.logging.DeferredLogFactory;
+import org.springframework.boot.logging.DeferredLogs;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 
@@ -26,26 +27,14 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
     /** Secret JSON keys with this prefix are exposed as Spring properties. */
     private static final String TMC_KEY_PREFIX = "TMC";
 
-    private final Log log;
+    private static Log log  = new DeferredLogs().getLog(AwsSecretsEnvironmentPostProcessor.class);
 
-    public AwsSecretsEnvironmentPostProcessor(final DeferredLogFactory logFactory) {
-        this.log = logFactory.getLog(AwsSecretsEnvironmentPostProcessor.class);
-    }
+//    public AwsSecretsEnvironmentPostProcessor(final DeferredLogFactory logFactory) {
+//        this.log = logFactory.getLog(AwsSecretsEnvironmentPostProcessor.class);
+//    }
 
     @Override
     public void postProcessEnvironment(final ConfigurableEnvironment environment, final SpringApplication application) {
-        try {
-            doPostProcessEnvironment(environment);
-        } finally {
-            if (Strings.isEmpty(environment.getProperty("TMC_DB_URL"))) {
-                log.warn("TMC_DB_URL is not set; spring.datasource.url will stay unresolved and Flyway will fail. "
-                    + "Set TMC_DB_URL via env, Kubernetes secret, optional:configtree under /mnt/secrets/rpe/, "
-                    + "or JSON key TMC_DB_URL in AWS Secrets Manager when TMC_AWS_SECRET_NAME or tmc.aws.secret-name is configured.");
-            }
-        }
-    }
-
-    private void doPostProcessEnvironment(final ConfigurableEnvironment environment) {
         String secretName = environment.getProperty(SECRET_NAME_ENV);
         if (Strings.isEmpty(secretName)) {
             secretName = environment.getProperty(SECRET_NAME_PROPERTY);
