@@ -34,6 +34,18 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
 
     @Override
     public void postProcessEnvironment(final ConfigurableEnvironment environment, final SpringApplication application) {
+        try {
+            doPostProcessEnvironment(environment);
+        } finally {
+            if (Strings.isEmpty(environment.getProperty("TMC_DB_URL"))) {
+                log.warn("TMC_DB_URL is not set; spring.datasource.url will stay unresolved and Flyway will fail. "
+                    + "Set TMC_DB_URL via env, Kubernetes secret, optional:configtree under /mnt/secrets/rpe/, "
+                    + "or JSON key TMC_DB_URL in AWS Secrets Manager when TMC_AWS_SECRET_NAME or tmc.aws.secret-name is configured.");
+            }
+        }
+    }
+
+    private void doPostProcessEnvironment(final ConfigurableEnvironment environment) {
         String secretName = environment.getProperty(SECRET_NAME_ENV);
         if (Strings.isEmpty(secretName)) {
             secretName = environment.getProperty(SECRET_NAME_PROPERTY);
