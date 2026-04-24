@@ -39,6 +39,7 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
 
     @Override
     public void postProcessEnvironment(final ConfigurableEnvironment environment, final SpringApplication application) {
+        log.info("AWS Secrets Manager: loading secrets per environment");
         if (!Boolean.parseBoolean(Optional.ofNullable(environment.getProperty(TMC_AWS_ENABLED)).orElse("false"))) {
             log.info("AWS Secrets Manager: not enabled");
             return;
@@ -46,24 +47,27 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
 
         final String secretName = environment.getProperty(TMC_AWS_SECRET_NAME);
         if (Strings.isEmpty(secretName)) {
-            log.info(format(
+            log.error(format(
                 "AWS Secrets Manager: %s not set; TMC* keys will not be loaded from AWS", TMC_AWS_SECRET_NAME));
             return;
         }
 
         final String region = environment.getProperty(TMC_AWS_REGION);
         if (Strings.isEmpty(region)) {
-            log.info(format(
+            log.error(format(
                 "AWS Secrets Manager: %s not set; TMC* keys will not be loaded from AWS", TMC_AWS_REGION));
             return;
         }
         try {
             Map<String, String> secrets = loadSecret(secretName, region);
             if (secrets.isEmpty()) {
-                log.warn(format("No secrets loaded from AWS Secrets Manager for secretName=%s", secretName));
+                log.warn(format(
+                    "AWS Secrets Manager: No secrets loaded from AWS Secrets Manager for secretName=%s",
+                    secretName
+                ));
                 return;
             }
-            final Map<String, Object> tmcSecrets =  getAllTMCSecrets(secrets);
+            final Map<String, Object> tmcSecrets = getAllTMCSecrets(secrets);
             if (!tmcSecrets.isEmpty()) {
                 // Highest precedence so AWS-secret values override same-named env vars from deploy tooling.
                 environment.getPropertySources().addFirst(new MapPropertySource(PROPERTY_SOURCE_NAME, tmcSecrets));
@@ -73,11 +77,16 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
                     "%s: value length=%d;", key, tmcSecrets.get(key).toString().length())));
             } else {
                 log.warn(format(
-                    "AWS secret contained no TMC-prefixed keys; keys in secret: %s", join(",", secrets.keySet())));
+                    "AWS Secrets Manager: AWS secret contained no TMC-prefixed keys; keys in secret: %s",
+                    join(",", secrets.keySet())
+                ));
             }
         } catch (Exception exception) {
             log.error(format(
-                "Error loading secrets from AWS Secrets Manager for secretName=%s: %s", secretName, exception));
+                "AWS Secrets Manager: Error loading secrets from AWS Secrets Manager for secretName=%s: %s",
+                secretName,
+                exception
+            ));
         }
     }
 
@@ -110,21 +119,23 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
             );
             log.info(format(
                 "AWS Secrets: Loaded %s keys from AWS Secrets Manager secret name [%s],  keys: [%s]",
-                parsedSecrets.size(), secretName, join(",", parsedSecrets.keySet())));
+                parsedSecrets.size(), secretName, join(",", parsedSecrets.keySet())
+            ));
             return parsedSecrets;
         } catch (Exception e) {
             log.error(
                 format("AWS Secrets: Failed to load secret from AWS Secrets Manager: secretName=%s", secretName),
-                e);
+                e
+            );
             return Collections.emptyMap();
         }
     }
 
     private static Map<String, Object> getAllTMCSecrets(final Map<String, String> secrets) {
         return secrets.entrySet().stream()
-                .filter(entry -> !Strings.isEmpty(entry.getKey())
-                        && entry.getKey().startsWith(TMC_KEY_PREFIX)
-                        && !Strings.isEmpty(entry.getValue()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+            .filter(entry -> !Strings.isEmpty(entry.getKey())
+                && entry.getKey().startsWith(TMC_KEY_PREFIX)
+                && !Strings.isEmpty(entry.getValue()))
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }
