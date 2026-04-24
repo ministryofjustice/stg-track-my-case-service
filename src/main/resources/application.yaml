@@ -24,7 +24,8 @@ logging:
 
 tmc:
   aws:
-    secret-name: live-stg-track-my-case-service-dev-8d7479818dc21d0a
+    enabled: true
+    secret-name: ${TMC_AWS_SECRET_MANAGER_NAME}
     region: ${TMC_AWS_REGION:${AWS_REGION:eu-west-2}}
 
 spring:

@@ -1,1 +1,5 @@
 # Any values from application.yaml can be overridden here
+
+tmc:
+  aws:
+    enabled: false

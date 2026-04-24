@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.ActiveProfiles;
 import uk.gov.moj.cp.entity.User;
 import uk.gov.moj.cp.model.UserRole;
 import uk.gov.moj.cp.model.UserStatus;
@@ -17,6 +18,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static uk.gov.moj.cp.util.CryptoUtils.ENCRYPTION_PREFIX;
 
+@ActiveProfiles("test")
 @DataJpaTest
 @Import(TestCryptoConfig.class)
 class UserRepositoryTest {
@@ -26,8 +28,6 @@ class UserRepositoryTest {
 
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    TestEntityManager testEntityManager;
 
     private User user;
 
@@ -53,7 +53,7 @@ class UserRepositoryTest {
         assertThat(saved.getCreated()).isNotNull();
         assertThat(saved.getUpdated()).isNotNull();
 
-        Object[] raw = (Object[]) testEntityManager.getEntityManager()
+        Object[] raw = (Object[]) entityManager.getEntityManager()
             .createNativeQuery("select email, email_lookup from tmc_user where id = :id")
             .setParameter("id", saved.getId())
             .getSingleResult();
