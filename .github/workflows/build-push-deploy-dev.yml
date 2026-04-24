@@ -112,7 +112,7 @@ jobs:
 
       - name: Configure AWS credentials
         if: ${{ github.event.inputs.deploy_monitoring_only != 'true' }}
-        uses: aws-actions/configure-aws-credentials@v5
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.DEV_ECR_ROLE_TO_ASSUME }}
           aws-region: ${{ vars.DEV_ECR_REGION }}
