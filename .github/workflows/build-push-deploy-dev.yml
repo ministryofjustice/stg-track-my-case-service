@@ -145,22 +145,18 @@ jobs:
         env:
           APP_ROLE_ARN: ${{ secrets.APP_ROLE_ARN }}
           AUTHENTICATION_REQUIRED: ${{ vars.AUTHENTICATION_REQUIRED }}
+          DEV_ECR_REGION: ${{ vars.DEV_ECR_REGION }}
           ECR_REPO_WEBAPP: ${{ steps.login-ecr.outputs.registry }}/${{ vars.DEV_ECR_REPOSITORY }}
-          IP_RANGES: ${{ secrets.IP_RANGES }}
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
           NEW_TAG_V: ${{ needs.build-push-dev.outputs.new_tag }}
           RELEASE_NAME: ${{ github.event.repository.name }}-dev
-          SECRETS_CONTEXT:  ${{ toJson(secrets) }}
           VARS_CONTEXT:  ${{ toJson(vars) }}
         run: |
           process_ip_range=$(echo $IP_RANGES | sed "s/,/\\\,/g")
           # use below after secret manager change has gone in
           # combined_json=$VARS_CONTEXT
 
-          combined_json=$(jq -n \
-              --argjson secrets_json "$SECRETS_CONTEXT" \
-              --argjson vars_json "$VARS_CONTEXT" \
-              '$secrets_json + $vars_json')
+          combined_json=$VARS_CONTEXT
 
           secrets_hash=`kubectl get secrets $KUBE_NAMESPACE-secrets -o json  | jq '.data | map_values(@base64d)' | md5sum | awk '{print $1}'`
           custom_vars_hash=`echo "$combined_json" | md5sum | awk '{print $1}'`
@@ -188,6 +184,9 @@ jobs:
               custom_variables_array+=("--set-string" "${custom_key}=${safe_value}")
              fi
           done
+
+          # Pass AWS region from vars.DEV_ECR_REGION so app can use it (e.g. tmc.aws.region / TMC_AWS_REGION)
+          custom_variables_array+=("--set-string" "Secrets.WebApp.Parameters.TMC_AWS_REGION=$DEV_ECR_REGION")
 
           # Debug
           echo "=== DEBUG: custom_variables_array ==="
@@ -231,7 +230,7 @@ jobs:
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
           --set Networkpolicy.Ingress="track-my-case-dev" \
-          --set ServiceAccount.RoleARN=$TMC_APP_ROLE \
+          --set ServiceAccount.RoleARN=$APP_ROLE_ARN \
           "${custom_variables_array[@]}"
           # > rendered.yaml
 
@@ -252,7 +251,7 @@ jobs:
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
           --set Networkpolicy.Ingress="track-my-case-dev" \
-          --set ServiceAccount.RoleARN=$TMC_APP_ROLE \
+          --set ServiceAccount.RoleARN=$APP_ROLE_ARN \
           "${custom_variables_array[@]}"
 
           echo "Labeling the service"
@@ -280,7 +279,7 @@ jobs:
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
         run: |
           NEW_RELEASE="stg-track-my-case-monitoring"
-          PATCH='{"metadata":{"annotations":{"meta.helm.sh/release-name":"'"$NEW_RELEASE"'","meta.helm.sh/release-namespace":"'"$KUBE_NAMESPACE"'"}}}'  
+          PATCH='{"metadata":{"annotations":{"meta.helm.sh/release-name":"'"$NEW_RELEASE"'","meta.helm.sh/release-namespace":"'"$KUBE_NAMESPACE"'"}}}'
 
           for resource in \
             "prometheusrule/alerting-rules-$KUBE_NAMESPACE" \
