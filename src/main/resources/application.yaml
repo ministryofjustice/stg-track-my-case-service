@@ -18,6 +18,16 @@ springdoc:
   packagesToScan: uk.gov.moj.cp.controllers
   writer-with-order-by-keys: true
 
+logging:
+  level:
+    uk.gov.moj.cp.config: INFO
+
+tmc:
+  aws:
+    enabled: true
+    secret-name: ${TMC_AWS_SECRET_MANAGER_NAME}
+    region: ${TMC_AWS_REGION:${AWS_REGION:eu-west-2}}
+
 spring:
   config:
     import: "optional:configtree:/mnt/secrets/rpe/"
@@ -46,6 +56,7 @@ services:
   use-mock-data: ${TMC_USE_MOCK_DATA:false}
   amp-url: ${TMC_AMP_URL}
   amp-subscription-key: ${TMC_AMP_SUBSCRIPTION_KEY}
+  pcd-amp-subscription-key: ${TMC_PCD_AMP_SUBSCRIPTION_KEY}
 
   api-cp-refdata-courthearing-courthouses-courtrooms:
     path: /courthouses/{court_id}/courtrooms/{court_room_id}
@@ -55,6 +66,9 @@ services:
 
   api-cp-crime-schedulingandlisting-courtschedule:
     path: /case/{case_urn}/courtschedule
+
+  api-cp-pcd-prosecution-case-details:
+    path: /pcd/cases/{case_urn}
 
   refdata-courthearing-judges:
     url: https://virtserver.swaggerhub.com/HMCTS-DTS/api-cp-refdata-courthearing-judges
@@ -78,3 +92,7 @@ services:
     client-id: ${TMC_TOKEN_CLIENT_ID}
     client-secret: ${TMC_TOKEN_CLIENT_SECRET}
     scope: ${TMC_TOKEN_SCOPE}
+    prosecutioncase-tenant-id: ${TMC_PCD_TOKEN_TENANT_ID}
+    prosecutioncase-client-id: ${TMC_PCD_TOKEN_CLIENT_ID}
+    prosecutioncase-client-secret: ${TMC_PCD_TOKEN_CLIENT_SECRET}
+    prosecutioncase-scope: ${TMC_PCD_TOKEN_SCOPE}
