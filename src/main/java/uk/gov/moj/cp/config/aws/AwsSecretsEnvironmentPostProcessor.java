@@ -23,9 +23,11 @@ import static java.lang.String.format;
 import static java.lang.String.join;
 
 public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProcessor {
-    private static final String TMC_AWS_ENABLED = "tmc.aws.enabled";
-    private static final String TMC_AWS_SECRET_NAME = "tmc.aws.secret-name";
-    private static final String TMC_AWS_REGION = "tmc.aws.region";
+
+    public static final String TMC_AWS_ENABLED = "tmc.aws.enabled";
+    public static final String TMC_AWS_SECRET_NAME = "tmc.aws.secret-name";
+    public static final String TMC_AWS_REGION = "tmc.aws.region";
+
     private static final String PROPERTY_SOURCE_NAME = "awsSecretsManager";
     private static final String TMC_KEY_PREFIX = "TMC";
 

@@ -29,18 +29,28 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.moj.cp.config.aws.AwsSecretsEnvironmentPostProcessor.TMC_AWS_ENABLED;
+import static uk.gov.moj.cp.config.aws.AwsSecretsEnvironmentPostProcessor.TMC_AWS_REGION;
+import static uk.gov.moj.cp.config.aws.AwsSecretsEnvironmentPostProcessor.TMC_AWS_SECRET_NAME;
 
 @ExtendWith(MockitoExtension.class)
 class AwsSecretsEnvironmentPostProcessorTest {
 
     @Mock
     private Log log;
+
+    /** postProcessEnvironment requires these before it calls loadSecret. */
+    private static Map<String, Object> postProcessProps(String secretName, String region) {
+        Map<String, Object> props = new HashMap<>();
+        props.put(TMC_AWS_ENABLED, "true");
+        props.put(TMC_AWS_SECRET_NAME, secretName);
+        props.put(TMC_AWS_REGION, region);
+        return props;
+    }
 
     @Test
     void postProcessEnvironment_addsPropertySource_whenLoadSecretReturnsTmcKeys() {
@@ -49,13 +59,12 @@ class AwsSecretsEnvironmentPostProcessorTest {
         when(logFactory.getLog(any(Class.class))).thenReturn(postLog);
 
         AwsSecretsEnvironmentPostProcessor processor = spy(new AwsSecretsEnvironmentPostProcessor(logFactory));
-        AwsSecretsEnvironmentPostProcessor awsSecretsEnvironmentPostProcessor1 = doReturn(Map.of("TMC_DB_URL", "jdbc:postgresql://mock/db"))
-            .when(processor);
-        String secretName1 = eq("my-secret");
-        awsSecretsEnvironmentPostProcessor1.loadSecret(secretName1, eq("eu-west-2"));
+        doReturn(Map.of("TMC_DB_URL", "jdbc:postgresql://mock/db"))
+            .when(processor)
+            .loadSecret(eq("my-secret"), eq("eu-west-2"));
         StandardEnvironment env = new StandardEnvironment();
         env.getPropertySources().addFirst(
-            new MapPropertySource("testProps", Map.of("tmc.aws.secret-name", "my-secret"))
+            new MapPropertySource("testProps", postProcessProps("my-secret", "eu-west-2"))
         );
 
         processor.postProcessEnvironment(env, mock(SpringApplication.class));
@@ -64,9 +73,7 @@ class AwsSecretsEnvironmentPostProcessorTest {
         assertThat(env.getPropertySources().get("awsSecretsManager"))
             .isInstanceOf(MapPropertySource.class);
 
-        AwsSecretsEnvironmentPostProcessor awsSecretsEnvironmentPostProcessor = verify(processor);
-        String secretName = eq("my-secret");
-        awsSecretsEnvironmentPostProcessor.loadSecret(secretName, eq("eu-west-2"));
+        verify(processor).loadSecret(eq("my-secret"), eq("eu-west-2"));
     }
 
     @Test
@@ -76,49 +83,45 @@ class AwsSecretsEnvironmentPostProcessorTest {
         when(logFactory.getLog(any(Class.class))).thenReturn(postLog);
 
         AwsSecretsEnvironmentPostProcessor processor = spy(new AwsSecretsEnvironmentPostProcessor(logFactory));
-        AwsSecretsEnvironmentPostProcessor awsSecretsEnvironmentPostProcessor1 = doReturn(Map.of("TMC_APP", "from-yaml-name"))
-            .when(processor);
-        String secretName1 = eq("yaml-secret-id");
-        awsSecretsEnvironmentPostProcessor1.loadSecret(secretName1, eq("eu-west-2"));
+        doReturn(Map.of("TMC_APP", "from-yaml-name"))
+            .when(processor)
+            .loadSecret(eq("yaml-secret-id"), eq("eu-west-2"));
         StandardEnvironment env = new StandardEnvironment();
         env.getPropertySources().addFirst(
-            new MapPropertySource("testProps", Map.of("tmc.aws.secret-name", "yaml-secret-id"))
+            new MapPropertySource("testProps", postProcessProps("yaml-secret-id", "eu-west-2"))
         );
 
         processor.postProcessEnvironment(env, mock(SpringApplication.class));
 
         assertThat(env.getProperty("TMC_APP")).isEqualTo("from-yaml-name");
-        AwsSecretsEnvironmentPostProcessor awsSecretsEnvironmentPostProcessor = verify(processor);
-        String secretName = eq("yaml-secret-id");
-        awsSecretsEnvironmentPostProcessor.loadSecret(secretName, eq("eu-west-2"));
+        verify(processor).loadSecret(eq("yaml-secret-id"), eq("eu-west-2"));
     }
 
     @Test
-    void postProcessEnvironment_prefersEnvSecretNameOverYamlPropertyWhenBothPresent() {
+    void postProcessEnvironment_higherPrecedencePropertySourceWinsForSecretName() {
         DeferredLogFactory logFactory = mock(DeferredLogFactory.class);
         Log postLog = mock(Log.class);
         when(logFactory.getLog(any(Class.class))).thenReturn(postLog);
 
-        Map<String, Object> props = new HashMap<>();
-        props.put("tmc.aws.secret-name", "env-secret");
-
         AwsSecretsEnvironmentPostProcessor processor = spy(new AwsSecretsEnvironmentPostProcessor(logFactory));
-        AwsSecretsEnvironmentPostProcessor awsSecretsEnvironmentPostProcessor2 = doReturn(Map.of("TMC_ONE", "1"))
-            .when(processor);
-        String secretName2 = eq("env-secret");
-        awsSecretsEnvironmentPostProcessor2.loadSecret(secretName2, eq("eu-west-2"));
+        doReturn(Map.of("TMC_ONE", "1"))
+            .when(processor)
+            .loadSecret(eq("env-secret"), eq("eu-west-2"));
         StandardEnvironment env = new StandardEnvironment();
-        env.getPropertySources().addFirst(new MapPropertySource("testProps", props));
+        // addFirst: last addFirst is searched first, so "env" wins for tmc.aws.secret-name
+        env.getPropertySources().addFirst(
+            new MapPropertySource("yamlFirst", postProcessProps("yaml-secret", "eu-west-2"))
+        );
+        env.getPropertySources().addFirst(
+            new MapPropertySource("envWins", postProcessProps("env-secret", "eu-west-2"))
+        );
 
         processor.postProcessEnvironment(env, mock(SpringApplication.class));
 
         assertThat(env.getProperty("TMC_ONE")).isEqualTo("1");
-        AwsSecretsEnvironmentPostProcessor awsSecretsEnvironmentPostProcessor1 = verify(processor);
-        String secretName1 = eq("env-secret");
-        awsSecretsEnvironmentPostProcessor1.loadSecret(secretName1, eq("eu-west-2"));
-        AwsSecretsEnvironmentPostProcessor awsSecretsEnvironmentPostProcessor = verify(processor, times(0));
-        String secretName = eq("yaml-secret");
-        awsSecretsEnvironmentPostProcessor.loadSecret(secretName, anyString());
+        assertThat(env.getProperty(TMC_AWS_SECRET_NAME)).isEqualTo("env-secret");
+        verify(processor).loadSecret(eq("env-secret"), eq("eu-west-2"));
+        verify(processor, never()).loadSecret(eq("yaml-secret"), anyString());
     }
 
     @Test
@@ -128,24 +131,18 @@ class AwsSecretsEnvironmentPostProcessorTest {
         when(logFactory.getLog(any(Class.class))).thenReturn(postLog);
 
         AwsSecretsEnvironmentPostProcessor processor = spy(new AwsSecretsEnvironmentPostProcessor(logFactory));
-        AwsSecretsEnvironmentPostProcessor awsSecretsEnvironmentPostProcessor1 = doReturn(Map.of("TMC_REG", "ok"))
-            .when(processor);
-        String secretName1 = eq("s");
-        awsSecretsEnvironmentPostProcessor1.loadSecret(secretName1, eq("some-eu-west-1"));
+        doReturn(Map.of("TMC_REG", "ok"))
+            .when(processor)
+            .loadSecret(eq("s"), eq("some-eu-west-1"));
         StandardEnvironment env = new StandardEnvironment();
         env.getPropertySources().addFirst(
-            new MapPropertySource("testProps",
-                Map.of(
-                    "tmc.aws.secret-name", "s",
-                    "tmc.aws.region", "some-eu-west-1"))
+            new MapPropertySource("testProps", postProcessProps("s", "some-eu-west-1"))
         );
 
         processor.postProcessEnvironment(env, mock(SpringApplication.class));
 
         assertThat(env.getProperty("TMC_REG")).isEqualTo("ok");
-        AwsSecretsEnvironmentPostProcessor awsSecretsEnvironmentPostProcessor = verify(processor);
-        String secretName = eq("s");
-        awsSecretsEnvironmentPostProcessor.loadSecret(secretName, eq("some-eu-west-1"));
+        verify(processor).loadSecret(eq("s"), eq("some-eu-west-1"));
     }
 
     @Test
@@ -155,18 +152,18 @@ class AwsSecretsEnvironmentPostProcessorTest {
         when(logFactory.getLog(any(Class.class))).thenReturn(postLog);
 
         AwsSecretsEnvironmentPostProcessor processor = spy(new AwsSecretsEnvironmentPostProcessor(logFactory));
-        AwsSecretsEnvironmentPostProcessor awsSecretsEnvironmentPostProcessor = doReturn(Map.of())
-            .when(processor);
-        String secretName = eq("my-secret");
-        awsSecretsEnvironmentPostProcessor.loadSecret(secretName, eq("eu-west-2"));
+        doReturn(Map.of())
+            .when(processor)
+            .loadSecret(eq("my-secret"), eq("eu-west-2"));
         StandardEnvironment env = new StandardEnvironment();
         env.getPropertySources().addFirst(
-            new MapPropertySource("testProps", Map.of("tmc.aws.secret-name", "my-secret"))
+            new MapPropertySource("testProps", postProcessProps("my-secret", "eu-west-2"))
         );
 
         processor.postProcessEnvironment(env, mock(SpringApplication.class));
 
         assertThat(env.getPropertySources().get("awsSecretsManager")).isNull();
+        verify(processor).loadSecret(eq("my-secret"), eq("eu-west-2"));
     }
 
     @Test
@@ -176,13 +173,12 @@ class AwsSecretsEnvironmentPostProcessorTest {
         when(logFactory.getLog(any(Class.class))).thenReturn(postLog);
 
         AwsSecretsEnvironmentPostProcessor processor = spy(new AwsSecretsEnvironmentPostProcessor(logFactory));
-        AwsSecretsEnvironmentPostProcessor awsSecretsEnvironmentPostProcessor = doReturn(Map.of("OTHER_KEY", "value"))
-            .when(processor);
-        String secretName = eq("my-secret");
-        awsSecretsEnvironmentPostProcessor.loadSecret(secretName, eq("eu-west-2"));
+        doReturn(Map.of("OTHER_KEY", "value"))
+            .when(processor)
+            .loadSecret(eq("my-secret"), eq("eu-west-2"));
         StandardEnvironment env = new StandardEnvironment();
         env.getPropertySources().addFirst(
-            new MapPropertySource("testProps", Map.of("tmc.aws.secret-name", "my-secret"))
+            new MapPropertySource("testProps", postProcessProps("my-secret", "eu-west-2"))
         );
 
         processor.postProcessEnvironment(env, mock(SpringApplication.class));
@@ -198,16 +194,15 @@ class AwsSecretsEnvironmentPostProcessorTest {
         when(logFactory.getLog(any(Class.class))).thenReturn(postLog);
 
         AwsSecretsEnvironmentPostProcessor processor = spy(new AwsSecretsEnvironmentPostProcessor(logFactory));
-        AwsSecretsEnvironmentPostProcessor awsSecretsEnvironmentPostProcessor = doReturn(
+        doReturn(
             Map.of(
                 "TMC_DB_URL", "jdbc:a",
                 "TMC_TOKEN", "token-value"))
-            .when(processor);
-        String secretName = eq("my-secret");
-        awsSecretsEnvironmentPostProcessor.loadSecret(secretName, eq("eu-west-2"));
+            .when(processor)
+            .loadSecret(eq("my-secret"), eq("eu-west-2"));
         StandardEnvironment env = new StandardEnvironment();
         env.getPropertySources().addFirst(
-            new MapPropertySource("testProps", Map.of("tmc.aws.secret-name", "my-secret"))
+            new MapPropertySource("testProps", postProcessProps("my-secret", "eu-west-2"))
         );
 
         processor.postProcessEnvironment(env, mock(SpringApplication.class));
@@ -226,13 +221,11 @@ class AwsSecretsEnvironmentPostProcessorTest {
         when(logFactory.getLog(any(Class.class))).thenReturn(postLog);
 
         AwsSecretsEnvironmentPostProcessor processor = spy(new AwsSecretsEnvironmentPostProcessor(logFactory));
-        AwsSecretsEnvironmentPostProcessor awsSecretsEnvironmentPostProcessor = doReturn(Map.of("TMC_DB_URL", "jdbc:new"))
-            .when(processor);
-        String secretName = eq("my-secret");
-        awsSecretsEnvironmentPostProcessor.loadSecret(secretName, eq("eu-west-2"));
+        doReturn(Map.of("TMC_DB_URL", "jdbc:new"))
+            .when(processor)
+            .loadSecret(eq("my-secret"), eq("eu-west-2"));
         StandardEnvironment env = new StandardEnvironment();
-        Map<String, Object> props = new HashMap<>();
-        props.put("tmc.aws.secret-name", "my-secret");
+        Map<String, Object> props = postProcessProps("my-secret", "eu-west-2");
         props.put("TMC_DB_URL", "jdbc:old");
         env.getPropertySources().addFirst(new MapPropertySource("testProps", props));
 
