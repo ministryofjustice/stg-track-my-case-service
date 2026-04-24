@@ -51,7 +51,7 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
             if (!tmcSecrets.isEmpty()) {
                 // Highest precedence so AWS-secret values override same-named env vars from deploy tooling.
                 environment.getPropertySources().addFirst(new MapPropertySource(PROPERTY_SOURCE_NAME, tmcSecrets));
-                log.info("AWS Secrets Manager: Populated ; Number od TMC* secrets :" + tmcSecrets.size());
+                log.info("AWS Secrets Manager: Populated ; Number of TMC* secrets :" + tmcSecrets.size());
                 tmcSecrets.keySet().forEach(key -> log.info(key + ": value length=" + tmcSecrets.get(key).toString().length()+";"));
             } else {
                 log.warn("AWS secret contained no TMC-prefixed keys; keys in secret: " + secrets.keySet());
