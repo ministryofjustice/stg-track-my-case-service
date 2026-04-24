@@ -21,9 +21,6 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-/**
- * {@link AwsSecretsEnvironmentPostProcessor} tests with {@link AwsSecretsLoader} stubbed via {@link MockedStatic}.
- */
 class AwsSecretsEnvironmentPostProcessorTest {
 
     @Test
