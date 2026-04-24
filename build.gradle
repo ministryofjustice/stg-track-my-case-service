@@ -208,6 +208,9 @@ dependencies {
   implementation 'javax.validation:validation-api:2.0.1.Final'
   implementation 'org.json:json:20251224'
 
+  implementation 'software.amazon.awssdk:secretsmanager:2.42.38'
+  implementation 'software.amazon.awssdk:sts:2.42.38'
+
   // Metrics
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
   implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus', version: '1.16.0'

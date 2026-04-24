@@ -23,6 +23,10 @@ management:
     health:
       show-details: always
 
+tmc:
+  aws:
+    enabled: false
+
 services:
   amp-url: https://dummy
   amp-subscription-key: dummy-key

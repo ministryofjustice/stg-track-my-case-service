@@ -1,7 +1,6 @@
 package uk.gov.moj.cp.client.api;
 
 import com.moj.generated.hmcts.ProsecutionCase;
-import com.moj.generated.hmcts.ProsecutionCase;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,7 +61,7 @@ public class ProsecutionCaseAPIClient implements ProsecutionCaseClient {
         } catch (HttpStatusCodeException e) {
             throw e;
         } catch (Exception e) {
-            log.error("Error while calling CourtSchedule API: caseUrn: {}, exception: {}",
+            log.error("Error while calling ProsecutionCase API: caseUrn: {}, exception: {}",
                       caseUrn, e.getMessage());
             throw e;
         }
