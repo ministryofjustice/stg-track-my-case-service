@@ -24,7 +24,7 @@ logging:
 
 tmc:
   aws:
-    enabled: true
+    enabled: ${TMC_AWS_SECRET_MANAGER_ENABLED:true}
     secret-name: ${TMC_AWS_SECRET_MANAGER_NAME}
     region: ${TMC_AWS_REGION:${AWS_REGION:eu-west-2}}
 
