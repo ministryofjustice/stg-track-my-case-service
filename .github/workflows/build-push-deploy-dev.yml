@@ -158,6 +158,8 @@ jobs:
 
           combined_json=$VARS_CONTEXT
 
+          kubectl annotate es $KUBE_NAMESPACE-secrets force-sync=force-sync=$(date +%s) --overwrite
+          sleep 10
           secrets_hash=`kubectl get secrets $KUBE_NAMESPACE-secrets -o json  | jq '.data | map_values(@base64d)' | md5sum | awk '{print $1}'`
           custom_vars_hash=`echo "$combined_json" | md5sum | awk '{print $1}'`
           variables_hash="${secrets_hash}-${custom_vars_hash}"
