@@ -8,12 +8,15 @@ Standalone WireMock server used to mock downstream AMP endpoints for local/dev t
 WIREMOCK_PORT=8089 ../gradlew :wiremock-service:run
 ```
 
+Docker Compose builds this module (`wiremock-service/Dockerfile`); the stock `wiremock/wiremock` image does not run this Java.
+
 ### Endpoints mocked
 
 - `GET /courthouses/{court_id}`
 - `GET /courthouses/{court_id}/courtrooms/{court_room_id}`
 - `GET /pcd/cases/{case_urn}`
 - `GET /case/{case_urn}/courtschedule`
+- `POST /{tenant_id}/oauth2/v2.0/token` (for local OAuth when `TMC_TOKEN_URL` points here)
 
 ### Court schedule mock URN format
 

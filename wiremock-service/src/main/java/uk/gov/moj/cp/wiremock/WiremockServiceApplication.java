@@ -5,6 +5,7 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathTemplate;
 
@@ -22,6 +23,22 @@ public class WiremockServiceApplication {
         );
 
         server.start();
+
+        // Client credentials (same host as AMP: override TMC_TOKEN_URL to this WireMock in docker-compose)
+        server.stubFor(post(urlPathMatching("/[^/]+/oauth2/v2\\.0/token"))
+                           .willReturn(aResponse()
+                                           .withHeader("Content-Type", JSON)
+                                           .withStatus(200)
+                                           .withBody(
+                                               """
+                                               {
+                                                 "token_type": "Bearer",
+                                                 "expires_in": 3600,
+                                                 "ext_expires_in": 3600,
+                                                 "access_token": "wiremock-docker-mock-oauth-access-token"
+                                               }
+                                               """
+                                           )));
 
         server.stubFor(get(urlPathMatching("/courthouses/[^/]+/courtrooms/[^/]+"))
                            .willReturn(aResponse()

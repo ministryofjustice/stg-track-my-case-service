@@ -13,33 +13,64 @@ services:
         JAR_FILE_PATH: ${JAR_FILE_PATH}
         AMP_URL: ${AMP_URL}
         AMP_SUBSCRIPTION_KEY: ${AMP_SUBSCRIPTION_KEY}
-        DB_URL: ${DB_URL}
-        DB_USERNAME: ${DB_USERNAME}
+        TMC_DB_URL: ${TMC_DB_URL}
+        TMC_DB_USERNAME: ${TMC_DB_USERNAME}
         TMC_DB_PASSWORD: ${TMC_DB_PASSWORD}
+    env_file:
+      - .env
     environment:
-      # these environment variables are used by java-logging library
-      - ROOT_APPENDER
-      - JSON_CONSOLE_PRETTY_PRINT
-      - ROOT_LOGGING_LEVEL
-      - REFORM_SERVICE_TYPE
-      - REFORM_SERVICE_NAME
-      - REFORM_TEAM
-      - REFORM_ENVIRONMENT
-      - LOGBACK_DATE_FORMAT
-      - LOGBACK_REQUIRE_THREAD
-      - LOGBACK_REQUIRE_ALERT_LEVEL=false
-      - LOGBACK_REQUIRE_ERROR_CODE=false
+      TMC_AMP_URL: "http://wiremock-service:${WIREMOCK_PORT}"
+      TMC_TOKEN_URL: "http://wiremock-service:${WIREMOCK_PORT}"
+      ROOT_APPENDER: ${ROOT_APPENDER:-}
+      JSON_CONSOLE_PRETTY_PRINT: ${JSON_CONSOLE_PRETTY_PRINT:-}
+      ROOT_LOGGING_LEVEL: ${ROOT_LOGGING_LEVEL:-}
+      REFORM_SERVICE_TYPE: ${REFORM_SERVICE_TYPE:-}
+      REFORM_SERVICE_NAME: ${REFORM_SERVICE_NAME:-}
+      REFORM_TEAM: ${REFORM_TEAM:-}
+      REFORM_ENVIRONMENT: ${REFORM_ENVIRONMENT:-}
+      LOGBACK_DATE_FORMAT: ${LOGBACK_DATE_FORMAT:-}
+      LOGBACK_REQUIRE_THREAD: ${LOGBACK_REQUIRE_THREAD:-}
+      LOGBACK_REQUIRE_ALERT_LEVEL: "false"
+      LOGBACK_REQUIRE_ERROR_CODE: "false"
+      # For IntelliJ Remote JVM Debug, attach to localhost:5005 (HTTP stays on 4550). Remove or change this if you set JAVA_TOOL_OPTIONS in .env.
+      JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+    # Right side must be the port the JVM listens on inside the container (9999), not $SERVER_PORT from .env.
+    # Compose substitutes $SERVER_PORT for the *host* at parse time (often 4550) — 4550:$SERVER_PORT would wrongly map 4550:4550.
     ports:
-      - 4550:$SERVER_PORT
+      - "4550:${SERVER_PORT}"
+      - "5005:5005"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:9999/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 5s
+    depends_on:
+      db:
+        condition: service_healthy
+      wiremock-service:
+        condition: service_started
 
-  wiremock-service:
-    image: wiremock/wiremock:3.13.0
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: trackmycase
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser -d trackmycase"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
     ports:
-      - "8089:8089"
-    command: ["--port", "8089"]
+      - "5433:5432"
+
+  # Custom uk.gov.moj wiremock (court schedule, courthouses, PCD, OAuth) — not the bare wiremock/wiremock image
+  wiremock-service:
+    build:
+      context: .
+      dockerfile: wiremock-service/Dockerfile
+    environment:
+      WIREMOCK_PORT: ${WIREMOCK_PORT}
+    ports:
+      - "${WIREMOCK_PORT}:${WIREMOCK_PORT}"
