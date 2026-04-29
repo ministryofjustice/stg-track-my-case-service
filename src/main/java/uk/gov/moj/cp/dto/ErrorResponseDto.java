@@ -10,7 +10,7 @@ import lombok.extern.jackson.Jacksonized;
 @Getter
 @Builder
 @Jacksonized
-public class ErrorResponseDto{
+public class ErrorResponseDto {
 
     @JsonProperty("message")
     private String message;

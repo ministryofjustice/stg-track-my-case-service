@@ -90,7 +90,7 @@ public class CaseDetailsControllerTest {
                          .postalCode("TE1 1ST")
                          .country("UK")
                          .build())
-            .courtRooms( List.of(CourtRoomDto.builder()
+            .courtRooms(List.of(CourtRoomDto.builder()
                                     .courtRoomId(123)
                                     .courtRoomName("CourtRoom 01")
                                     .build()))
