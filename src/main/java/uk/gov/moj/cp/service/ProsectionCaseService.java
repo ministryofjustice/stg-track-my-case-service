@@ -15,10 +15,10 @@ import static java.util.Objects.isNull;
 @RequiredArgsConstructor
 public class ProsectionCaseService {
 
-    private final ProsecutionCaseAPIClient prosecutionCaseClient;
+    private final ProsecutionCaseAPIClient prosecutionCaseAPIClient;
 
     public ProsecutionCaseDTO getCaseStatus(final String accessToken, final String caseUrn) {
-        HttpEntity<ProsecutionCase> result = prosecutionCaseClient.getCaseDetails(accessToken, caseUrn);
+        HttpEntity<ProsecutionCase> result = prosecutionCaseAPIClient.getCaseDetails(accessToken, caseUrn);
 
         if (isNull(result) || isNull(result.getBody())) {
             log.atError().log("Response body is null or empty");

@@ -5,13 +5,11 @@ import com.moj.generated.hmcts.CourtHouse;
 import com.moj.generated.hmcts.CourtRoom;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
@@ -24,7 +22,7 @@ import static org.mockito.Mockito.when;
 
 class CourtHouseAPIClientTest {
 
-    private CourtHouseAPIClient courtHouseClient;
+    private CourtHouseAPIClient courtHouseAPIClient;
 
     private RestTemplate restTemplate;
 
@@ -36,7 +34,7 @@ class CourtHouseAPIClientTest {
     @BeforeEach
     public void setUp() {
         restTemplate = mock(RestTemplate.class);
-        courtHouseClient = new CourtHouseAPIClient(restTemplate) {
+        courtHouseAPIClient = new CourtHouseAPIClient(restTemplate) {
             @Override
             public String getAmpUrl() {
                 return ampUrl;
@@ -60,7 +58,7 @@ class CourtHouseAPIClientTest {
         String courtRoomId = "123";
         String expectedUrl = "https://some.dev.environment.com/courthouses/123/courtrooms/123";
 
-        assertThat(courtHouseClient.buildCourtHearingCourtHousesAndCourtRoomsByIdUrl(id, courtRoomId)).isEqualTo(expectedUrl);
+        assertThat(courtHouseAPIClient.buildCourtHearingCourtHousesAndCourtRoomsByIdUrl(id, courtRoomId)).isEqualTo(expectedUrl);
     }
 
     @Test
@@ -81,10 +79,10 @@ class CourtHouseAPIClientTest {
         when(restTemplate.exchange(
             eq(expectedUrl),
             eq(HttpMethod.GET),
-            eq(courtHouseClient.getRequestEntity(accessToken)),
+            eq(courtHouseAPIClient.getRequestEntity(accessToken)),
             eq(CourtHouse.class)
         )).thenReturn(response);
-        ResponseEntity<CourtHouse> actual = courtHouseClient.getCourtHouseById(accessToken, courtId, courtRoomId);
+        ResponseEntity<CourtHouse> actual = courtHouseAPIClient.getCourtHouseById(accessToken, courtId, courtRoomId);
 
         assertThat(actual).isNotNull();
         assertThat(courtHouse).isEqualTo(actual.getBody());
@@ -109,11 +107,11 @@ class CourtHouseAPIClientTest {
         when(restTemplate.exchange(
             eq(expectedUrl),
             eq(HttpMethod.GET),
-            eq(courtHouseClient.getRequestEntity(accessToken)),
+            eq(courtHouseAPIClient.getRequestEntity(accessToken)),
             eq(CourtHouse.class)
         )).thenThrow(exception);
 
-        assertThatThrownBy(() -> courtHouseClient.getCourtHouseById(accessToken, courtId, courtRoomId))
+        assertThatThrownBy(() -> courtHouseAPIClient.getCourtHouseById(accessToken, courtId, courtRoomId))
             .isInstanceOf(HttpClientErrorException.class)
             .hasMessageContaining("503");
     }

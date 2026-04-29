@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
 class ProsectionCaseServiceTest {
 
     @Mock
-    private ProsecutionCaseAPIClient prosecutionCaseClient;
+    private ProsecutionCaseAPIClient prosecutionCaseAPIClient;
 
     @InjectMocks
     private ProsectionCaseService prosectionCaseService;
@@ -38,19 +38,19 @@ class ProsectionCaseServiceTest {
     void getCaseStatus_returnsMappedDto_whenClientReturnsBody() {
         ProsecutionCase caseStatus = new ProsecutionCase(CaseStatus.ACTIVE, true);
         ResponseEntity<ProsecutionCase> entity = ResponseEntity.ok(caseStatus);
-        when(prosecutionCaseClient.getCaseDetails(accessToken, caseUrn)).thenReturn(entity);
+        when(prosecutionCaseAPIClient.getCaseDetails(accessToken, caseUrn)).thenReturn(entity);
 
         ProsecutionCaseDTO dto = prosectionCaseService.getCaseStatus(accessToken, caseUrn);
 
         assertNotNull(dto);
         assertEquals(CaseStatus.ACTIVE, dto.getCaseStatus());
         assertTrue(dto.isReportingRestrictions());
-        verify(prosecutionCaseClient).getCaseDetails(eq(accessToken), eq(caseUrn));
+        verify(prosecutionCaseAPIClient).getCaseDetails(eq(accessToken), eq(caseUrn));
     }
 
     @Test
     void getCaseStatus_returnsNull_whenResponseBodyIsNull() {
-        when(prosecutionCaseClient.getCaseDetails(anyString(), anyString()))
+        when(prosecutionCaseAPIClient.getCaseDetails(anyString(), anyString()))
             .thenReturn(new ResponseEntity<>(null, HttpStatus.OK));
 
         ProsecutionCaseDTO result = prosectionCaseService.getCaseStatus(accessToken, caseUrn);
@@ -60,7 +60,7 @@ class ProsectionCaseServiceTest {
 
     @Test
     void getCaseStatus_returnsNull_whenClientReturnsNullEntity() {
-        when(prosecutionCaseClient.getCaseDetails(accessToken, caseUrn)).thenReturn(null);
+        when(prosecutionCaseAPIClient.getCaseDetails(accessToken, caseUrn)).thenReturn(null);
 
         ProsecutionCaseDTO result = prosectionCaseService.getCaseStatus(accessToken, caseUrn);
 
@@ -70,7 +70,7 @@ class ProsectionCaseServiceTest {
     @Test
     void getCaseStatus_mapsNullFieldsFromCaseStatus_whenPresent() {
         ProsecutionCase caseStatus = new ProsecutionCase(null, false);
-        when(prosecutionCaseClient.getCaseDetails(accessToken, caseUrn)).thenReturn(ResponseEntity.ok(caseStatus));
+        when(prosecutionCaseAPIClient.getCaseDetails(accessToken, caseUrn)).thenReturn(ResponseEntity.ok(caseStatus));
 
         ProsecutionCaseDTO dto = prosectionCaseService.getCaseStatus(accessToken, caseUrn);
 

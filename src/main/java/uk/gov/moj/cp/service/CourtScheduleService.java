@@ -26,14 +26,14 @@ import static java.util.Objects.nonNull;
 @Slf4j
 public class CourtScheduleService {
 
-    private final CourtScheduleAPIClient courtScheduleClient;
+    private final CourtScheduleAPIClient courtScheduleAPIClient;
 
-    public CourtScheduleService(CourtScheduleAPIClient courtScheduleClient) {
-        this.courtScheduleClient = courtScheduleClient;
+    public CourtScheduleService(CourtScheduleAPIClient courtScheduleAPIClient) {
+        this.courtScheduleAPIClient = courtScheduleAPIClient;
     }
 
     public List<CourtScheduleDto> getCourtScheduleByCaseUrn(String accessToken, String caseUrn) {
-        ResponseEntity<CourtScheduleSchema> result = courtScheduleClient.getCourtScheduleByCaseUrn(
+        ResponseEntity<CourtScheduleSchema> result = courtScheduleAPIClient.getCourtScheduleByCaseUrn(
             accessToken,
             caseUrn
         );

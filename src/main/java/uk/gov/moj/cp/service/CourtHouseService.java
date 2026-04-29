@@ -23,10 +23,10 @@ import static java.util.Objects.nonNull;
 @RequiredArgsConstructor
 public class CourtHouseService {
 
-    private final CourtHouseAPIClient courtHouseClient;
+    private final CourtHouseAPIClient courtHouseAPIClient;
 
     public CourtHouseDto getCourtHouseById(String accessToken, String courtId, String courtRoomId) {
-        HttpEntity<CourtHouse> result = courtHouseClient.getCourtHouseById(accessToken, courtId, courtRoomId);
+        HttpEntity<CourtHouse> result = courtHouseAPIClient.getCourtHouseById(accessToken, courtId, courtRoomId);
 
         if (isNull(result) || isNull(result.getBody())) {
             log.atError().log("Response body is null or empty");
