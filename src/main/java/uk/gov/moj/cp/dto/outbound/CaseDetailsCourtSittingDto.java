@@ -8,7 +8,7 @@ import lombok.Value;
 @Value
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class CaseDetailsCourtSittingDto{
+public class CaseDetailsCourtSittingDto {
 
     @JsonProperty("judiciaryId")
     String judiciaryId;

@@ -107,7 +107,7 @@ class MockCourtScheduleAPIClientTest {
     }
 
     @Test
-    void testCustomData_TMCSE1M2D12() {
+    void testCustomData_tmcse1m2d12() {
         List<CourtSchedule> courtSchedules = mockCourtScheduleClient.customData("TMCSE1M2D12");
         assertEquals(1, courtSchedules.size());
         List<Hearing> hearings = courtSchedules.getFirst().getHearings();

@@ -8,7 +8,7 @@ import lombok.Value;
 @Value
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class AddressDto{
+public class AddressDto {
 
     @JsonProperty("address1")
     String address1;

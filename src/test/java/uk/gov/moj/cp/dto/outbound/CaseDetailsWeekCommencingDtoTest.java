@@ -46,11 +46,15 @@ class CaseDetailsWeekCommencingDtoTest {
             .build();
         CaseDetailsWeekCommencingDto w2 = CaseDetailsWeekCommencingDto.builder().build();
 
-        String expectedCourtHouse = "{\"courtHouseId\":\"CH001\",\"courtRoomId\":\"CR001\",\"courtHouseType\":\"Crown\",\"courtHouseCode\":\"LON\",\"courtHouseName\":\"London Court\",\"address\":{\"address1\":\"1 Court Street\",\"address2\":\"Westminster\",\"address3\":\"London\",\"address4\":\"Greater London\",\"postalCode\":\"SW1A 1AA\",\"country\":\"UK\"},\"courtRoom\":[{\"courtRoomId\":1,\"courtRoomName\":\"Room 1\"},{\"courtRoomId\":2,\"courtRoomName\":\"Room 2\"}]}";
-        assertEquals(
-            "{\"startDate\":\"2025-01-06\",\"endDate\":\"2025-01-12\",\"durationInWeeks\":1,\"courtHouse\":" + expectedCourtHouse + "}",
-            objectMapper.writeValueAsString(w1)
-        );
+        String expectedCourtHouse = """
+            {"courtHouseId":"CH001","courtRoomId":"CR001","courtHouseType":"Crown","courtHouseCode":"LON",
+            "courtHouseName":"London Court","address":{"address1":"1 Court Street","address2":"Westminster",
+            "address3":"London","address4":"Greater London","postalCode":"SW1A 1AA","country":"UK"},
+            "courtRoom":[{"courtRoomId":1,"courtRoomName":"Room 1"},{"courtRoomId":2,"courtRoomName":"Room 2"}]}
+            """;
+        String expected = "{\"startDate\":\"2025-01-06\",\"endDate\":\"2025-01-12\",\"durationInWeeks\":1,"
+            + "\"courtHouse\":" + expectedCourtHouse + "}";
+        assertEquals(objectMapper.readTree(expected).toString(), objectMapper.writeValueAsString(w1));
         assertEquals("{\"durationInWeeks\":0}", objectMapper.writeValueAsString(w2));
     }
 

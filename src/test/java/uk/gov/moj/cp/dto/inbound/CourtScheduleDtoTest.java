@@ -39,11 +39,14 @@ class CourtScheduleDtoTest {
             .build();
         CourtScheduleDto cs2 = CourtScheduleDto.builder().build();
 
-        String expectedWeekCommencing = "{\"courtHouse\":\"London Court\",\"startDate\":\"2025-01-06\",\"endDate\":\"2025-01-12\",\"durationInWeeks\":1}";
-        String expectedSitting = "{\"sittingStart\":\"2025-01-01T09:00\",\"sittingEnd\":\"2025-01-01T17:00\",\"judiciaryId\":\"J001\",\"courtHouse\":\"London Court\",\"courtRoom\":\"Room 1\"}";
-        String expectedHearing = "{\"hearingId\":\"H001\",\"hearingType\":\"Trial\",\"hearingDescription\":\"Main trial hearing\",\"listNote\":\"List note one\",\"weekCommencing\":" + expectedWeekCommencing + ",\"courtSittings\":[" + expectedSitting + "]}";
+        String expectedHearing = """
+            {"hearingId":"H001","hearingType":"Trial","hearingDescription":"Main trial hearing","listNote":"List note one",
+            "weekCommencing":{"courtHouse":"London Court","startDate":"2025-01-06","endDate":"2025-01-12","durationInWeeks":1},
+            "courtSittings":[{"sittingStart":"2025-01-01T09:00","sittingEnd":"2025-01-01T17:00","judiciaryId":"J001",
+            "courtHouse":"London Court","courtRoom":"Room 1"}]}
+            """;
         assertEquals(
-            "{\"hearings\":[" + expectedHearing + "]}",
+            objectMapper.readTree("{\"hearings\":[" + expectedHearing + "]}").toString(),
             objectMapper.writeValueAsString(cs1)
         );
         assertEquals("{\"hearings\":null}", objectMapper.writeValueAsString(cs2));
