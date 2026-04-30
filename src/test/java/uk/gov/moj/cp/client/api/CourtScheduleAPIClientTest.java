@@ -41,7 +41,7 @@ class CourtScheduleAPIClientTest {
     public void setUp() {
         restTemplate = mock(RestTemplate.class);
 
-        courtScheduleAPIClient = new CourtScheduleAPIClient(restTemplate){
+        courtScheduleAPIClient = new CourtScheduleAPIClient(restTemplate) {
             @Override
             public String getAmpUrl() {
                 return ampUrl;
@@ -107,8 +107,10 @@ class CourtScheduleAPIClientTest {
             eq(CourtScheduleSchema.class)
         )).thenReturn(response);
 
-        ResponseEntity<CourtScheduleSchema> actual = courtScheduleAPIClient.getCourtScheduleByCaseUrn(accessToken,
-                                                                                                      caseUrn);
+        ResponseEntity<CourtScheduleSchema> actual = courtScheduleAPIClient.getCourtScheduleByCaseUrn(
+            accessToken,
+            caseUrn
+        );
         assertThat(actual).isNotNull();
         assertThat(courtScheduleSchema).isEqualTo(actual.getBody());
     }

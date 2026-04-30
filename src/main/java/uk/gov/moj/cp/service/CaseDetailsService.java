@@ -49,7 +49,7 @@ public class CaseDetailsService {
         final String accessToken = oauthTokenService.getJwtToken();
         final String prosecutionCaseAcessToken = oauthTokenService.getProsecutionCaseJwtToken();
         List<CourtScheduleDto> courtSchedule = courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn);
-        ProsecutionCaseDTO prosecutionCaseDTO = prosectionCaseService.getCaseStatus(prosecutionCaseAcessToken, caseUrn);
+        ProsecutionCaseDTO prosecutionCaseDto = prosectionCaseService.getCaseStatus(prosecutionCaseAcessToken, caseUrn);
 
         List<CaseDetailsCourtScheduleDto> caseDetailsCourtSchedules = courtSchedule.stream()
             .map(schedule -> {
@@ -70,7 +70,7 @@ public class CaseDetailsService {
         trackMyCaseMetricsService.incrementCaseDetailsCount(caseUrn);
         return CaseDetailsDto.builder()
             .caseUrn(caseUrn)
-            .caseStatus(prosecutionCaseDTO.getCaseStatus())
+            .caseStatus(prosecutionCaseDto.getCaseStatus())
             .courtSchedules(caseDetailsCourtSchedules)
             .build();
     }
@@ -114,8 +114,8 @@ public class CaseDetailsService {
             .thenComparing((CaseDetailsHearingDto dto) -> hasFixedDateHearing(dto) ? 0 : 1)
             .thenComparingInt((CaseDetailsHearingDto dto) ->
                                   nonNull(dto.getHearingType())
-                                      && HEARING_TYPE_TRIAL_PATTERN.matcher(dto.getHearingType()).find() ?
-                                      0 : 1
+                                      && HEARING_TYPE_TRIAL_PATTERN.matcher(dto.getHearingType()).find()
+                                      ? 0 : 1
             );
     }
 
@@ -143,8 +143,9 @@ public class CaseDetailsService {
         }
 
         if (nonNull(earliestSittingDate) && nonNull(weekCommencingStartDate)) {
-            return earliestSittingDate.isBefore(weekCommencingStartDate) ||
-                earliestSittingDate.equals(weekCommencingStartDate) ||
+            return earliestSittingDate.isBefore(weekCommencingStartDate)
+                || earliestSittingDate.equals(weekCommencingStartDate)
+                ||
                 (
                     earliestSittingDate.isAfter(weekCommencingStartDate)
                         && earliestSittingDate.isBefore(weekCommencingEndDate)
@@ -182,7 +183,7 @@ public class CaseDetailsService {
 
     private CaseDetailsWeekCommencingDto getWeekCommencing(final HearingDto hearing) {
         final WeekCommencingDto weekCommencingDto = hearing.getWeekCommencing();
-        if(Strings.isEmpty(weekCommencingDto.getStartDate()) || Strings.isEmpty(weekCommencingDto.getEndDate())) {
+        if (Strings.isEmpty(weekCommencingDto.getStartDate()) || Strings.isEmpty(weekCommencingDto.getEndDate())) {
             return null;
         }
 
@@ -236,7 +237,7 @@ public class CaseDetailsService {
     }
 
     private boolean validateDateNotInPastAndNotAfterTenYears(final LocalDate hearingDate) {
-        if (nonNull(hearingDate) ) {
+        if (nonNull(hearingDate)) {
             try {
                 return !(hearingDate.isBefore(LocalDate.now()) || hearingDate.isAfter(LocalDate.now().plusYears(10)));
             } catch (Exception e) {
@@ -255,7 +256,8 @@ public class CaseDetailsService {
             return true;
         }
         final String hearingTypeInLowerCase = hearingType.toLowerCase();
-        if (hearingTypeInLowerCase.contains(HearingType.TRIAL.getValue().toLowerCase()) || hearingTypeInLowerCase.contains(HearingType.SENTENCE.getValue().toLowerCase())) {
+        if (hearingTypeInLowerCase.contains(HearingType.TRIAL.getValue().toLowerCase())
+            || hearingTypeInLowerCase.contains(HearingType.SENTENCE.getValue().toLowerCase())) {
             // this is a case if you missed any hearing type in HearingType enum, which has "trial" or "sentence" in the value
             log.atError().log("Hearing type does match Trail or Sentence filtering and not included in the enum {}", hearingType);
             return false;
@@ -311,8 +313,9 @@ public class CaseDetailsService {
     }
 
     private CaseDetailsWeekCommencingDto enrichWeekCommencingWithCourtDetails(final String accessToken, final CaseDetailsWeekCommencingDto weekCommencing) {
-        if (isNull(weekCommencing))
+        if (isNull(weekCommencing)) {
             return null;
+        }
 
         final CourtHouseDto courtHouseDto = courtHouseService.getCourtHouseById(
             accessToken,

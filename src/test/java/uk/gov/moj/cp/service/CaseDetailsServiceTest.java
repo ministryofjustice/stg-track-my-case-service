@@ -632,7 +632,7 @@ class CaseDetailsServiceTest {
 
     @Test
     @DisplayName("includes hearing of types Trial or SENTENCE")
-    void testGetCaseDetailsByCaseUrnWithHearingScheduleWithHearingTypeSSENTENCEOrTrial() {
+    void testGetCaseDetailsByCaseUrnWithHearingScheduleWithHearingTypeSentenceOrTrial() {
         final CourtSittingDto futureSittingDto = createCourtSitting(futureSittingStartDate, futureSittingEndDate);
         final HearingDto hearingDto = createHearing(HearingType.TRIAL.getValue(), List.of(futureSittingDto));
         final HearingDto hearingDto1 = createHearing(HearingType.SENTENCE.getValue(), List.of(futureSittingDto));
@@ -1209,7 +1209,7 @@ class CaseDetailsServiceTest {
 
 
         final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
-            .hearings(List.of(hearingWithSitting, hearingWithWeekCommencing, hearingWithSitting1, hearingWithWeekCommencing1 ))
+            .hearings(List.of(hearingWithSitting, hearingWithWeekCommencing, hearingWithSitting1, hearingWithWeekCommencing1))
             .build();
 
         when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
@@ -1262,7 +1262,7 @@ class CaseDetailsServiceTest {
         );
 
         final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
-            .hearings(List.of(hearingWithSitting, hearingWithWeekCommencing ))
+            .hearings(List.of(hearingWithSitting, hearingWithWeekCommencing))
             .build();
 
         when(oauthTokenService.getJwtToken()).thenReturn(accessToken);
@@ -1279,12 +1279,12 @@ class CaseDetailsServiceTest {
 
     private CourtSittingDto createCourtSitting(final String sittingStartDate, final String sittingEndDate) {
         return CourtSittingDto.builder()
-           .sittingStart(sittingStartDate)
-           .sittingEnd(sittingEndDate)
-           .judiciaryId(judgeId)
-           .courtHouse(courtHouseId)
-           .courtRoom(courtRoomId)
-           .build();
+            .sittingStart(sittingStartDate)
+            .sittingEnd(sittingEndDate)
+            .judiciaryId(judgeId)
+            .courtHouse(courtHouseId)
+            .courtRoom(courtRoomId)
+            .build();
     }
 
     private CourtHouseDto createCourtHouse(final CourtRoomDto courtRoomDto, final AddressDto addressDto) {

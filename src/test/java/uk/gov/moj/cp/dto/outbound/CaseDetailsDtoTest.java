@@ -69,15 +69,25 @@ class CaseDetailsDtoTest {
             .build();
         CaseDetailsDto dto2 = CaseDetailsDto.builder().build();
 
-        String expectedCourtHouse = "{\"courtHouseId\":\"CH001\",\"courtRoomId\":\"CR001\",\"courtHouseType\":\"Crown\",\"courtHouseCode\":\"LON\",\"courtHouseName\":\"London Court\",\"address\":{\"address1\":\"1 Court Street\",\"address2\":\"Westminster\",\"address3\":\"London\",\"address4\":\"Greater London\",\"postalCode\":\"SW1A 1AA\",\"country\":\"UK\"},\"courtRoom\":[{\"courtRoomId\":1,\"courtRoomName\":\"Room 1\"},{\"courtRoomId\":2,\"courtRoomName\":\"Room 2\"}]}";
+        String expectedCourtHouse = """
+            {
+            "courtHouseId":"CH001","courtRoomId":"CR001","courtHouseType":"Crown","courtHouseCode":"LON",
+            "courtHouseName":"London Court","address":{"address1":"1 Court Street","address2":"Westminster",
+            "address3":"London","address4":"Greater London","postalCode":"SW1A 1AA","country":"UK"},
+            "courtRoom":[
+                {
+                "courtRoomId":1,"courtRoomName":"Room 1"},{"courtRoomId":2,"courtRoomName":"Room 2"
+                }
+            ]
+            }
+            """;
         String expectedSitting = "{\"judiciaryId\":\"J001\",\"sittingStart\":\"2025-01-01T09:00\",\"sittingEnd\":\"2025-01-01T17:00\",\"courtHouse\":" + expectedCourtHouse + "}";
         String expectedWeekCommencing = "{\"startDate\":\"2025-01-06\",\"endDate\":\"2025-01-12\",\"durationInWeeks\":1,\"courtHouse\":" + expectedCourtHouse + "}";
-        String expectedHearing = "{\"hearingId\":\"H001\",\"hearingType\":\"Trial\",\"hearingDescription\":\"Main hearing\",\"listNote\":\"List note\",\"courtSittings\":[" + expectedSitting + "],\"weekCommencing\":" + expectedWeekCommencing + "}";
+        String expectedHearing = "{\"hearingId\":\"H001\",\"hearingType\":\"Trial\",\"hearingDescription\":\"Main hearing\",\"listNote\":\"List note\","
+            + "\"courtSittings\":[" + expectedSitting + "],\"weekCommencing\":" + expectedWeekCommencing + "}";
         String expectedCourtSchedule = "{\"hearings\":[" + expectedHearing + "]}";
-        assertEquals(
-            "{\"caseUrn\":\"URN123\",\"caseStatus\":\"ACTIVE\",\"courtSchedule\":[" + expectedCourtSchedule + "]}",
-            objectMapper.writeValueAsString(dto1)
-        );
+        String expected = "{\"caseUrn\":\"URN123\",\"caseStatus\":\"ACTIVE\",\"courtSchedule\":[" + expectedCourtSchedule + "]}";
+        assertEquals(objectMapper.readTree(expected).toString(), objectMapper.writeValueAsString(dto1));
         assertEquals("{}", objectMapper.writeValueAsString(dto2));
     }
 

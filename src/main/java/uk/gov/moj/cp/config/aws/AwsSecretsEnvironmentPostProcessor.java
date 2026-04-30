@@ -91,7 +91,7 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
     }
 
     /**
-     * Loads and parses a JSON secret from AWS Secrets Manager
+     * Loads and parses a JSON secret from AWS Secrets Manager.
      */
     protected Map<String, String> loadSecret(final String secretName, final String region) {
         if (Strings.isEmpty(secretName)) {
