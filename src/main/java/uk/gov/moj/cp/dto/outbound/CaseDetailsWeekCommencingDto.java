@@ -8,7 +8,7 @@ import lombok.Value;
 @Value
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class CaseDetailsWeekCommencingDto{
+public class CaseDetailsWeekCommencingDto {
 
     @JsonProperty("startDate")
     String startDate;

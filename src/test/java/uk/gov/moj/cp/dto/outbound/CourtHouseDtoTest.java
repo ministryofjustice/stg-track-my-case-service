@@ -40,10 +40,13 @@ class CourtHouseDtoTest {
             .build();
         CourtHouseDto ch2 = CourtHouseDto.builder().build();
 
-        assertEquals(
-            "{\"courtHouseId\":\"CH001\",\"courtRoomId\":\"CR001\",\"courtHouseType\":\"Crown\",\"courtHouseCode\":\"LON\",\"courtHouseName\":\"London Court\",\"address\":{\"address1\":\"1 Court Street\",\"address2\":\"Westminster\",\"address3\":\"London\",\"address4\":\"Greater London\",\"postalCode\":\"SW1A 1AA\",\"country\":\"UK\"},\"courtRoom\":[{\"courtRoomId\":1,\"courtRoomName\":\"Room 1\"},{\"courtRoomId\":2,\"courtRoomName\":\"Room 2\"}]}",
-            objectMapper.writeValueAsString(ch1)
-        );
+        String expected = """
+            {"courtHouseId":"CH001","courtRoomId":"CR001","courtHouseType":"Crown","courtHouseCode":"LON",
+            "courtHouseName":"London Court","address":{"address1":"1 Court Street","address2":"Westminster",
+            "address3":"London","address4":"Greater London","postalCode":"SW1A 1AA","country":"UK"},
+            "courtRoom":[{"courtRoomId":1,"courtRoomName":"Room 1"},{"courtRoomId":2,"courtRoomName":"Room 2"}]}
+            """;
+        assertEquals(objectMapper.readTree(expected).toString(), objectMapper.writeValueAsString(ch1));
         assertEquals("{}", objectMapper.writeValueAsString(ch2));
     }
 
