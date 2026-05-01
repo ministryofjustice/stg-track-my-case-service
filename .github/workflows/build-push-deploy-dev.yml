@@ -152,10 +152,6 @@ jobs:
           RELEASE_NAME: ${{ github.event.repository.name }}-dev
           VARS_CONTEXT:  ${{ toJson(vars) }}
         run: |
-          process_ip_range=$(echo $IP_RANGES | sed "s/,/\\\,/g")
-          # use below after secret manager change has gone in
-          # combined_json=$VARS_CONTEXT
-
           combined_json=$VARS_CONTEXT
 
           kubectl annotate es eks-external-secret-$KUBE_NAMESPACE-secrets force-sync=$(date +%s) --overwrite
