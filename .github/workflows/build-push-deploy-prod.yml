@@ -140,15 +140,9 @@ jobs:
           KUBE_NAMESPACE: ${{ secrets.KUBE_NAMESPACE }}
           NEW_TAG_V: ${{ needs.build-push-prod.outputs.new_tag }}
           RELEASE_NAME: ${{ github.event.repository.name }}-prod
-          SECRETS_CONTEXT:  ${{ toJson(secrets) }}
           VARS_CONTEXT:  ${{ toJson(vars) }}
         run: |
-          process_ip_range=$(echo $IP_RANGES | sed "s/,/\\\,/g")
-
-          combined_json=$(jq -n \
-              --argjson secrets_json "$SECRETS_CONTEXT" \
-              --argjson vars_json "$VARS_CONTEXT" \
-              '$secrets_json + $vars_json')
+          combined_json=$VARS_CONTEXT
 
           kubectl annotate es eks-external-secret-$KUBE_NAMESPACE-secrets force-sync=$(date +%s) --overwrite
           sleep 10
@@ -221,7 +215,7 @@ jobs:
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
           --set Networkpolicy.Ingress="track-my-case-prod" \
-          --set ServiceAccount.RoleARN=$TMC_APP_ROLE \
+          --set ServiceAccount.RoleARN=$APP_ROLE_ARN \
           "${custom_variables_array[@]}"
           # > rendered.yaml
 
@@ -242,7 +236,7 @@ jobs:
           --set securityContext.runAsNonRoot=true \
           --set securityContext.seccompProfile.type="RuntimeDefault" \
           --set Networkpolicy.Ingress="track-my-case-prod" \
-          --set ServiceAccount.RoleARN=$TMC_APP_ROLE \
+          --set ServiceAccount.RoleARN=$APP_ROLE_ARN \
           "${custom_variables_array[@]}"
 
           echo "Labeling the service"
