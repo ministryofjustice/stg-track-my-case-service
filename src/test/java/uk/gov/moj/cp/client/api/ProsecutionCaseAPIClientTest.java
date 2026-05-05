@@ -38,7 +38,7 @@ class ProsecutionCaseAPIClientTest {
             }
 
             @Override
-            public String getAmpSubscriptionKey() {
+            public String getPcdAmpSubscriptionKey() {
                 return ampSubscriptionKey;
             }
 
