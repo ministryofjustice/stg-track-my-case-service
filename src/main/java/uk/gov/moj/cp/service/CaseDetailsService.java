@@ -17,6 +17,7 @@ import uk.gov.moj.cp.dto.outbound.ProsecutionCaseDTO;
 import uk.gov.moj.cp.dto.outbound.CourtHouseDto;
 import uk.gov.moj.cp.metrics.TrackMyCaseMetricsService;
 import uk.gov.moj.cp.model.HearingType;
+import uk.gov.moj.cp.model.mock.APIName;
 
 import java.time.LocalDate;
 import java.util.Comparator;
@@ -46,10 +47,12 @@ public class CaseDetailsService {
     );
 
     public CaseDetailsDto getCaseDetailsByCaseUrn(final String caseUrn) {
-        final String accessToken = oauthTokenService.getJwtToken();
-        final String prosecutionCaseAcessToken = oauthTokenService.getProsecutionCaseJwtToken();
-        List<CourtScheduleDto> courtSchedule = courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn);
-        ProsecutionCaseDTO prosecutionCaseDto = prosectionCaseService.getCaseStatus(prosecutionCaseAcessToken, caseUrn);
+        final String courtScheduleAccessToken = oauthTokenService.getJwtToken(APIName.SLC);
+        final String courtHouseAccessToken = oauthTokenService.getJwtToken(APIName.RCC);
+        final String prosecutionCaseAccessToken = oauthTokenService.getJwtToken(APIName.PCD);
+
+        List<CourtScheduleDto> courtSchedule = courtScheduleService.getCourtScheduleByCaseUrn(courtScheduleAccessToken, caseUrn);
+        ProsecutionCaseDTO prosecutionCaseDto = prosectionCaseService.getCaseStatus(prosecutionCaseAccessToken, caseUrn);
 
         List<CaseDetailsCourtScheduleDto> caseDetailsCourtSchedules = courtSchedule.stream()
             .map(schedule -> {
@@ -57,7 +60,7 @@ public class CaseDetailsService {
                     .map(this::getHearingDetails)
                     .filter(Objects::nonNull)
                     .min(getCaseDetailsHearingDtoComparator())
-                    .map(h -> enrichHearingWithCourtDetails(caseUrn, accessToken, h))
+                    .map(h -> enrichHearingWithCourtDetails(caseUrn, courtHouseAccessToken, h))
                     .stream()
                     .toList();
                 return CaseDetailsCourtScheduleDto.builder()
@@ -265,15 +268,15 @@ public class CaseDetailsService {
         return false;
     }
 
-    private CaseDetailsHearingDto enrichHearingWithCourtDetails(final String caseUrn, final String accessToken, final CaseDetailsHearingDto hearing) {
+    private CaseDetailsHearingDto enrichHearingWithCourtDetails(final String caseUrn, final String courtHouseAccessToken, CaseDetailsHearingDto hearing) {
         CaseDetailsWeekCommencingDto enrichedWeekCommencing = enrichWeekCommencingWithCourtDetails(
-            accessToken,
+            courtHouseAccessToken,
             hearing.getWeekCommencing()
         );
 
         List<CaseDetailsCourtSittingDto> enrichedCourtSittings =
             (isNull(enrichedWeekCommencing) && nonNull(hearing.getCourtSittings()))
-                ? enrichCourtSittingsWithCourtDetails(accessToken, hearing.getCourtSittings())
+                ? enrichCourtSittingsWithCourtDetails(courtHouseAccessToken, hearing.getCourtSittings())
                 : null;
 
         if (nonNull(enrichedWeekCommencing)) {
