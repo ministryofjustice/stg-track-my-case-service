@@ -36,7 +36,7 @@ public class ProsecutionCaseAPIClient implements ProsecutionCaseClient {
 
     @Getter
     @Value("${services.pcd-amp-subscription-key}")
-    private String pcdSubscriptionKey;
+    private String ampSubscriptionKey;
 
     @Getter
     @Value("${services.api-cp-pcd-prosecution-case-details.path}")
@@ -71,7 +71,7 @@ public class ProsecutionCaseAPIClient implements ProsecutionCaseClient {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
         headers.setBearerAuth(accessToken);
-        headers.set("Ocp-Apim-Subscription-Key", getPcdSubscriptionKey());
+        headers.set("Ocp-Apim-Subscription-Key", getAmpSubscriptionKey());
         return new HttpEntity<>(headers);
     }
 }

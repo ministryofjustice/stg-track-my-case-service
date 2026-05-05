@@ -35,7 +35,7 @@ public class CourtScheduleAPIClient implements CourtScheduleClient {
     private String ampUrl;
 
     @Getter
-    @Value("${services.amp-subscription-key}")
+    @Value("${services.slc-amp-subscription-key}")
     private String ampSubscriptionKey;
 
     @Getter

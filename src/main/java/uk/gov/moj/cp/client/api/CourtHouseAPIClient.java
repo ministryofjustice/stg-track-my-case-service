@@ -36,7 +36,7 @@ public class CourtHouseAPIClient implements CourtHouseClient {
     private String ampUrl;
 
     @Getter
-    @Value("${services.amp-subscription-key}")
+    @Value("${services.rcc-amp-subscription-key}")
     private String ampSubscriptionKey;
 
     @Getter

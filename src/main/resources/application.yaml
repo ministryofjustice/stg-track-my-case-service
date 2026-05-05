@@ -55,17 +55,18 @@ azure:
 services:
   use-mock-data: ${TMC_USE_MOCK_DATA:false}
   amp-url: ${TMC_AMP_URL}
-  amp-subscription-key: ${TMC_AMP_SUBSCRIPTION_KEY}
+  slc-amp-slc-subscription-key: ${TMC_SLC_AMP_SUBSCRIPTION_KEY}
+  rcc-amp-subscription-key: ${TMC_RCC_AMP_SUBSCRIPTION_KEY}
   pcd-amp-subscription-key: ${TMC_PCD_AMP_SUBSCRIPTION_KEY}
 
   api-cp-refdata-courthearing-courthouses-courtrooms:
-    path: /courthouses/{court_id}/courtrooms/{court_room_id}
+    path: /rcc/courthouses/{court_id}/courtrooms/{court_room_id}
 
   api-cp-refdata-courthearing-courthouses:
-    path: /courthouses/{court_id}
+    path: /rcc/courthouses/{court_id}
 
   api-cp-crime-schedulingandlisting-courtschedule:
-    path: /case/{case_urn}/courtschedule
+    path: /slc/case/{case_urn}/courtschedule
 
   api-cp-pcd-prosecution-case-details:
     path: /pcd/cases/{case_urn}
@@ -91,8 +92,6 @@ services:
     tenant-id: ${TMC_TOKEN_TENANT_ID}
     client-id: ${TMC_TOKEN_CLIENT_ID}
     client-secret: ${TMC_TOKEN_CLIENT_SECRET}
-    scope: ${TMC_TOKEN_SCOPE}
-    prosecutioncase-tenant-id: ${TMC_PCD_TOKEN_TENANT_ID}
-    prosecutioncase-client-id: ${TMC_PCD_TOKEN_CLIENT_ID}
-    prosecutioncase-client-secret: ${TMC_PCD_TOKEN_CLIENT_SECRET}
-    prosecutioncase-scope: ${TMC_PCD_TOKEN_SCOPE}
+    prosecution-case-scope: ${TMC_PCD_TOKEN_SCOPE}
+    court-schedule-scope: ${TMC_SLC_TOKEN_SCOPE}
+    reference-data-scope: ${TMC_RCC_TOKEN_SCOPE}
