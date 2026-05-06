@@ -51,10 +51,10 @@ public class CaseDetailsService {
         final String courtHouseAccessToken = oauthTokenService.getJwtToken(APIName.RCC);
         final String prosecutionCaseAccessToken = oauthTokenService.getJwtToken(APIName.PCD);
 
-        List<CourtScheduleDto> courtSchedule = courtScheduleService.getCourtScheduleByCaseUrn(courtScheduleAccessToken, caseUrn);
-        ProsecutionCaseDTO prosecutionCaseDto = prosectionCaseService.getCaseStatus(prosecutionCaseAccessToken, caseUrn);
+        final List<CourtScheduleDto> courtSchedule = courtScheduleService.getCourtScheduleByCaseUrn(courtScheduleAccessToken, caseUrn);
+        final ProsecutionCaseDTO prosecutionCaseDto = prosectionCaseService.getCaseStatus(prosecutionCaseAccessToken, caseUrn);
 
-        List<CaseDetailsCourtScheduleDto> caseDetailsCourtSchedules = courtSchedule.stream()
+        final List<CaseDetailsCourtScheduleDto> caseDetailsCourtSchedules = courtSchedule.stream()
             .map(schedule -> {
                 List<CaseDetailsHearingDto> nextHearings = schedule.getHearings().stream()
                     .map(this::getHearingDetails)
