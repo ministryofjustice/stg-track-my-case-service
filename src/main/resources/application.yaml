@@ -55,7 +55,7 @@ azure:
 services:
   use-mock-data: ${TMC_USE_MOCK_DATA:false}
   amp-url: ${TMC_AMP_URL}
-  slc-amp-slc-subscription-key: ${TMC_SLC_AMP_SUBSCRIPTION_KEY}
+  slc-amp-subscription-key: ${TMC_SLC_AMP_SUBSCRIPTION_KEY}
   rcc-amp-subscription-key: ${TMC_RCC_AMP_SUBSCRIPTION_KEY}
   pcd-amp-subscription-key: ${TMC_PCD_AMP_SUBSCRIPTION_KEY}
 
