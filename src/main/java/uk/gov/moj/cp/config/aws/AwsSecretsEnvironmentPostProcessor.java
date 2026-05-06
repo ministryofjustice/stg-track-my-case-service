@@ -74,9 +74,9 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
                 log.info(format(
                     "AWS Secrets Manager: Populated ; Number of TMC* secrets :%d", tmcSecrets.size()));
                 tmcSecrets.keySet().forEach(key -> {
-                    String val = tmcSecrets.get(key).toString();
-                    String masked = val.length() <= 4 ? "*".repeat(val.length())
-                        : val.substring(0, 2) + "*".repeat(val.length() - 4) + val.substring(val.length() - 2);
+                    String value = tmcSecrets.get(key).toString();
+                    String masked = value.length() <= 4 ? "*".repeat(value.length())
+                        : value.substring(0, 2) + "*".repeat(value.length() - 4) + value.substring(value.length() - 2);
                     log.info(format("%s: value=%s;", key, masked));
                 });
             } else {
