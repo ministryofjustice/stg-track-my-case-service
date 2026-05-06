@@ -69,6 +69,7 @@ public class OAuthTokenClient {
     }
 
     public OAuthTokenResponse getJwtToken(APIName apiName) {
+        log.atInfo().log("Received token request for API: {}", apiName);
         HttpEntity<MultiValueMap<String, String>> request = getHttpEntity(apiName);
         ResponseEntity<OAuthTokenResponse> response = restTemplate.postForEntity(
             buildTokenPathUrl(getTenantId(), getVersion()),
