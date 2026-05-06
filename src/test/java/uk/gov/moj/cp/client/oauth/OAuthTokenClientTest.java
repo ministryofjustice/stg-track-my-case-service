@@ -9,9 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.moj.cp.model.OAuthTokenResponse;
-import uk.gov.moj.cp.model.mock.APIName;
+import uk.gov.moj.cp.model.APIName;
 
-import static java.beans.Beans.isInstanceOf;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.argThat;

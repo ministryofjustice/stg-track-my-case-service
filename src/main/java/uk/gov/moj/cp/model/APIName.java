@@ -1,4 +1,4 @@
-package uk.gov.moj.cp.model.mock;
+package uk.gov.moj.cp.model;
 
 import lombok.Getter;
 

@@ -21,7 +21,7 @@ import uk.gov.moj.cp.dto.inbound.CourtSittingDto;
 import uk.gov.moj.cp.dto.inbound.WeekCommencingDto;
 import uk.gov.moj.cp.metrics.TrackMyCaseMetricsService;
 import uk.gov.moj.cp.model.HearingType;
-import uk.gov.moj.cp.model.mock.APIName;
+import uk.gov.moj.cp.model.APIName;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

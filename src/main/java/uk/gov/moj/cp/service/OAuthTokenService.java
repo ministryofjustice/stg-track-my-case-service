@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import uk.gov.moj.cp.client.oauth.OAuthTokenClient;
-import uk.gov.moj.cp.model.mock.APIName;
+import uk.gov.moj.cp.model.APIName;
 
 @Service
 @Slf4j

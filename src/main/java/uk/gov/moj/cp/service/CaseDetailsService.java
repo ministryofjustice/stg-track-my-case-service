@@ -17,7 +17,7 @@ import uk.gov.moj.cp.dto.outbound.ProsecutionCaseDTO;
 import uk.gov.moj.cp.dto.outbound.CourtHouseDto;
 import uk.gov.moj.cp.metrics.TrackMyCaseMetricsService;
 import uk.gov.moj.cp.model.HearingType;
-import uk.gov.moj.cp.model.mock.APIName;
+import uk.gov.moj.cp.model.APIName;
 
 import java.time.LocalDate;
 import java.util.Comparator;

@@ -14,7 +14,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.moj.cp.model.OAuthTokenResponse;
-import uk.gov.moj.cp.model.mock.APIName;
+import uk.gov.moj.cp.model.APIName;
 
 @Slf4j
 @Component
