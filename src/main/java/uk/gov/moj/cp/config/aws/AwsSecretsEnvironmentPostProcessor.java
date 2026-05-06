@@ -73,8 +73,12 @@ public class AwsSecretsEnvironmentPostProcessor implements EnvironmentPostProces
                 environment.getPropertySources().addFirst(new MapPropertySource(PROPERTY_SOURCE_NAME, tmcSecrets));
                 log.info(format(
                     "AWS Secrets Manager: Populated ; Number of TMC* secrets :%d", tmcSecrets.size()));
-                tmcSecrets.keySet().forEach(key -> log.info(format(
-                    "%s: value length=%d;", key, tmcSecrets.get(key).toString().length())));
+                tmcSecrets.keySet().forEach(key -> {
+                    String val = tmcSecrets.get(key).toString();
+                    String masked = val.length() <= 4 ? "*".repeat(val.length())
+                        : val.substring(0, 2) + "*".repeat(val.length() - 4) + val.substring(val.length() - 2);
+                    log.info(format("%s: value=%s;", key, masked));
+                });
             } else {
                 log.warn(format(
                     "AWS Secrets Manager: AWS secret contained no TMC-prefixed keys; keys in secret: %s",
