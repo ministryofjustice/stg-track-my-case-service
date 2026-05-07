@@ -14,6 +14,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.moj.cp.model.OAuthTokenResponse;
+import uk.gov.moj.cp.model.AmpApiType;
 
 @Slf4j
 @Component
@@ -47,8 +48,16 @@ public class OAuthTokenClient {
     private String clientSecret;
 
     @Getter
-    @Value("${services.oauth-token.scope}")
-    private String scope;
+    @Value("${services.oauth-token.prosecution-case-scope}")
+    private String pcdScope;
+
+    @Getter
+    @Value("${services.oauth-token.court-schedule-scope}")
+    private String slcScope;
+
+    @Getter
+    @Value("${services.oauth-token.reference-data-scope}")
+    private String rccScope;
 
 
     protected String buildTokenPathUrl(String tenantId, String version) {
@@ -59,8 +68,9 @@ public class OAuthTokenClient {
             .toUriString();
     }
 
-    public OAuthTokenResponse getJwtToken() {
-        HttpEntity<MultiValueMap<String, String>> request = getHttpEntity();
+    public OAuthTokenResponse getJwtToken(AmpApiType ampApiType) {
+        log.atInfo().log("Received token request for API: {}", ampApiType);
+        HttpEntity<MultiValueMap<String, String>> request = getHttpEntity(ampApiType);
         ResponseEntity<OAuthTokenResponse> response = restTemplate.postForEntity(
             buildTokenPathUrl(getTenantId(), getVersion()),
             request, OAuthTokenResponse.class
@@ -73,17 +83,22 @@ public class OAuthTokenClient {
         }
     }
 
-    private HttpEntity<MultiValueMap<String, String>> getHttpEntity() {
-        HttpHeaders headers = new HttpHeaders();
+    private HttpEntity<MultiValueMap<String, String>> getHttpEntity(AmpApiType ampApiType) {
+        final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+
+        final String scope = switch (ampApiType) {
+            case SLC -> getSlcScope();
+            case RCC -> getRccScope();
+            case PCD -> getPcdScope();
+            default -> throw new IllegalStateException("Unexpected API name: " + ampApiType);
+        };
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
         body.add("client_id", getClientId());
         body.add("client_secret", getClientSecret());
-        body.add("scope", getScope());
         body.add("grant_type", "client_credentials");
-
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
-        return request;
+        body.add("scope", scope);
+        return new HttpEntity<>(body, headers);
     }
 }

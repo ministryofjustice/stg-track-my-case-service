@@ -29,7 +29,8 @@ tmc:
 
 services:
   amp-url: https://dummy
-  amp-subscription-key: dummy-key
+  slc-amp-subscription-key: dummy-slc-amp-subscription-key
+  rcc-amp-subscription-key: dummy-rcc-amp-subscription-key
   pcd-amp-subscription-key: dummy-pcd-amp-subscription-key
   api-cp-crime-schedulingandlisting-courtschedule:
     path: /some-api-cp-crime-schedulingandlisting-courtschedule
@@ -48,8 +49,6 @@ services:
     version: v2.0
     client-id: client-id
     client-secret: client-secret
-    scope: api://scope/.default
-    prosecutioncase-tenant-id: tenant
-    prosecutioncase-client-id: client-id
-    prosecutioncase-client-secret: client-secret
-    prosecutioncase-scope: api://scope/.default
+    prosecution-case-scope: api://scope/.default
+    court-schedule-scope: api://scope/.default
+    reference-data-scope: api://scope/.default

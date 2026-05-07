@@ -36,8 +36,8 @@ public class CourtHouseAPIClient implements CourtHouseClient {
     private String ampUrl;
 
     @Getter
-    @Value("${services.amp-subscription-key}")
-    private String ampSubscriptionKey;
+    @Value("${services.rcc-amp-subscription-key}")
+    private String rccAmpSubscriptionKey;
 
     @Getter
     @Value("${services.api-cp-refdata-courthearing-courthouses-courtrooms.path}")
@@ -91,7 +91,7 @@ public class CourtHouseAPIClient implements CourtHouseClient {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
         headers.setBearerAuth(accessToken);
-        headers.set("Ocp-Apim-Subscription-Key", getAmpSubscriptionKey());
+        headers.set("Ocp-Apim-Subscription-Key", getRccAmpSubscriptionKey());
         return new HttpEntity<>(headers);
     }
 

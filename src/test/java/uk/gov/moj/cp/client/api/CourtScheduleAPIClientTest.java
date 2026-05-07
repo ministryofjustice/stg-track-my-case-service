@@ -48,7 +48,7 @@ class CourtScheduleAPIClientTest {
             }
 
             @Override
-            public String getAmpSubscriptionKey() {
+            public String getSlcAmpSubscriptionKey() {
                 return ampSubscriptionKey;
             }
 
