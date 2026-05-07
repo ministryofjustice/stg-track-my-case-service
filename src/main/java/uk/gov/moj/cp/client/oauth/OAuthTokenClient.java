@@ -14,7 +14,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import uk.gov.moj.cp.model.OAuthTokenResponse;
-import uk.gov.moj.cp.model.APIName;
+import uk.gov.moj.cp.model.AmpApiType;
 
 @Slf4j
 @Component
@@ -68,9 +68,9 @@ public class OAuthTokenClient {
             .toUriString();
     }
 
-    public OAuthTokenResponse getJwtToken(APIName apiName) {
-        log.atInfo().log("Received token request for API: {}", apiName);
-        HttpEntity<MultiValueMap<String, String>> request = getHttpEntity(apiName);
+    public OAuthTokenResponse getJwtToken(AmpApiType ampApiType) {
+        log.atInfo().log("Received token request for API: {}", ampApiType);
+        HttpEntity<MultiValueMap<String, String>> request = getHttpEntity(ampApiType);
         ResponseEntity<OAuthTokenResponse> response = restTemplate.postForEntity(
             buildTokenPathUrl(getTenantId(), getVersion()),
             request, OAuthTokenResponse.class
@@ -83,14 +83,15 @@ public class OAuthTokenClient {
         }
     }
 
-    private HttpEntity<MultiValueMap<String, String>> getHttpEntity(APIName apiName) {
+    private HttpEntity<MultiValueMap<String, String>> getHttpEntity(AmpApiType ampApiType) {
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-        final String scope = switch (apiName) {
+        final String scope = switch (ampApiType) {
             case SLC -> getSlcScope();
             case RCC -> getRccScope();
-            default -> getPcdScope();
+            case PCD -> getPcdScope();
+            default -> throw new IllegalStateException("Unexpected API name: " + ampApiType);
         };
 
         MultiValueMap<String, String> body = new LinkedMultiValueMap<>();

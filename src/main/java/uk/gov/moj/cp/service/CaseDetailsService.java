@@ -17,7 +17,7 @@ import uk.gov.moj.cp.dto.outbound.ProsecutionCaseDTO;
 import uk.gov.moj.cp.dto.outbound.CourtHouseDto;
 import uk.gov.moj.cp.metrics.TrackMyCaseMetricsService;
 import uk.gov.moj.cp.model.HearingType;
-import uk.gov.moj.cp.model.APIName;
+import uk.gov.moj.cp.model.AmpApiType;
 
 import java.time.LocalDate;
 import java.util.Comparator;
@@ -47,9 +47,9 @@ public class CaseDetailsService {
     );
 
     public CaseDetailsDto getCaseDetailsByCaseUrn(final String caseUrn) {
-        final String courtScheduleAccessToken = oauthTokenService.getJwtToken(APIName.SLC);
-        final String courtHouseAccessToken = oauthTokenService.getJwtToken(APIName.RCC);
-        final String prosecutionCaseAccessToken = oauthTokenService.getJwtToken(APIName.PCD);
+        final String courtScheduleAccessToken = oauthTokenService.getJwtToken(AmpApiType.SLC);
+        final String courtHouseAccessToken = oauthTokenService.getJwtToken(AmpApiType.RCC);
+        final String prosecutionCaseAccessToken = oauthTokenService.getJwtToken(AmpApiType.PCD);
 
         final List<CourtScheduleDto> courtSchedule = courtScheduleService.getCourtScheduleByCaseUrn(courtScheduleAccessToken, caseUrn);
         final ProsecutionCaseDTO prosecutionCaseDto = prosectionCaseService.getCaseStatus(prosecutionCaseAccessToken, caseUrn);

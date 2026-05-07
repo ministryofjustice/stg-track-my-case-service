@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import uk.gov.moj.cp.model.OAuthTokenResponse;
-import uk.gov.moj.cp.model.APIName;
+import uk.gov.moj.cp.model.AmpApiType;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -100,7 +100,7 @@ class OAuthTokenClientTest {
         when(restTemplate.postForEntity(eq(expectedUrl), any(HttpEntity.class), eq(OAuthTokenResponse.class)))
             .thenReturn(ResponseEntity.ok(oauthTokenResponse));
 
-        OAuthTokenResponse actual = oauthTokenClient.getJwtToken(APIName.SLC);
+        OAuthTokenResponse actual = oauthTokenClient.getJwtToken(AmpApiType.SLC);
 
         assertThat(actual).isEqualTo(oauthTokenResponse);
 
@@ -127,7 +127,7 @@ class OAuthTokenClientTest {
         when(restTemplate.postForEntity(eq(expectedUrl), any(HttpEntity.class), eq(OAuthTokenResponse.class)))
             .thenReturn(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
 
-        assertThatThrownBy(() -> oauthTokenClient.getJwtToken(APIName.SLC))
+        assertThatThrownBy(() -> oauthTokenClient.getJwtToken(AmpApiType.SLC))
             .isInstanceOf(RuntimeException.class)
             .hasMessage("Failed to retrieve accessToken");
     }

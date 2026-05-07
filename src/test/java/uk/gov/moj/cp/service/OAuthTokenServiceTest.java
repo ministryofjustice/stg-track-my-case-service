@@ -7,7 +7,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import uk.gov.moj.cp.client.oauth.OAuthTokenClient;
 import uk.gov.moj.cp.model.OAuthTokenResponse;
-import uk.gov.moj.cp.model.APIName;
+import uk.gov.moj.cp.model.AmpApiType;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,19 +31,19 @@ class OAuthTokenServiceTest {
     @Test
     void shouldReturnAccessTokenFromClientResponse() {
         OAuthTokenResponse oauthTokenResponse = new OAuthTokenResponse("Bearer", 3600, 3600, "access-token-value");
-        when(oauthTokenClient.getJwtToken(any(APIName.class))).thenReturn(oauthTokenResponse);
+        when(oauthTokenClient.getJwtToken(any(AmpApiType.class))).thenReturn(oauthTokenResponse);
 
-        String accessToken = oauthTokenService.getJwtToken(APIName.SLC);
+        String accessToken = oauthTokenService.getJwtToken(AmpApiType.SLC);
 
         assertThat(accessToken).isEqualTo("access-token-value");
-        verify(oauthTokenClient, times(1)).getJwtToken(APIName.SLC);
+        verify(oauthTokenClient, times(1)).getJwtToken(AmpApiType.SLC);
     }
 
     @Test
     void shouldPropagateExceptionFromTokenClient() {
         when(oauthTokenClient.getJwtToken(any())).thenThrow(new RuntimeException("accessToken retrieval failed"));
 
-        org.assertj.core.api.Assertions.assertThatThrownBy(() -> oauthTokenService.getJwtToken(APIName.PCD))
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> oauthTokenService.getJwtToken(AmpApiType.PCD))
             .isInstanceOf(RuntimeException.class)
             .hasMessage("accessToken retrieval failed");
 

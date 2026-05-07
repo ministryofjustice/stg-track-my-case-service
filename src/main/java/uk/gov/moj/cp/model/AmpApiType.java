@@ -3,7 +3,7 @@ package uk.gov.moj.cp.model;
 import lombok.Getter;
 
 @Getter
-public enum APIName {
+public enum AmpApiType {
 
     SLC("CourtSchedule"),
     RCC("ReferenceData"),
@@ -12,7 +12,7 @@ public enum APIName {
 
     private final String value;
 
-    APIName(String type) {
+    AmpApiType(String type) {
         this.value = type;
     }
 }
