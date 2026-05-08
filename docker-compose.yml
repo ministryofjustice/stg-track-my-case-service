@@ -48,8 +48,9 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      wiremock-service:
-        condition: service_started
+    networks:
+      - default
+      - tmc-mock
 
   db:
     image: postgres:16-alpine
@@ -65,12 +66,8 @@ services:
     ports:
       - "5433:5432"
 
-  # Custom uk.gov.moj wiremock (court schedule, courthouses, PCD, OAuth) — not the bare wiremock/wiremock image
-  wiremock-service:
-    build:
-      context: .
-      dockerfile: wiremock-service/Dockerfile
-    environment:
-      WIREMOCK_PORT: ${WIREMOCK_PORT}
-    ports:
-      - "${WIREMOCK_PORT}:${WIREMOCK_PORT}"
+# WireMock runs from sibling repo stg-track-my-case-service-mock (docker compose creates network stg-track-my-case-mock).
+networks:
+  tmc-mock:
+    external: true
+    name: stg-track-my-case-mock

@@ -1,6 +1,5 @@
 .gradle
 /build/
-/wiremock-service/build/
 !gradle/wrapper/gradle-wrapper.jar
 *.class
 bin/main/application.yaml
