@@ -52,9 +52,6 @@ public class CaseDetailsControllerTest {
     @InjectMocks
     private CaseDetailsController caseDetailsController;
 
-    private static final String GENERIC_ERROR_MESSAGE =
-        "An error occurred while processing, see the logs for more details";
-
     @BeforeEach
     void setUp() {
 
@@ -166,6 +163,27 @@ public class CaseDetailsControllerTest {
                             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.caseUrn").value(caseUrn))
+            .andExpect(jsonPath("$.courtSchedule").isArray())
+            .andExpect(jsonPath("$.courtSchedule.length()").value(0));
+    }
+
+    @Test
+    @DisplayName("GET /api/cases/{case_urn}/casedetails - success with empty court schedule")
+    void shouldHandleGetCaseDetailsByCaseUrnWithEmptyHearing_lowerCase() throws Exception {
+        String caseUrn = "case123";
+        String caseUrnUpperCase = caseUrn.toUpperCase();
+
+        final CaseDetailsDto caseDetailsDto = CaseDetailsDto.builder()
+            .caseUrn(caseUrnUpperCase)
+            .courtSchedules(new ArrayList<>())
+            .build();
+
+        when(caseDetailsService.getCaseDetailsByCaseUrn(caseUrnUpperCase)).thenReturn(caseDetailsDto);
+
+        mockMvc.perform(get("/api/cases/{case_urn}/casedetails", caseUrn)
+                            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.caseUrn").value(caseUrnUpperCase))
             .andExpect(jsonPath("$.courtSchedule").isArray())
             .andExpect(jsonPath("$.courtSchedule.length()").value(0));
     }
