@@ -46,9 +46,16 @@ class CaseDetailsCourtSittingDtoTest {
             .build();
         CaseDetailsCourtSittingDto s2 = CaseDetailsCourtSittingDto.builder().build();
 
-        String expectedCourtHouse = "{\"courtHouseId\":\"CH001\",\"courtRoomId\":\"CR001\",\"courtHouseType\":\"Crown\",\"courtHouseCode\":\"LON\",\"courtHouseName\":\"London Court\",\"address\":{\"address1\":\"1 Court Street\",\"address2\":\"Westminster\",\"address3\":\"London\",\"address4\":\"Greater London\",\"postalCode\":\"SW1A 1AA\",\"country\":\"UK\"},\"courtRoom\":[{\"courtRoomId\":1,\"courtRoomName\":\"Room 1\"},{\"courtRoomId\":2,\"courtRoomName\":\"Room 2\"}]}";
+        String expectedCourtHouse = """
+            {"courtHouseId":"CH001","courtRoomId":"CR001","courtHouseType":"Crown","courtHouseCode":"LON",
+            "courtHouseName":"London Court","address":{"address1":"1 Court Street","address2":"Westminster",
+            "address3":"London","address4":"Greater London","postalCode":"SW1A 1AA","country":"UK"},
+            "courtRoom":[{"courtRoomId":1,"courtRoomName":"Room 1"},{"courtRoomId":2,"courtRoomName":"Room 2"}]}
+            """;
+        String expected = "{\"judiciaryId\":\"J001\",\"sittingStart\":\"2025-01-01T09:00\","
+            + "\"sittingEnd\":\"2025-01-01T17:00\",\"courtHouse\":" + expectedCourtHouse + "}";
         assertEquals(
-            "{\"judiciaryId\":\"J001\",\"sittingStart\":\"2025-01-01T09:00\",\"sittingEnd\":\"2025-01-01T17:00\",\"courtHouse\":" + expectedCourtHouse + "}",
+            objectMapper.readTree(expected).toString(),
             objectMapper.writeValueAsString(s1)
         );
         assertEquals("{}", objectMapper.writeValueAsString(s2));

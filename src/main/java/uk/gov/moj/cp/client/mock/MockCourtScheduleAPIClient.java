@@ -98,11 +98,15 @@ public class MockCourtScheduleAPIClient implements CourtScheduleClient {
         //    TR or SE - Trial or Sentence type of hearing
         //    99M - maximum 2 digits number of months (optional)
         //    99D - maximum 2 digits number of days (optional)
-        //    N9D - negative 9 days, N9M - negative 9 months
+        //    N1 - negative 1 day, N9 - negative 9 days
         //    2-999 number at the end - multi day hearing (totalHearings, 1–3 digits)
         //
         //    TMCTR0D - today single trial hearing
-        //    TMCTRN1D2 - trial hearing started 1 day before and has multi day hearing (for 2 days)
+        //    TMCTRN / TMCTRN1 / TMCTRN1D / TMCTRN1D1 - same: N defaults to N1; start offset -1d, default 1 day / 1 sitting
+        //    TMCTRN1D0 - N1D offset, 0 court sittings (still -1d for generateData anchor)
+        //    TMCTRN1D2 - 1 day before, multi day hearing (2 days)
+        //    TMCTRN1M1D / TMCTRN1M1D2 - compact N#M#D: −months and −day counts (N1M1D → -1M -1D); trailing digit = sittings
+        //    TMCTRMD / TMCSEMD - bare MD (no digits) = 1 month, 1 day, 1 hearing
         //    TMCSEN2D5 - sentencing hearing started 2 days before and has multi day hearing (for 5 days)
         //
         //    TMCTRV1 /  TMCTRV21 - trial hearing with custom data, id=1 / id=21 (future feature, like multi hearing)
@@ -129,7 +133,24 @@ public class MockCourtScheduleAPIClient implements CourtScheduleClient {
             }
             if (i < body.length()) {
                 int suffix = Integer.parseInt(body.substring(i), 10);
-                if (suffix >= 2) {
+                if (i > 0) {
+                    char c = body.charAt(i - 1);
+                    // N1D1, 0D1, N1D2 — count after M/D; N1D0, 0D0 — zero sittings, strip & parse left part
+                    if (c == 'D' || c == 'M') {
+                        if (suffix == 0) {
+                            totalHearings = 0;
+                        } else {
+                            totalHearings = suffix;
+                        }
+                        body = body.substring(0, i);
+                    } else if (suffix == 0) {
+                        // e.g. trailing 0 with no M/D before digit run — keep body
+                    } else if (suffix >= 2) {
+                        totalHearings = suffix;
+                        body = body.substring(0, i);
+                    }
+                } else if (suffix >= 2) {
+                    // whole body is digits, e.g. "5" → 5 sittings, no M/D
                     totalHearings = suffix;
                     body = body.substring(0, i);
                 }
@@ -137,11 +158,29 @@ public class MockCourtScheduleAPIClient implements CourtScheduleClient {
         }
         int months = 0;
         int days = 0;
-        Pattern bodyPattern = Pattern.compile("^(N?\\d{1,5}M)?(N?\\d{1,5}D)?$");
-        Matcher matcher = bodyPattern.matcher(body);
-        if (matcher.matches()) {
-            months = parseSignedUnit(matcher.group(1));
-            days = parseSignedUnit(matcher.group(2));
+        Pattern compactNegativeMnD = Pattern.compile("^N(\\d{1,5})M(\\d{1,5})D$");
+        Matcher compactMatcher = compactNegativeMnD.matcher(body);
+        if (compactMatcher.matches()) {
+            // TMCTRN1M1D — N1M1D as -1 month and -1 day, not (N1M) + (1D)
+            months = -Integer.parseInt(compactMatcher.group(1), 10);
+            days = -Integer.parseInt(compactMatcher.group(2), 10);
+        } else if ("MD".equals(body)) {
+            // TMCTRMD / TMCSEMD — M and D with no numbers default to 1
+            months = 1;
+            days = 1;
+        } else {
+            Pattern bodyPattern = Pattern.compile("^(N?\\d{1,5}M)?(N?\\d{1,5}D)?$");
+            Matcher matcher = bodyPattern.matcher(body);
+            if (matcher.matches()) {
+                months = parseSignedUnit(matcher.group(1));
+                days = parseSignedUnit(matcher.group(2));
+            } else if ("N".equals(body)) {
+                // TMCTRN / TMCSEN — bare N defaults to N1 (one calendar day back)
+                days = -1;
+            } else if (body.matches("N\\d{1,5}")) {
+                // TMCTRN1 — N1 = same as N1D (started one calendar day back), default 1 day/sitting
+                days = -1 * Integer.parseInt(body.substring(1), 10);
+            }
         }
         return MockDataSummary.builder()
             .hearingType(hearingType)

@@ -1,7 +1,6 @@
 package uk.gov.moj.cp.client.api;
 
 import com.moj.generated.hmcts.ProsecutionCase;
-import com.moj.generated.hmcts.ProsecutionCase;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +36,7 @@ public class ProsecutionCaseAPIClient implements ProsecutionCaseClient {
 
     @Getter
     @Value("${services.pcd-amp-subscription-key}")
-    private String pcdSubscriptionKey;
+    private String pcdAmpSubscriptionKey;
 
     @Getter
     @Value("${services.api-cp-pcd-prosecution-case-details.path}")
@@ -62,7 +61,7 @@ public class ProsecutionCaseAPIClient implements ProsecutionCaseClient {
         } catch (HttpStatusCodeException e) {
             throw e;
         } catch (Exception e) {
-            log.error("Error while calling CourtSchedule API: caseUrn: {}, exception: {}",
+            log.error("Error while calling ProsecutionCase API: caseUrn: {}, exception: {}",
                       caseUrn, e.getMessage());
             throw e;
         }
@@ -72,7 +71,7 @@ public class ProsecutionCaseAPIClient implements ProsecutionCaseClient {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
         headers.setBearerAuth(accessToken);
-        headers.set("Ocp-Apim-Subscription-Key", getPcdSubscriptionKey());
+        headers.set("Ocp-Apim-Subscription-Key", getPcdAmpSubscriptionKey());
         return new HttpEntity<>(headers);
     }
 }

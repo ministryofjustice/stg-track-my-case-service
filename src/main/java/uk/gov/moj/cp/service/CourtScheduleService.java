@@ -42,7 +42,7 @@ public class CourtScheduleService {
     }
 
     private List<CourtScheduleDto> convertToCourtScheduleDto(String caseUrn,
-                                                                List<CourtSchedule> courtScheduleResultList) {
+                                                             List<CourtSchedule> courtScheduleResultList) {
         String hearingIdList = courtScheduleResultList.stream()
             .map(courtSchedule -> courtSchedule.getHearings().stream()
                 .map(Hearing::getHearingId)
@@ -51,16 +51,15 @@ public class CourtScheduleService {
         log.atInfo().log("Received Hearing Ids : {} for caseUrn : {} ", hearingIdList, caseUrn);
 
         List<CourtScheduleDto> courtScheduleDtos = courtScheduleResultList.stream()
-            .map(courtSchedule ->
-                 {
-                     List<HearingDto> hearings = courtSchedule.getHearings().stream()
-                         .map(this::getHearings)
-                         .toList();
+            .map(courtSchedule -> {
+                List<HearingDto> hearings = courtSchedule.getHearings().stream()
+                    .map(this::getHearings)
+                    .toList();
 
-                     return CourtScheduleDto.builder()
-                         .hearings(hearings)
-                         .build();
-                 }).toList();
+                return CourtScheduleDto.builder()
+                    .hearings(hearings)
+                    .build();
+            }).toList();
         return courtScheduleDtos;
     }
 

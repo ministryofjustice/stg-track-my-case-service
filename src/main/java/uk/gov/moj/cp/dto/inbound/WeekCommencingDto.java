@@ -6,7 +6,7 @@ import lombok.Value;
 
 @Value
 @Builder
-public class WeekCommencingDto{
+public class WeekCommencingDto {
 
     @JsonProperty("courtHouse")
     String courtHouse;
