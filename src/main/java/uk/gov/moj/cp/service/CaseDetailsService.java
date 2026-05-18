@@ -262,7 +262,7 @@ public class CaseDetailsService {
         if (hearingTypeInLowerCase.contains(HearingType.TRIAL.getValue().toLowerCase())
             || hearingTypeInLowerCase.contains(HearingType.SENTENCE.getValue().toLowerCase())) {
             // this is a case if you missed any hearing type in HearingType enum, which has "trial" or "sentence" in the value
-            log.atError().log("Hearing type does match Trail or Sentence filtering and not included in the enum {}", hearingType);
+            log.atError().log("Hearing type does match Trail or Sentence filtering and not included in the enum [{}]", hearingType);
             return false;
         }
         return false;
