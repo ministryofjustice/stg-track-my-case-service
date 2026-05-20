@@ -85,7 +85,7 @@ class CourtHouseServiceTest {
     @Test
     void testGetCourtHouseByCourtHouseById_returnsNull() {
         when(courtHouseAPIClient.getCourtHouseById(anyString(), anyString(), anyString()))
-            .thenReturn(new ResponseEntity<>(null, null, 200));
+            .thenReturn(ResponseEntity.status(200).build());
 
         CourtHouseDto result = courtHouseService.getCourtHouseById(accessToken, "courtId", "courtRoomId");
 

@@ -44,15 +44,15 @@ public class CourtHouseService {
             : null;
         AddressDto addressDto = getAddressDto(courtHouse.getAddress());
 
-       return CourtHouseDto.builder()
-           .courtHouseId(id)
-           .courtRoomId(courtRoomId)
-           .courtHouseType(nonNull(courtHouseType) ? courtHouseType.value() : null)
-           .courtHouseCode(courtHouse.getCourtHouseCode())
-           .courtHouseName(courtHouse.getCourtHouseName())
-           .address(addressDto)
-           .courtRooms(courtRoomDtos)
-           .build();
+        return CourtHouseDto.builder()
+            .courtHouseId(id)
+            .courtRoomId(courtRoomId)
+            .courtHouseType(nonNull(courtHouseType) ? courtHouseType.value() : null)
+            .courtHouseCode(courtHouse.getCourtHouseCode())
+            .courtHouseName(courtHouse.getCourtHouseName())
+            .address(addressDto)
+            .courtRooms(courtRoomDtos)
+            .build();
     }
 
     private CourtRoomDto getCourtRoomDto(CourtRoom courtRoom) {

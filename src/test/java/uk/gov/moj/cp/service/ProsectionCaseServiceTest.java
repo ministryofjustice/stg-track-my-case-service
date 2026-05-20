@@ -51,7 +51,7 @@ class ProsectionCaseServiceTest {
     @Test
     void getCaseStatus_returnsNull_whenResponseBodyIsNull() {
         when(prosecutionCaseAPIClient.getCaseDetails(anyString(), anyString()))
-            .thenReturn(new ResponseEntity<>(null, HttpStatus.OK));
+            .thenReturn(ResponseEntity.ok().build());
 
         ProsecutionCaseDTO result = prosectionCaseService.getCaseStatus(accessToken, caseUrn);
 

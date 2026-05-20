@@ -1,1 +1,12 @@
 # Any values from application.yaml can be overridden here
+
+tmc:
+  aws:
+    enabled: false
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  flyway:
+    enabled: false

@@ -31,7 +31,7 @@ public class ProsecutionCaseAPIClient {
 
     @Getter
     @Value("${services.pcd-amp-subscription-key}")
-    private String pcdSubscriptionKey;
+    private String pcdAmpSubscriptionKey;
 
     @Getter
     @Value("${services.api-cp-pcd-prosecution-case-details.path}")
@@ -56,7 +56,7 @@ public class ProsecutionCaseAPIClient {
         } catch (HttpStatusCodeException e) {
             throw e;
         } catch (Exception e) {
-            log.error("Error while calling CourtSchedule API: caseUrn: {}, exception: {}",
+            log.error("Error while calling ProsecutionCase API: caseUrn: {}, exception: {}",
                       caseUrn, e.getMessage());
             throw e;
         }
@@ -66,7 +66,7 @@ public class ProsecutionCaseAPIClient {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
         headers.setBearerAuth(accessToken);
-        headers.set("Ocp-Apim-Subscription-Key", getPcdSubscriptionKey());
+        headers.set("Ocp-Apim-Subscription-Key", getPcdAmpSubscriptionKey());
         return new HttpEntity<>(headers);
     }
 }

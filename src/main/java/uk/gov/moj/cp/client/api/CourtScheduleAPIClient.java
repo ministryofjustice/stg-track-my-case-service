@@ -30,8 +30,8 @@ public class CourtScheduleAPIClient {
     private String ampUrl;
 
     @Getter
-    @Value("${services.amp-subscription-key}")
-    private String ampSubscriptionKey;
+    @Value("${services.slc-amp-subscription-key}")
+    private String slcAmpSubscriptionKey;
 
     @Getter
     @Value("${services.api-cp-crime-schedulingandlisting-courtschedule.path}")
@@ -66,7 +66,7 @@ public class CourtScheduleAPIClient {
         HttpHeaders headers = new HttpHeaders();
         headers.setAccept(List.of(MediaType.APPLICATION_JSON));
         headers.setBearerAuth(accessToken);
-        headers.set("Ocp-Apim-Subscription-Key", getAmpSubscriptionKey());
+        headers.set("Ocp-Apim-Subscription-Key", getSlcAmpSubscriptionKey());
         return new HttpEntity<>(headers);
     }
 }

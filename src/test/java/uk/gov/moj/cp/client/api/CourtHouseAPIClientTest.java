@@ -41,7 +41,7 @@ class CourtHouseAPIClientTest {
             }
 
             @Override
-            public String getAmpSubscriptionKey() {
+            public String getRccAmpSubscriptionKey() {
                 return ampSubscriptionKey;
             }
 

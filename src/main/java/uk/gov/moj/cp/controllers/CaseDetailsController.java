@@ -23,8 +23,8 @@ public class CaseDetailsController {
     @GetMapping("/{case_urn}/casedetails")
     public ResponseEntity<?> getCaseDetailsByCaseUrn(@PathVariable("case_urn") String caseUrn) {
 
-        log.atInfo().log("Received request to get case details for caseUrn: {}", caseUrn);
-
-        return ok(caseDetailsService.getCaseDetailsByCaseUrn(caseUrn));
+        final String caseUrnUpperCase = caseUrn.toUpperCase();
+        log.atInfo().log("Received request to get case details for caseUrn: {}", caseUrnUpperCase);
+        return ok(caseDetailsService.getCaseDetailsByCaseUrn(caseUrnUpperCase));
     }
 }

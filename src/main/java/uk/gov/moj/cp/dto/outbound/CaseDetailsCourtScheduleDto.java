@@ -10,7 +10,7 @@ import java.util.List;
 @Value
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class CaseDetailsCourtScheduleDto{
+public class CaseDetailsCourtScheduleDto {
 
     @JsonProperty("hearings")
     List<CaseDetailsHearingDto> hearings;
