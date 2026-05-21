@@ -3,6 +3,7 @@
 A Spring Boot backend service for the Track-a-Case (TAC) application, built for the Ministry of Justice (MOJ).
 This backend service provides the required data for the Track-a-Case (TAC) UI.
 The TAC UI invokes APIs exposed by this service, which in turn communicate with the API Marketplace to retrieve hearing and court details from the Common Platform.
+
 ---
 
 ## Table of Contents
@@ -40,20 +41,20 @@ Sensitive fields (e.g. email addresses) are encrypted with AES/HMAC before stora
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Language | Java 25 |
-| Framework | Spring Boot 4.0.6 |
-| Build | Gradle 8 (wrapper included) |
-| Database | PostgreSQL (H2 for tests) |
-| Migrations | Flyway |
-| ORM | Hibernate / Spring Data JPA |
-| API Docs | SpringDoc OpenAPI 3 (Swagger UI) |
-| Security | AWS Secrets Manager, AES/HMAC encryption, OAuth2 |
-| Monitoring | Micrometer / Prometheus, Azure Application Insights, Spring Actuator |
-| Logging | SLF4J + Logback, HMCTS Java Logging |
+| Layer            | Technology                                                           |
+| ---------------- | -------------------------------------------------------------------- |
+| Language         | Java 25                                                              |
+| Framework        | Spring Boot 4.0.6                                                    |
+| Build            | Gradle 8 (wrapper included)                                          |
+| Database         | PostgreSQL (H2 for tests)                                            |
+| Migrations       | Flyway                                                               |
+| ORM              | Hibernate / Spring Data JPA                                          |
+| API Docs         | SpringDoc OpenAPI 3 (Swagger UI)                                     |
+| Security         | AWS Secrets Manager, AES/HMAC encryption, OAuth2                     |
+| Monitoring       | Micrometer / Prometheus, Azure Application Insights, Spring Actuator |
+| Logging          | SLF4J + Logback, HMCTS Java Logging                                  |
 | Containerisation | Docker (Amazon Corretto 25 builder → Eclipse Temurin 25 JRE runtime) |
-| Deployment | Kubernetes via Helm, AWS ECR |
+| Deployment       | Kubernetes via Helm, AWS ECR                                         |
 
 ---
 
@@ -106,12 +107,12 @@ The service will be available at `http://localhost:4550` (mapped from container 
 
 ## Running Tests
 
-| Command | Description |
-|---|---|
-| `./gradlew test` | Unit tests |
-| `./gradlew integration` | Integration tests (Spring context, H2 database) |
-| `./gradlew functional` | Functional / end-to-end API tests |
-| `./gradlew test integration` | Unit + integration together |
+| Command                      | Description                                     |
+| ---------------------------- | ----------------------------------------------- |
+| `./gradlew test`             | Unit tests                                      |
+| `./gradlew integration`      | Integration tests (Spring context, H2 database) |
+| `./gradlew functional`       | Functional / end-to-end API tests               |
+| `./gradlew test integration` | Unit + integration together                     |
 
 Code coverage is measured by JaCoCo and reported to SonarQube in CI.
 
@@ -119,29 +120,29 @@ Code coverage is measured by JaCoCo and reported to SonarQube in CI.
 
 ### Case Details
 
-| Method | Path | Description                                                                             |
-|---|---|-----------------------------------------------------------------------------------------|
-| `GET` | `/api/cases/{case_urn}/casedetails` | Retrieve full case details (court schedule, court house, case status) for the given URN |
+| Method | Path                                | Description                                                                             |
+| ------ | ----------------------------------- | --------------------------------------------------------------------------------------- |
+| `GET`  | `/api/cases/{case_urn}/casedetails` | Retrieve full case details (court schedule, court house, case status) for the given URN |
 
 ### User Management
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/users` | List all users |
-| `GET` | `/api/users?email={email}` | Find user by email address |
-| `POST` | `/api/users/create` | Create one or more user accounts |
-| `PUT` | `/api/users/edit` | Update an existing user |
-| `DELETE` | `/api/users/delete` | Delete a user |
+| Method   | Path                       | Description                      |
+| -------- | -------------------------- | -------------------------------- |
+| `GET`    | `/api/users`               | List all users                   |
+| `GET`    | `/api/users?email={email}` | Find user by email address       |
+| `POST`   | `/api/users/create`        | Create one or more user accounts |
+| `PUT`    | `/api/users/edit`          | Update an existing user          |
+| `DELETE` | `/api/users/delete`        | Delete a user                    |
 
 ### System
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/` | Welcome / liveness check |
-| `GET` | `/api/health` | Application health status |
-| `GET` | `/api/active-user` | Returns the currently active user context |
-| `GET` | `/actuator/health` | Spring Actuator health (used by Kubernetes liveness/readiness probes) |
-| `GET` | `/actuator/prometheus` | Prometheus metrics scrape endpoint |
+| Method | Path                   | Description                                                           |
+| ------ | ---------------------- | --------------------------------------------------------------------- |
+| `GET`  | `/`                    | Welcome / liveness check                                              |
+| `GET`  | `/api/health`          | Application health status                                             |
+| `GET`  | `/api/active-user`     | Returns the currently active user context                             |
+| `GET`  | `/actuator/health`     | Spring Actuator health (used by Kubernetes liveness/readiness probes) |
+| `GET`  | `/actuator/prometheus` | Prometheus metrics scrape endpoint                                    |
 
 ---
 
@@ -149,15 +150,15 @@ Code coverage is measured by JaCoCo and reported to SonarQube in CI.
 
 Main configuration is in `src/main/resources/application.yaml`. The following properties are typically overridden via environment variables or AWS Secrets Manager at runtime:
 
-| Property | Description                                                      |
-|---|------------------------------------------------------------------|
-| `server.port` | Application port (default `9999`)                                |
+| Property              | Description                                                      |
+| --------------------- | ---------------------------------------------------------------- |
+| `server.port`         | Application port (default `9999`)                                |
 | `spring.datasource.*` | PostgreSQL connection URL, username, password                    |
-| `api.rcc.*` | Referencedata API endpoint and credentials                       |
-| `api.slc.*` | Schedule Listing Court API endpoint and credentials              |
-| `api.pcd.*` | Prosecution Case Details API endpoint and credentials            |
-| `oauth2.*` | OAuth2 token endpoint and client credentials for downstream APIs |
-| `encryption.*` | AES/HMAC key configuration for PII encryption                    |
+| `api.rcc.*`           | Referencedata API endpoint and credentials                       |
+| `api.slc.*`           | Schedule Listing Court API endpoint and credentials              |
+| `api.pcd.*`           | Prosecution Case Details API endpoint and credentials            |
+| `oauth2.*`            | OAuth2 token endpoint and client credentials for downstream APIs |
+| `encryption.*`        | AES/HMAC key configuration for PII encryption                    |
 
 Secrets are resolved from AWS Secrets Manager in deployed environments.
 For local development, values can be supplied via the `.env` file
@@ -189,26 +190,27 @@ The following checks run as part of the standard build:
 
 GitHub Actions workflows are defined in `.github/workflows/`. Each target environment has its own pipeline:
 
-| Workflow | Trigger | Environment |
-|---|---|---|
-| `build-push-deploy-dev.yml` | Push to `develop` / `main`, manual dispatch | Development |
-| `build-push-deploy-test.yml` | Manual dispatch | Test |
-| `build-push-deploy-sit.yml` | Manual dispatch | SIT |
-| `build-push-deploy-preprod.yml` | Manual dispatch | Pre-production |
-| `build-push-deploy-prod.yml` | Manual dispatch | Production |
+| Workflow                        | Trigger                                     | Environment    |
+| ------------------------------- | ------------------------------------------- | -------------- |
+| `build-push-deploy-dev.yml`     | Push to `develop` / `main`, manual dispatch | Development    |
+| `build-push-deploy-test.yml`    | Manual dispatch                             | Test           |
+| `build-push-deploy-sit.yml`     | Manual dispatch                             | SIT            |
+| `build-push-deploy-preprod.yml` | Manual dispatch                             | Pre-production |
+| `build-push-deploy-prod.yml`    | Manual dispatch                             | Production     |
 
 Each deployment pipeline:
+
 1. Builds and pushes a Docker image to AWS ECR (tagged with auto-incremented patch version)
 2. Deploys the image to Kubernetes via Helm
 3. Deploys the monitoring Helm chart
 
 Security scanning runs independently on every push:
 
-| Workflow | Tool |
-|---|---|
-| `security_codeql_actions_scan.yml` | GitHub CodeQL |
-| `security_veracode_pipeline_scan.yml` | Veracode SAST |
-| `security_trivy.yml` | Trivy container image scan |
+| Workflow                              | Tool                       |
+| ------------------------------------- | -------------------------- |
+| `security_codeql_actions_scan.yml`    | GitHub CodeQL              |
+| `security_veracode_pipeline_scan.yml` | Veracode SAST              |
+| `security_trivy.yml`                  | Trivy container image scan |
 
 ---
 
