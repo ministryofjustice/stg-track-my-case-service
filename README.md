@@ -1,173 +1,217 @@
-# API MOJ Spring Boot application template
+# Track My Case Service
 
-## Purpose
+A Spring Boot backend service for the Track-a-Case (TAC) application, built for the Ministry of Justice (MOJ).
+This backend service provides the required data for the Track-a-Case (TAC) UI.
+The TAC UI invokes APIs exposed by this service, which in turn communicate with the API Marketplace to retrieve hearing and court details from the Common Platform.
+---
 
-The purpose of this template is to speed up the creation of new Spring applications within MOJ
-and help keep the same standards across multiple teams. If you need to create a new app, you can
-simply use this one as a starting point and build on top of it.
+## Table of Contents
 
-## What's inside
+- [Architecture Overview](#architecture-overview)
+- [Tech Stack](#tech-stack)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+- [Running Tests](#running-tests)
+- [Configuration](#configuration)
+- [Code Quality](#code-quality)
+- [CI/CD](#cicd)
+- [License](#license)
 
-The template is a working application with a minimal setup. It contains:
+---
 
-- application skeleton
-- setup script to prepare project
-- common plugins and libraries
-- docker setup
-- code quality tools already set up
-- MIT license and contribution information
-- Helm chart using chart-java.
+## Architecture Overview
 
-The application exposes health endpoint (http://localhost:4550/health) and metrics endpoint
-(http://localhost:4550/metrics).
+```
+TAC UI
+  │
+  ▼
+Track My Case Service  (this service, port 9999)
+  │
+  ├── User Management  ──►  PostgreSQL (Flyway-managed schema)
+  │
+  └── Case / Court Data ──►  API Marketplace  ──►  Common Platform
+                              (OAuth2-secured)
+```
 
-## Plugins
+The service acts as an aggregation layer: it fetches court schedule, prosecution case, and court house data from three separate downstream APIs, merges them into a single case-details response, and returns it to the UI.
+Sensitive fields (e.g. email addresses) are encrypted with AES/HMAC before storage and decrypted on retrieval.
 
-The template contains the following plugins:
+---
 
-- HMCTS Java plugin
+## Tech Stack
 
-  Applies code analysis tools with HMCTS default settings. See the [project repository](https://github.com/hmcts/gradle-java-plugin) for details.
+| Layer | Technology |
+|---|---|
+| Language | Java 25 |
+| Framework | Spring Boot 4.0.6 |
+| Build | Gradle 8 (wrapper included) |
+| Database | PostgreSQL (H2 for tests) |
+| Migrations | Flyway |
+| ORM | Hibernate / Spring Data JPA |
+| API Docs | SpringDoc OpenAPI 3 (Swagger UI) |
+| Security | AWS Secrets Manager, AES/HMAC encryption, OAuth2 |
+| Monitoring | Micrometer / Prometheus, Azure Application Insights, Spring Actuator |
+| Logging | SLF4J + Logback, HMCTS Java Logging |
+| Containerisation | Docker (Amazon Corretto 25 builder → Eclipse Temurin 25 JRE runtime) |
+| Deployment | Kubernetes via Helm, AWS ECR |
 
-  Analysis tools include:
-  - checkstyle
+---
 
-    https://docs.gradle.org/current/userguide/checkstyle_plugin.html
+## Prerequisites
 
-    Performs code style checks on Java source files using Checkstyle and generates reports from these checks.
-    The checks are included in gradle's _check_ task (you can run them by executing `./gradlew check` command).
+- **Java 25** (JDK; Gradle toolchain configured automatically)
+- **Gradle 8** – use the included wrapper (`./gradlew`)
+- **Docker & Docker Compose** – for local containerised runs
+- **PostgreSQL 12+** – if running outside Docker
 
-  - org.owasp.dependencycheck
+---
 
-    https://jeremylong.github.io/DependencyCheck/dependency-check-gradle/index.html
+## Getting Started
 
-    Provides monitoring of the project's dependent libraries and creating a report
-    of known vulnerable components that are included in the build. To run it
-    execute `gradle dependencyCheck` command.
+### 1. Clone the repository
 
-- jacoco
+```bash
+git clone git@github.com:ministryofjustice/stg-track-my-case-service.git
+cd stg-track-my-case-service
+```
 
-  https://docs.gradle.org/current/userguide/jacoco_plugin.html
+### 2. Configure environment variables
 
-  Provides code coverage metrics for Java code via integration with JaCoCo.
-  You can create the report by running the following command:
-
-  ```bash
-    ./gradlew jacocoTestReport
-  ```
-
-  The report will be created in build/reports subdirectory in your project directory.
-
-- io.spring.dependency-management
-
-  https://github.com/spring-gradle-plugins/dependency-management-plugin
-
-  Provides Maven-like dependency management. Allows you to declare dependency management
-  using `dependency 'groupId:artifactId:version'`
-  or `dependency group:'group', name:'name', version:version'`.
-
-- org.springframework.boot
-
-  http://projects.spring.io/spring-boot/
-
-  Reduces the amount of work needed to create a Spring application
-
-- com.github.ben-manes.versions
-
-  https://github.com/ben-manes/gradle-versions-plugin
-
-  Provides a task to determine which dependencies have updates. Usage:
-
-  ```bash
-    ./gradlew dependencyUpdates -Drevision=release
-  ```
-
-## Setup
-
-Located in `./bin/init.sh`. Simply run and follow the explanation how to execute it.
-
-## Building and deploying the application
-
-### Building the application
-
-The project uses [Gradle](https://gradle.org) as a build tool. It already contains
-`./gradlew` wrapper script, so there's no need to install gradle.
+Copy the example environment file and populate the required values:
+Key variables include the PostgreSQL connection details, AWS credentials (for Secrets Manager), and OAuth2 client configuration for the API Marketplace.
 
 To build the project execute the following command:
 
 ```bash
-  ./gradlew build
+  ./gradlew clean build
 ```
 
-### Running the application
+### 3. Run with Docker Compose
 
-Create the image of the application by executing the following command:
+The quickest way to start the service and a local PostgreSQL instance together:
 
 ```bash
-  ./gradlew assemble
+docker-compose up -d
 ```
 
-Note: Docker Compose V2 is highly recommended for building and running the application.
-In the Compose V2 old `docker-compose` command is replaced with `docker compose`.
+The service will be available at `http://localhost:4550` (mapped from container port 9999).
 
-Create docker image:
+### 4. Build and run locally (without Docker)
 
 ```bash
-  docker compose build
+./gradlew bootRun
 ```
 
-Run the distribution (created in `build/install/stg-track-my-case-api-springboot-template` directory)
-by executing the following command:
+---
+
+## Running Tests
+
+| Command | Description |
+|---|---|
+| `./gradlew test` | Unit tests |
+| `./gradlew integration` | Integration tests (Spring context, H2 database) |
+| `./gradlew functional` | Functional / end-to-end API tests |
+| `./gradlew test integration` | Unit + integration together |
+
+Code coverage is measured by JaCoCo and reported to SonarQube in CI.
+
+---
+
+### Case Details
+
+| Method | Path | Description                                                                             |
+|---|---|-----------------------------------------------------------------------------------------|
+| `GET` | `/api/cases/{case_urn}/casedetails` | Retrieve full case details (court schedule, court house, case status) for the given URN |
+
+### User Management
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/api/users` | List all users |
+| `GET` | `/api/users?email={email}` | Find user by email address |
+| `POST` | `/api/users/create` | Create one or more user accounts |
+| `PUT` | `/api/users/edit` | Update an existing user |
+| `DELETE` | `/api/users/delete` | Delete a user |
+
+### System
+
+| Method | Path | Description |
+|---|---|---|
+| `GET` | `/` | Welcome / liveness check |
+| `GET` | `/api/health` | Application health status |
+| `GET` | `/api/active-user` | Returns the currently active user context |
+| `GET` | `/actuator/health` | Spring Actuator health (used by Kubernetes liveness/readiness probes) |
+| `GET` | `/actuator/prometheus` | Prometheus metrics scrape endpoint |
+
+---
+
+## Configuration
+
+Main configuration is in `src/main/resources/application.yaml`. The following properties are typically overridden via environment variables or AWS Secrets Manager at runtime:
+
+| Property | Description                                                      |
+|---|------------------------------------------------------------------|
+| `server.port` | Application port (default `9999`)                                |
+| `spring.datasource.*` | PostgreSQL connection URL, username, password                    |
+| `api.rcc.*` | Referencedata API endpoint and credentials                       |
+| `api.slc.*` | Schedule Listing Court API endpoint and credentials              |
+| `api.pcd.*` | Prosecution Case Details API endpoint and credentials            |
+| `oauth2.*` | OAuth2 token endpoint and client credentials for downstream APIs |
+| `encryption.*` | AES/HMAC key configuration for PII encryption                    |
+
+Secrets are resolved from AWS Secrets Manager in deployed environments.
+For local development, values can be supplied via the `.env` file
+
+---
+
+## Code Quality
+
+The following checks run as part of the standard build:
 
 ```bash
-  docker compose up
+# Checkstyle (zero warnings enforced)
+./gradlew checkstyleMain checkstyleIntegrationTest
+
+# Spotless code formatting
+./gradlew spotlessCheck      # verify
+./gradlew spotlessApply      # auto-fix
+
+# OWASP dependency vulnerability scan
+./gradlew dependencyCheckAggregate
+
+# SonarQube analysis (requires SONAR_HOST_URL and SONAR_TOKEN)
+./gradlew sonarqube
 ```
 
-This will start the API container exposing the application's port
-(set to `4550` in this template app).
+---
 
-In order to test if the application is up, you can call its health endpoint:
+## CI/CD
 
-```bash
-  curl http://localhost:4550/health
-```
+GitHub Actions workflows are defined in `.github/workflows/`. Each target environment has its own pipeline:
 
-You should get a response similar to this:
+| Workflow | Trigger | Environment |
+|---|---|---|
+| `build-push-deploy-dev.yml` | Push to `develop` / `main`, manual dispatch | Development |
+| `build-push-deploy-test.yml` | Manual dispatch | Test |
+| `build-push-deploy-sit.yml` | Manual dispatch | SIT |
+| `build-push-deploy-preprod.yml` | Manual dispatch | Pre-production |
+| `build-push-deploy-prod.yml` | Manual dispatch | Production |
 
-```
-  {"status":"UP","diskSpace":{"status":"UP","total":249644974080,"free":137188298752,"threshold":10485760}}
-```
+Each deployment pipeline:
+1. Builds and pushes a Docker image to AWS ECR (tagged with auto-incremented patch version)
+2. Deploys the image to Kubernetes via Helm
+3. Deploys the monitoring Helm chart
 
-### Alternative script to run application
+Security scanning runs independently on every push:
 
-To skip all the setting up and building, just execute the following command:
+| Workflow | Tool |
+|---|---|
+| `security_codeql_actions_scan.yml` | GitHub CodeQL |
+| `security_veracode_pipeline_scan.yml` | Veracode SAST |
+| `security_trivy.yml` | Trivy container image scan |
 
-```bash
-./bin/run-in-docker.sh
-```
-
-For more information:
-
-```bash
-./bin/run-in-docker.sh -h
-```
-
-Script includes bare minimum environment variables necessary to start api instance. Whenever any variable is changed or any other script regarding docker image/container build, the suggested way to ensure all is cleaned up properly is by this command:
-
-```bash
-docker compose rm
-```
-
-It clears stopped containers correctly. Might consider removing clutter of images too, especially the ones fiddled with:
-
-```bash
-docker images
-
-docker image rm <image-id>
-```
-
-There is no need to remove postgres and java or similar core images.
+---
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
