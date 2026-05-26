@@ -195,6 +195,7 @@ dependencies {
   implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
   implementation 'org.springframework.boot:spring-boot-starter-flyway'
   implementation group: 'org.flywaydb', name: 'flyway-core', version: flywaydbVersion
+  implementation 'org.springframework.boot:spring-boot-starter-flyway'
   implementation group: 'org.flywaydb', name: 'flyway-database-postgresql', version: flywaydbVersion
   implementation 'org.postgresql:postgresql'
   testImplementation 'com.h2database:h2'
@@ -248,6 +249,14 @@ bootJar {
   manifest {
     attributes('Implementation-Version': project.version.toString())
   }
+}
+
+// Copies the boot JAR for Docker (avoids relying on Gradle inside the Docker build).
+tasks.register('prepareDocker', Copy) {
+  dependsOn bootJar
+  from bootJar.archiveFile
+  into layout.projectDirectory.dir('docker')
+  rename { 'stg-track-my-case-service.jar' }
 }
 
 jsonSchema2Pojo {
