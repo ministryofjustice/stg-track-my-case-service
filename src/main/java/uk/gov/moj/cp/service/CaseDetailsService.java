@@ -3,6 +3,7 @@ package uk.gov.moj.cp.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import uk.gov.moj.cp.dto.inbound.CourtScheduleDto;
 import uk.gov.moj.cp.dto.inbound.CourtSittingDto;
@@ -18,6 +19,9 @@ import uk.gov.moj.cp.dto.outbound.CourtHouseDto;
 import uk.gov.moj.cp.metrics.TrackMyCaseMetricsService;
 import uk.gov.moj.cp.model.HearingType;
 import uk.gov.moj.cp.model.AmpApiType;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpStatusCodeException;
 
 import java.time.LocalDate;
 import java.util.Comparator;
@@ -47,6 +51,20 @@ public class CaseDetailsService {
     );
 
     public CaseDetailsDto getCaseDetailsByCaseUrn(final String caseUrn) {
+        try {
+            return fetchCaseDetails(caseUrn);
+        } catch (HttpStatusCodeException e) {
+            HttpStatusCode statusCode = e.getStatusCode();
+            if (statusCode == HttpStatus.UNAUTHORIZED || statusCode == HttpStatus.FORBIDDEN) {
+                log.warn("Token rejected with status {} for caseUrn: {}, evicting caches and retrying", statusCode, caseUrn);
+                oauthTokenService.evictAllTokenCaches();
+                return fetchCaseDetails(caseUrn);
+            }
+            throw e;
+        }
+    }
+
+    private CaseDetailsDto fetchCaseDetails(final String caseUrn) {
         final String courtScheduleAccessToken = oauthTokenService.getJwtToken(AmpApiType.SLC);
         final String courtHouseAccessToken = oauthTokenService.getJwtToken(AmpApiType.RCC);
         final String prosecutionCaseAccessToken = oauthTokenService.getJwtToken(AmpApiType.PCD);

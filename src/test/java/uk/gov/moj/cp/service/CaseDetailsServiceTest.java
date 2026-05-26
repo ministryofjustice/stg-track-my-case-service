@@ -8,6 +8,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpClientErrorException;
 import uk.gov.moj.cp.dto.outbound.CaseDetailsDto;
 import uk.gov.moj.cp.dto.outbound.CaseDetailsHearingDto;
 import uk.gov.moj.cp.dto.outbound.CaseStatus;
@@ -29,11 +31,15 @@ import java.util.Arrays;
 import java.util.List;
 
 import static java.util.UUID.randomUUID;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -116,7 +122,7 @@ class CaseDetailsServiceTest {
             .postalCode("CB4 3MX")
             .country("UK")
             .build();
-        when(prosectionCaseService.getCaseStatus(
+        lenient().when(prosectionCaseService.getCaseStatus(
             accessToken,
             caseUrn
         )).thenReturn(ProsecutionCaseDTO.builder().caseStatus(
@@ -139,7 +145,7 @@ class CaseDetailsServiceTest {
             .hearings(List.of(hearingDto))
             .build();
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId))).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
             scheduleDto));
@@ -217,7 +223,7 @@ class CaseDetailsServiceTest {
             .hearings(List.of(hearingDto, hearingDto1))
             .build();
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId))).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
             scheduleDto));
@@ -265,7 +271,7 @@ class CaseDetailsServiceTest {
             .hearings(List.of(hearingDto))
             .build();
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId))).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
 
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -317,7 +323,7 @@ class CaseDetailsServiceTest {
             .hearings(List.of(hearingDto1, hearingDto2))
             .build();
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId))).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
 
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -351,7 +357,7 @@ class CaseDetailsServiceTest {
             .hearings(List.of(hearingDto))
             .build();
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId))).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
 
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -405,7 +411,7 @@ class CaseDetailsServiceTest {
             .hearings(List.of(hearingDto, hearingDto1))
             .build();
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId))).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
 
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -469,7 +475,7 @@ class CaseDetailsServiceTest {
             .hearings(List.of(hearingDto, hearingDto1))
             .build();
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId))).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
 
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -501,7 +507,7 @@ class CaseDetailsServiceTest {
             .hearings(List.of(hearingDto))
             .build();
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId))).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
 
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -531,7 +537,7 @@ class CaseDetailsServiceTest {
             .hearings(List.of(hearingDto))
             .build();
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId))).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
 
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -593,7 +599,7 @@ class CaseDetailsServiceTest {
             .hearings(List.of(hearingDto))
             .build();
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId))).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
 
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -630,7 +636,7 @@ class CaseDetailsServiceTest {
             .hearings(List.of(hearingDto, hearingDto1))
             .build();
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId))).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
 
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -661,7 +667,7 @@ class CaseDetailsServiceTest {
             .hearings(List.of(hearingDto, hearingDto1, hearingDto2))
             .build();
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId))).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
 
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -701,7 +707,7 @@ class CaseDetailsServiceTest {
             .hearings(List.of(hearingDto, hearingDto1, hearingDto2))
             .build();
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId))).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
 
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -744,7 +750,7 @@ class CaseDetailsServiceTest {
             .hearings(List.of(hearingDto1, hearingDto3, hearingDto2, hearingDto4, hearingDto5))
             .build();
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId))).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
 
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -794,7 +800,7 @@ class CaseDetailsServiceTest {
             .hearings(List.of(hearingDto2, hearingDto1, hearingDto))
             .build();
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), isNull())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
 
         when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
@@ -848,7 +854,7 @@ class CaseDetailsServiceTest {
             .hearings(List.of(hearingDto3, hearingDto1, hearingDto2))
             .build();
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId))).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
 
         when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
@@ -912,7 +918,7 @@ class CaseDetailsServiceTest {
             .hearings(List.of(hearingDto3, hearingDto2, hearingDto4, hearingDto1, hearingDto5))
             .build();
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), isNull())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
 
         when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
@@ -1003,7 +1009,7 @@ class CaseDetailsServiceTest {
             .hearings(List.of(hearingWithCourtSitting, hearingWithWeekCommencing))
             .build();
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId))).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
 
         when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
@@ -1055,7 +1061,7 @@ class CaseDetailsServiceTest {
             .build();
 
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId))).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
 
         when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
@@ -1112,7 +1118,7 @@ class CaseDetailsServiceTest {
             .build();
 
         when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), isNull())).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
@@ -1176,7 +1182,7 @@ class CaseDetailsServiceTest {
             .hearings(List.of(hearingDto3, hearingDto2, hearingDto, hearingDto1, hearingDto4, hearingDto5))
             .build();
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId))).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
 
         when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
@@ -1250,7 +1256,7 @@ class CaseDetailsServiceTest {
             ))
             .build();
 
-        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), any())).thenReturn(
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId))).thenReturn(
             createCourtHouse(courtRoomDto, addressDto));
 
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
@@ -1314,6 +1320,66 @@ class CaseDetailsServiceTest {
         assertEquals(0, caseDetails.getCourtSchedules().getFirst().getHearings().size());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
+    }
+
+    @Test
+    @DisplayName("should evict token caches and succeed on retry after 401 Unauthorized")
+    void shouldRetryAndSucceedOnUnauthorizedException() {
+        CourtScheduleDto scheduleDto = CourtScheduleDto.builder().hearings(List.of()).build();
+
+        when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED))
+            .thenReturn(List.of(scheduleDto));
+
+        CaseDetailsDto result = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
+
+        assertNotNull(result);
+        assertEquals(caseUrn, result.getCaseUrn());
+        verify(oauthTokenService).evictAllTokenCaches();
+        verify(courtScheduleService, times(2)).getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn));
+    }
+
+    @Test
+    @DisplayName("should evict token caches and succeed on retry after 403 Forbidden")
+    void shouldRetryAndSucceedOnForbiddenException() {
+        CourtScheduleDto scheduleDto = CourtScheduleDto.builder().hearings(List.of()).build();
+
+        when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.FORBIDDEN))
+            .thenReturn(List.of(scheduleDto));
+
+        CaseDetailsDto result = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
+
+        assertNotNull(result);
+        assertEquals(caseUrn, result.getCaseUrn());
+        verify(oauthTokenService).evictAllTokenCaches();
+        verify(courtScheduleService, times(2)).getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn));
+    }
+
+    @Test
+    @DisplayName("should propagate immediately without retry for non-auth HTTP errors")
+    void shouldNotRetryOnNonAuthHttpErrors() {
+        when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.NOT_FOUND));
+
+        assertThatThrownBy(() -> caseDetailsService.getCaseDetailsByCaseUrn(caseUrn))
+            .isInstanceOf(HttpClientErrorException.class);
+
+        verify(oauthTokenService, never()).evictAllTokenCaches();
+        verify(courtScheduleService, times(1)).getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn));
+    }
+
+    @Test
+    @DisplayName("should propagate exception if retry also fails with 401")
+    void shouldPropagateExceptionIfRetryAlsoFails() {
+        when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn)))
+            .thenThrow(new HttpClientErrorException(HttpStatus.UNAUTHORIZED));
+
+        assertThatThrownBy(() -> caseDetailsService.getCaseDetailsByCaseUrn(caseUrn))
+            .isInstanceOf(HttpClientErrorException.class);
+
+        verify(oauthTokenService, times(1)).evictAllTokenCaches();
+        verify(courtScheduleService, times(2)).getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn));
     }
 
     private CourtSittingDto createCourtSitting(final String sittingStartDate, final String sittingEndDate) {
