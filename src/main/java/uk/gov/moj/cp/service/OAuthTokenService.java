@@ -18,14 +18,8 @@ public class OAuthTokenService {
 
     private final OAuthTokenClient oauthTokenClient;
 
-    @Value("${services.oauth-token.cache.slc-ttl-minutes}")
-    private long slcTtlMinutes;
-
-    @Value("${services.oauth-token.cache.rcc-ttl-minutes}")
-    private long rccTtlMinutes;
-
-    @Value("${services.oauth-token.cache.pcd-ttl-minutes}")
-    private long pcdTtlMinutes;
+    @Value("${services.oauth-token.cache.token-cache-ttl-minutes}")
+    private long tokenCacheTtlMinutes;
 
     private final Map<AmpApiType, CachedToken> tokenCache = new ConcurrentHashMap<>();
 
@@ -38,21 +32,13 @@ public class OAuthTokenService {
         }
         log.info("Fetching new token for API: {}", ampApiType);
         String token = oauthTokenClient.getJwtToken(ampApiType).accessToken();
-        tokenCache.put(ampApiType, new CachedToken(token, getTtlMinutes(ampApiType)));
+        tokenCache.put(ampApiType, new CachedToken(token, tokenCacheTtlMinutes));
         return token;
     }
 
     public void evictAllTokenCaches() {
         log.info("Evicting all OAuth token caches");
         tokenCache.clear();
-    }
-
-    private long getTtlMinutes(AmpApiType ampApiType) {
-        return switch (ampApiType) {
-            case SLC -> slcTtlMinutes;
-            case RCC -> rccTtlMinutes;
-            case PCD -> pcdTtlMinutes;
-        };
     }
 
 }

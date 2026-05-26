@@ -31,9 +31,7 @@ class OAuthTokenServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        ReflectionTestUtils.setField(oauthTokenService, "slcTtlMinutes", 1440L);
-        ReflectionTestUtils.setField(oauthTokenService, "rccTtlMinutes", 1440L);
-        ReflectionTestUtils.setField(oauthTokenService, "pcdTtlMinutes", 1440L);
+        ReflectionTestUtils.setField(oauthTokenService, "tokenCacheTtlMinutes", 1440L);
     }
 
     @Test
@@ -59,7 +57,7 @@ class OAuthTokenServiceTest {
 
     @Test
     void shouldFetchNewTokenWhenCacheIsExpired() {
-        ReflectionTestUtils.setField(oauthTokenService, "slcTtlMinutes", -1L);
+        ReflectionTestUtils.setField(oauthTokenService, "tokenCacheTtlMinutes", -1L);
         when(oauthTokenClient.getJwtToken(AmpApiType.SLC)).thenReturn(TOKEN_RESPONSE);
 
         oauthTokenService.getJwtToken(AmpApiType.SLC);
