@@ -98,4 +98,3 @@ services:
     cache:
       # 8 hours originally, we set 7.5 hours
       token-cache-ttl-minutes: ${TMC_TOKEN_CACHE_TTL_MINUTES:450}
-
