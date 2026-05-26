@@ -27,11 +27,10 @@ public class OAuthTokenService {
         CachedToken cached = tokenCache.get(ampApiType);
         if (cached != null && !cached.isExpired()) {
             log.debug("Returning cached token for API: {}", ampApiType);
-            String token = cached.getToken();
-            return token;
+            return cached.getToken();
         }
         log.info("Fetching new token for API: {}", ampApiType);
-        String token = oauthTokenClient.getJwtToken(ampApiType).accessToken();
+        final String token = oauthTokenClient.getJwtToken(ampApiType).accessToken();
         tokenCache.put(ampApiType, new CachedToken(token, tokenCacheTtlMinutes));
         return token;
     }
