@@ -28,7 +28,7 @@ import static java.util.Objects.nonNull;
 @RequiredArgsConstructor
 public class CourtScheduleService {
 
-    private CourtScheduleClient courtScheduleClient;
+    private final CourtScheduleClient courtScheduleClient;
 
     public List<CourtScheduleDto> getCourtScheduleByCaseUrn(String accessToken, String caseUrn) {
         ResponseEntity<CourtScheduleSchema> result = courtScheduleClient.getCourtScheduleByCaseUrn(
