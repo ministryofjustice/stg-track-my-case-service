@@ -21,7 +21,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 
-public class CourtScheduleAPIClient {
+public class CourtScheduleAPIClient implements CourtScheduleClient {
 
     private final RestTemplate restTemplate;
 

@@ -21,7 +21,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 
-public class ProsecutionCaseAPIClient {
+public class ProsecutionCaseAPIClient implements ProsecutionCaseClient {
 
     private final RestTemplate restTemplate;
 

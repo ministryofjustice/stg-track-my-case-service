@@ -5,10 +5,11 @@ import com.moj.generated.hmcts.CourtScheduleSchema;
 import com.moj.generated.hmcts.CourtSitting;
 import com.moj.generated.hmcts.Hearing;
 import com.moj.generated.hmcts.WeekCommencing;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import uk.gov.moj.cp.client.api.CourtScheduleAPIClient;
+import uk.gov.moj.cp.client.api.CourtScheduleClient;
 import uk.gov.moj.cp.dto.inbound.CourtScheduleDto;
 import uk.gov.moj.cp.dto.inbound.CourtSittingDto;
 import uk.gov.moj.cp.dto.inbound.HearingDto;
@@ -24,16 +25,13 @@ import static java.util.Objects.nonNull;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class CourtScheduleService {
 
-    private final CourtScheduleAPIClient courtScheduleAPIClient;
-
-    public CourtScheduleService(CourtScheduleAPIClient courtScheduleAPIClient) {
-        this.courtScheduleAPIClient = courtScheduleAPIClient;
-    }
+    private CourtScheduleClient courtScheduleClient;
 
     public List<CourtScheduleDto> getCourtScheduleByCaseUrn(String accessToken, String caseUrn) {
-        ResponseEntity<CourtScheduleSchema> result = courtScheduleAPIClient.getCourtScheduleByCaseUrn(
+        ResponseEntity<CourtScheduleSchema> result = courtScheduleClient.getCourtScheduleByCaseUrn(
             accessToken,
             caseUrn
         );

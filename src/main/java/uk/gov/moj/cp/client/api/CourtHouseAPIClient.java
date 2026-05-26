@@ -22,7 +22,7 @@ import static java.util.Objects.isNull;
 @Component
 @RequiredArgsConstructor
 
-public class CourtHouseAPIClient {
+public class CourtHouseAPIClient implements CourtHouseClient {
 
     private final RestTemplate restTemplate;
 
