@@ -20,7 +20,7 @@ springdoc:
 
 logging:
   level:
-    uk.gov.moj.cp.config: INFO
+    uk.gov.moj.cp: INFO
 
 tmc:
   aws:
@@ -95,3 +95,9 @@ services:
     prosecution-case-scope: ${TMC_PCD_TOKEN_SCOPE}
     court-schedule-scope: ${TMC_SLC_TOKEN_SCOPE}
     reference-data-scope: ${TMC_RCC_TOKEN_SCOPE}
+    cache:
+      # 8 hours originally, we set 7.5 hours
+      slc-ttl-minutes: ${TMC_SLC_TOKEN_CACHE_TTL_MINUTES:450}
+      rcc-ttl-minutes: ${TMC_RCC_TOKEN_CACHE_TTL_MINUTES:450}
+      pcd-ttl-minutes: ${TMC_PCD_TOKEN_CACHE_TTL_MINUTES:450}
+
