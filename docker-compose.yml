@@ -19,9 +19,9 @@ services:
       - .env
     environment:
       TMC_AMP_URL: ${TMC_AMP_URL}
-#      TMC_AMP_URL: "http://stg-track-my-case-service-mock:${WIREMOCK_PORT:-8089}"
+      #      TMC_AMP_URL: "http://stg-track-my-case-service-mock:${WIREMOCK_PORT:-8089}"
       TMC_TOKEN_URL: ${TMC_TOKEN_URL}
-#      TMC_TOKEN_URL: "http://stg-track-my-case-service-mock:${WIREMOCK_PORT:-8089}"
+      #      TMC_TOKEN_URL: "http://stg-track-my-case-service-mock:${WIREMOCK_PORT:-8089}"
       TMC_AWS_SECRET_MANAGER_ENABLED: ${TMC_AWS_SECRET_MANAGER_ENABLED:-false}
       TMC_SLC_AMP_SUBSCRIPTION_KEY: ${TMC_SLC_AMP_SUBSCRIPTION_KEY:-local-mock}
       TMC_RCC_AMP_SUBSCRIPTION_KEY: ${TMC_RCC_AMP_SUBSCRIPTION_KEY:-local-mock}
@@ -106,11 +106,11 @@ services:
       JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
     # Right side must be the port the JVM listens on inside the container (see SERVER_PORT in .env), not MOCK_HOST_PORT.
     ports:
-#      - "${TMC_MOCK_SERVER_PORT:-8089}:${TMC_MOCK_SERVER_PORT}"
+      #      - "${TMC_MOCK_SERVER_PORT:-8089}:${TMC_MOCK_SERVER_PORT}"
       - "8089:8089"
-#      - "5005:5005"
+    #      - "5005:5005"
     healthcheck:
-#      test: ["CMD", "curl", "-f", "http://localhost:${TMC_MOCK_SERVER_PORT:-8089}/health"]
+      #      test: ["CMD", "curl", "-f", "http://localhost:${TMC_MOCK_SERVER_PORT:-8089}/health"]
       test: ["CMD", "curl", "-f", "http://localhost:8089/health"]
       interval: 10s
       timeout: 5s
@@ -118,7 +118,6 @@ services:
       start_period: 5s
     networks:
       - tmc-mock
-
 
 # WireMock runs from sibling repo stg-track-my-case-service-mock (docker compose creates network stg-track-my-case-mock).
 networks:
