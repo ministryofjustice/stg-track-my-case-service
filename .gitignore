@@ -22,6 +22,5 @@ bin/main/application.yaml
 .DS_Store
 
 applicationinsights-agent-*.jar
-docker/*.jar
 *.log
 .env

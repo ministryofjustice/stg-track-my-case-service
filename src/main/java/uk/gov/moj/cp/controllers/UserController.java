@@ -28,6 +28,7 @@ import java.util.List;
 @RequestMapping(ApiPaths.PATH_API_USERS)
 @RequiredArgsConstructor
 public class UserController {
+
     private final UserService userService;
 
     @GetMapping
