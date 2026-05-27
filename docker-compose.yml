@@ -104,14 +104,11 @@ services:
       LOGBACK_REQUIRE_ERROR_CODE: "false"
       # For IntelliJ Remote JVM Debug, attach to localhost:5005 (same pattern as stg-track-my-case-service).
       JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
-    # Right side must be the port the JVM listens on inside the container (see SERVER_PORT in .env), not MOCK_HOST_PORT.
     ports:
-      #      - "${TMC_MOCK_SERVER_PORT:-8089}:${TMC_MOCK_SERVER_PORT}"
-      - "8089:8089"
+            - "${TMC_MOCK_SERVER_PORT:-8089}:${TMC_MOCK_SERVER_PORT:-8089}"
     #      - "5005:5005"
     healthcheck:
-      #      test: ["CMD", "curl", "-f", "http://localhost:${TMC_MOCK_SERVER_PORT:-8089}/health"]
-      test: ["CMD", "curl", "-f", "http://localhost:8089/health"]
+            test: ["CMD", "curl", "-f", "http://localhost:${TMC_MOCK_SERVER_PORT:-8089}/health"]
       interval: 10s
       timeout: 5s
       retries: 3
