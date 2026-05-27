@@ -19,7 +19,7 @@ import static org.mockito.Mockito.when;
 
 class ProsecutionCaseAPIClientTest {
 
-    private ProsecutionCaseAPIClient pcdAPIClient;
+    private ProsecutionCaseAPIClient prosecutionCaseAPIClient;
 
     private RestTemplate restTemplate;
 
@@ -31,7 +31,7 @@ class ProsecutionCaseAPIClientTest {
     @BeforeEach
     void setUp() {
         restTemplate = mock(RestTemplate.class);
-        pcdAPIClient = new ProsecutionCaseAPIClient(restTemplate) {
+        prosecutionCaseAPIClient = new ProsecutionCaseAPIClient(restTemplate) {
             @Override
             public String getAmpUrl() {
                 return ampUrl;
@@ -54,7 +54,7 @@ class ProsecutionCaseAPIClientTest {
         String caseUrn = "CASE123";
         String expectedUrl = "https://some.dev.environment.com/cases/CASE123";
 
-        assertThat(pcdAPIClient.buildCourtScheduleUrl(caseUrn)).isEqualTo(expectedUrl);
+        assertThat(prosecutionCaseAPIClient.buildCourtScheduleUrl(caseUrn)).isEqualTo(expectedUrl);
     }
 
     @Test
@@ -68,11 +68,11 @@ class ProsecutionCaseAPIClientTest {
         when(restTemplate.exchange(
             eq(expectedUrl),
             eq(HttpMethod.GET),
-            eq(pcdAPIClient.getRequestEntity(accessToken)),
+            eq(prosecutionCaseAPIClient.getRequestEntity(accessToken)),
             eq(ProsecutionCase.class)
         )).thenReturn(response);
 
-        ResponseEntity<ProsecutionCase> actual = pcdAPIClient.getCaseDetails(accessToken, caseUrn);
+        ResponseEntity<ProsecutionCase> actual = prosecutionCaseAPIClient.getCaseDetails(accessToken, caseUrn);
 
         assertThat(actual).isNotNull();
         assertThat(caseStatus).isEqualTo(actual.getBody());
@@ -94,11 +94,11 @@ class ProsecutionCaseAPIClientTest {
         when(restTemplate.exchange(
             eq(expectedUrl),
             eq(HttpMethod.GET),
-            eq(pcdAPIClient.getRequestEntity(accessToken)),
+            eq(prosecutionCaseAPIClient.getRequestEntity(accessToken)),
             eq(ProsecutionCase.class)
         )).thenThrow(exception);
 
-        assertThatThrownBy(() -> pcdAPIClient.getCaseDetails(accessToken, caseUrn))
+        assertThatThrownBy(() -> prosecutionCaseAPIClient.getCaseDetails(accessToken, caseUrn))
             .isInstanceOf(HttpClientErrorException.class)
             .hasMessageContaining("503");
     }
