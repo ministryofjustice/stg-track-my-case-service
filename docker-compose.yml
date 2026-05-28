@@ -52,7 +52,7 @@ services:
       retries: 3
       start_period: 5s
     depends_on:
-      postgressdb:
+      postgresdb:
         condition: service_healthy
       stg-track-my-case-service-mock:
         condition: service_healthy
@@ -60,7 +60,7 @@ services:
       - default
       - tmc-mock
 
-  postgressdb:
+  postgresdb:
     image: postgres:16-alpine
     env_file:
       - .env
@@ -69,7 +69,7 @@ services:
       POSTGRES_USER: ${TMC_DB_USERNAME}
       POSTGRES_PASSWORD: ${TMC_DB_PASSWORD}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U myuser -d trackmycase"]
+      test: [ "CMD-SHELL", "pg_isready -U ${TMC_DB_USERNAME} -d trackmycase" ]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -105,10 +105,10 @@ services:
       # For IntelliJ Remote JVM Debug, attach to localhost:5005 (same pattern as stg-track-my-case-service).
       JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
     ports:
-            - "${TMC_MOCK_SERVER_PORT:-8089}:${TMC_MOCK_SERVER_PORT:-8089}"
-    #      - "5005:5005"
+      - "${TMC_MOCK_SERVER_PORT:-8089}:${TMC_MOCK_SERVER_PORT:-8089}"
+    #  - "5005:5005"
     healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:${TMC_MOCK_SERVER_PORT:-8089}/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:${TMC_MOCK_SERVER_PORT:-8089}/health"]
       interval: 10s
       timeout: 5s
       retries: 3
