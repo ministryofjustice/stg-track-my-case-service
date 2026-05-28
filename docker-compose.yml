@@ -69,7 +69,7 @@ services:
       POSTGRES_USER: ${TMC_DB_USERNAME}
       POSTGRES_PASSWORD: ${TMC_DB_PASSWORD}
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${TMC_DB_USERNAME} -d trackmycase" ]
+      test: ["CMD-SHELL", "pg_isready -U ${TMC_DB_USERNAME} -d trackmycase"]
       interval: 5s
       timeout: 5s
       retries: 10
