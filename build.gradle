@@ -220,6 +220,9 @@ dependencies {
   implementation 'software.amazon.awssdk:secretsmanager:2.44.6'
   implementation 'software.amazon.awssdk:sts:2.44.6'
 
+  // API rate limit
+  implementation 'com.bucket4j:bucket4j_jdk17-core:8.19.0'
+
   // Metrics
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
   implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus', version: '1.16.5'
