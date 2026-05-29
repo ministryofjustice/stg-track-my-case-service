@@ -32,10 +32,10 @@ public class RateLimitInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        final String clientIp = resolveClientIp(request);
-        log.info("Final client IP [{}]", clientIp);
+        final String rateLimitKey = resolveRateLimitKey(request);
+        log.info("Rate limit key [{}]", rateLimitKey);
 
-        Bucket bucket = userLimitBuckets.computeIfAbsent(clientIp, ip -> newBucket());
+        Bucket bucket = userLimitBuckets.computeIfAbsent(rateLimitKey, key -> newBucket());
         ConsumptionProbe consumptionProbe = bucket.tryConsumeAndReturnRemaining(1);
         if (consumptionProbe.isConsumed()) {
             return true;
@@ -55,18 +55,28 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         return Bucket.builder().addLimit(limit).build();
     }
 
-    private String resolveClientIp(HttpServletRequest request) {
-        String realIp = request.getHeader("X-Real-IP");
-        if (realIp != null && !realIp.isBlank()) {
-            log.info("X-Real-IP resolved [{}]", realIp);
-            return realIp.trim();
+    private String resolveRateLimitKey(HttpServletRequest request) {
+        String forwardedHeader = request.getHeader("Forwarded");
+        if (forwardedHeader != null && !forwardedHeader.isBlank()) {
+            log.debug("Rate limiting by Forwarded header [{}]", forwardedHeader);
+            return forwardedHeader;
         }
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            log.info("X-Forwarded-For resolved [{}]", forwarded);
-            return forwarded.split(",")[0].trim();
+        String realIpHeader = request.getHeader("X-Real-IP");
+        if (realIpHeader != null && !realIpHeader.isBlank()) {
+            log.debug("Rate limiting by X-Real-IP header [{}]", realIpHeader);
+            return realIpHeader.trim();
         }
-        log.info("Falling back to remoteAddr [{}]", request.getRemoteAddr());
+        String forwardedForHeader = request.getHeader("X-Forwarded-For");
+        if (forwardedForHeader != null && !forwardedForHeader.isBlank()) {
+            log.debug("Rate limiting by X-Forwarded-For header [{}]", forwardedForHeader);
+            return forwardedForHeader.split(",")[0].trim();
+        }
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && !authHeader.isBlank()) {
+            log.debug("Rate limiting by Authorization header [{}]", authHeader);
+            return authHeader.split(" ")[1].trim();
+        }
+        log.debug("Rate limiting by remoteAddr [{}]", request.getRemoteAddr());
         return request.getRemoteAddr();
     }
 }
