@@ -56,11 +56,17 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     }
 
     private String resolveClientIp(HttpServletRequest request) {
+        String realIp = request.getHeader("X-Real-IP");
+        if (realIp != null && !realIp.isBlank()) {
+            log.info("X-Real-IP resolved [{}]", realIp);
+            return realIp.trim();
+        }
         String forwarded = request.getHeader("X-Forwarded-For");
         if (forwarded != null && !forwarded.isBlank()) {
-            log.info("X-Forwarded-For is not blank [{}]", forwarded);
+            log.info("X-Forwarded-For resolved [{}]", forwarded);
             return forwarded.split(",")[0].trim();
         }
+        log.info("Falling back to remoteAddr [{}]", request.getRemoteAddr());
         return request.getRemoteAddr();
     }
 }
