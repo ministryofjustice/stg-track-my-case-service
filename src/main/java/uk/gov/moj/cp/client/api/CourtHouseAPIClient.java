@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -22,11 +21,7 @@ import static java.util.Objects.isNull;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-@ConditionalOnProperty(
-    name = "services.use-mock-data",
-    havingValue = "false",
-    matchIfMissing = true
-)
+
 public class CourtHouseAPIClient implements CourtHouseClient {
 
     private final RestTemplate restTemplate;
