@@ -12,28 +12,111 @@ services:
         JAR_FILENAME: ${JAR_FILENAME}
         JAR_FILE_PATH: ${JAR_FILE_PATH}
         AMP_URL: ${AMP_URL}
-        AMP_SUBSCRIPTION_KEY: ${AMP_SUBSCRIPTION_KEY}
-        DB_URL: ${DB_URL}
-        DB_USERNAME: ${DB_USERNAME}
+        TMC_DB_URL: ${TMC_DB_URL}
+        TMC_DB_USERNAME: ${TMC_DB_USERNAME}
         TMC_DB_PASSWORD: ${TMC_DB_PASSWORD}
+    env_file:
+      - .env
     environment:
-      # these environment variables are used by java-logging library
-      - ROOT_APPENDER
-      - JSON_CONSOLE_PRETTY_PRINT
-      - ROOT_LOGGING_LEVEL
-      - REFORM_SERVICE_TYPE
-      - REFORM_SERVICE_NAME
-      - REFORM_TEAM
-      - REFORM_ENVIRONMENT
-      - LOGBACK_DATE_FORMAT
-      - LOGBACK_REQUIRE_THREAD
-      - LOGBACK_REQUIRE_ALERT_LEVEL=false
-      - LOGBACK_REQUIRE_ERROR_CODE=false
+      TMC_AMP_URL: ${TMC_AMP_URL}
+      #      TMC_AMP_URL: "http://stg-track-my-case-service-mock:${WIREMOCK_PORT:-8089}"
+      TMC_TOKEN_URL: ${TMC_TOKEN_URL}
+      #      TMC_TOKEN_URL: "http://stg-track-my-case-service-mock:${WIREMOCK_PORT:-8089}"
+      TMC_AWS_SECRET_MANAGER_ENABLED: ${TMC_AWS_SECRET_MANAGER_ENABLED:-false}
+      TMC_SLC_AMP_SUBSCRIPTION_KEY: ${TMC_SLC_AMP_SUBSCRIPTION_KEY:-local-mock}
+      TMC_RCC_AMP_SUBSCRIPTION_KEY: ${TMC_RCC_AMP_SUBSCRIPTION_KEY:-local-mock}
+      TMC_SLC_TOKEN_SCOPE: ${TMC_SLC_TOKEN_SCOPE:-api://mock/.default}
+      TMC_RCC_TOKEN_SCOPE: ${TMC_RCC_TOKEN_SCOPE:-api://mock/.default}
+      ROOT_APPENDER: ${ROOT_APPENDER:-ASYNC_CONSOLE}
+      ROOT_LOGGING_LEVEL: ${ROOT_LOGGING_LEVEL:-INFO}
+      JSON_CONSOLE_PRETTY_PRINT: ${JSON_CONSOLE_PRETTY_PRINT:-}
+      REFORM_SERVICE_TYPE: ${REFORM_SERVICE_TYPE:-}
+      REFORM_SERVICE_NAME: ${REFORM_SERVICE_NAME:-}
+      REFORM_TEAM: ${REFORM_TEAM:-}
+      REFORM_ENVIRONMENT: ${REFORM_ENVIRONMENT:-local}
+      LOGBACK_DATE_FORMAT: ${LOGBACK_DATE_FORMAT:-}
+      LOGBACK_REQUIRE_THREAD: ${LOGBACK_REQUIRE_THREAD:-}
+      LOGBACK_REQUIRE_ALERT_LEVEL: "false"
+      LOGBACK_REQUIRE_ERROR_CODE: "false"
+      # For IntelliJ Remote JVM Debug, attach to localhost:5005 (HTTP stays on 4550). Remove or change this if you set JAVA_TOOL_OPTIONS in .env.
+      JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+    # Right side must be the port the JVM listens on inside the container (9999), not $SERVER_PORT from .env.
+    # Compose substitutes $SERVER_PORT for the *host* at parse time (often 4550) — 4550:$SERVER_PORT would wrongly map 4550:4550.
     ports:
-      - 4550:$SERVER_PORT
+      - "4550:${SERVER_PORT}"
+      - "5005:5005"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT}/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:${SERVER_PORT:-4550}/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 5s
+    depends_on:
+      postgresdb:
+        condition: service_healthy
+      stg-track-my-case-service-mock:
+        condition: service_healthy
+    networks:
+      - default
+      - tmc-mock
+
+  postgresdb:
+    image: postgres:16-alpine
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: trackmycase
+      POSTGRES_USER: ${TMC_DB_USERNAME}
+      POSTGRES_PASSWORD: ${TMC_DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${TMC_DB_USERNAME} -d trackmycase"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "5433:5432"
+
+  stg-track-my-case-service-mock:
+    build:
+      context: ../stg-track-my-case-service-mock
+      dockerfile: Dockerfile
+      args:
+        http_proxy: ${http_proxy}
+        https_proxy: ${https_proxy}
+        no_proxy: ${no_proxy}
+        BASE_IMAGE: ${BASE_IMAGE}
+        SERVER_PORT: ${TMC_MOCK_SERVER_PORT}
+        JAR_FILE_PATH: ${JAR_FILE_PATH}
+    env_file:
+      - .env
+    environment:
+      ROOT_APPENDER: ${ROOT_APPENDER:-}
+      JSON_CONSOLE_PRETTY_PRINT: ${JSON_CONSOLE_PRETTY_PRINT:-}
+      ROOT_LOGGING_LEVEL: ${ROOT_LOGGING_LEVEL:-}
+      REFORM_SERVICE_TYPE: ${REFORM_SERVICE_TYPE:-}
+      REFORM_SERVICE_NAME: ${REFORM_SERVICE_NAME:-}
+      REFORM_TEAM: ${REFORM_TEAM:-}
+      REFORM_ENVIRONMENT: ${REFORM_ENVIRONMENT:-}
+      LOGBACK_DATE_FORMAT: ${LOGBACK_DATE_FORMAT:-}
+      LOGBACK_REQUIRE_THREAD: ${LOGBACK_REQUIRE_THREAD:-}
+      SERVER_PORT: ${TMC_MOCK_SERVER_PORT:-8089}
+      LOGBACK_REQUIRE_ALERT_LEVEL: "false"
+      LOGBACK_REQUIRE_ERROR_CODE: "false"
+      # For IntelliJ Remote JVM Debug, attach to localhost:5005 (same pattern as stg-track-my-case-service).
+      JAVA_TOOL_OPTIONS: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+    ports:
+      - "${TMC_MOCK_SERVER_PORT:-8089}:${TMC_MOCK_SERVER_PORT:-8089}"
+    #  - "5005:5005"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${TMC_MOCK_SERVER_PORT:-8089}/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - tmc-mock
+
+# WireMock runs from sibling repo stg-track-my-case-service-mock (docker compose creates network stg-track-my-case-mock).
+networks:
+  tmc-mock:
+    name: stg-track-my-case-service-network
