@@ -3,6 +3,7 @@ package uk.gov.moj.cp.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import uk.gov.moj.cp.dto.inbound.CourtScheduleDto;
 import uk.gov.moj.cp.dto.inbound.CourtSittingDto;
@@ -18,6 +19,9 @@ import uk.gov.moj.cp.dto.outbound.CourtHouseDto;
 import uk.gov.moj.cp.metrics.TrackMyCaseMetricsService;
 import uk.gov.moj.cp.model.HearingType;
 import uk.gov.moj.cp.model.AmpApiType;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpStatusCodeException;
 
 import java.time.LocalDate;
 import java.util.Comparator;
@@ -47,6 +51,20 @@ public class CaseDetailsService {
     );
 
     public CaseDetailsDto getCaseDetailsByCaseUrn(final String caseUrn) {
+        try {
+            return fetchCaseDetails(caseUrn);
+        } catch (HttpStatusCodeException e) {
+            HttpStatusCode statusCode = e.getStatusCode();
+            if (statusCode == HttpStatus.UNAUTHORIZED || statusCode == HttpStatus.FORBIDDEN) {
+                log.warn("Token rejected with status {} for caseUrn: {}, evicting caches and retrying", statusCode, caseUrn);
+                oauthTokenService.evictAllTokenCaches();
+                return fetchCaseDetails(caseUrn);
+            }
+            throw e;
+        }
+    }
+
+    private CaseDetailsDto fetchCaseDetails(final String caseUrn) {
         final String courtScheduleAccessToken = oauthTokenService.getJwtToken(AmpApiType.SLC);
         final String courtHouseAccessToken = oauthTokenService.getJwtToken(AmpApiType.RCC);
         final String prosecutionCaseAccessToken = oauthTokenService.getJwtToken(AmpApiType.PCD);
@@ -142,7 +160,7 @@ public class CaseDetailsService {
                 .map(weekCommencing -> LocalDate.parse(weekCommencing.getEndDate()))
                 .orElse(null);
         } catch (Exception e) {
-            log.atError().log("parsing error for hearing {} : {}", hearingDto.getHearingId(), e.getMessage());
+            log.error("parsing error for hearing {} : {}", hearingDto.getHearingId(), e.getMessage());
         }
 
         if (nonNull(earliestSittingDate) && nonNull(weekCommencingStartDate)) {
@@ -262,7 +280,7 @@ public class CaseDetailsService {
         if (hearingTypeInLowerCase.contains(HearingType.TRIAL.getValue().toLowerCase())
             || hearingTypeInLowerCase.contains(HearingType.SENTENCE.getValue().toLowerCase())) {
             // this is a case if you missed any hearing type in HearingType enum, which has "trial" or "sentence" in the value
-            log.atError().log("Hearing type does match Trail or Sentence filtering and not included in the enum {}", hearingType);
+            log.info("Hearing type does match Trail or Sentence filtering and not included in the enum [{}]", hearingType);
             return false;
         }
         return false;
@@ -280,7 +298,7 @@ public class CaseDetailsService {
                 : null;
 
         if (nonNull(enrichedWeekCommencing)) {
-            log.atInfo().log(
+            log.info(
                 "caseUrn -{} : hearingId (W/C) - {} : CourtHouse Id - {} ",
                 caseUrn,
                 hearing.getHearingId(),
@@ -288,7 +306,7 @@ public class CaseDetailsService {
             );
         } else {
             if (nonNull(enrichedCourtSittings)) {
-                log.atInfo().log(
+                log.info(
                     "caseUrn -{} : hearingId - {} : CourtHouse Id - {} :  CourtRoom Id : {}",
                     caseUrn,
                     hearing.getHearingId(),
@@ -296,7 +314,7 @@ public class CaseDetailsService {
                     enrichedCourtSittings.getFirst().getCourtHouse().getCourtRoomId()
                 );
             } else {
-                log.atInfo().log(
+                log.info(
                     "caseUrn -{} : hearingId - {} : CourtHouse details are null",
                     caseUrn,
                     hearing.getHearingId()

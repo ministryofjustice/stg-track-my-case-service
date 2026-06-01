@@ -10,7 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
-import uk.gov.moj.cp.client.api.CourtHouseClient;
+import uk.gov.moj.cp.client.api.CourtHouseAPIClient;
 import uk.gov.moj.cp.dto.outbound.CourtHouseDto;
 
 import java.util.List;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
 class CourtHouseServiceTest {
 
     @Mock
-    private CourtHouseClient courtHouseAPIClient;
+    private CourtHouseAPIClient courtHouseAPIClient;
 
     @InjectMocks
     private CourtHouseService courtHouseService;
@@ -85,7 +85,7 @@ class CourtHouseServiceTest {
     @Test
     void testGetCourtHouseByCourtHouseById_returnsNull() {
         when(courtHouseAPIClient.getCourtHouseById(anyString(), anyString(), anyString()))
-            .thenReturn(new ResponseEntity<>(null, null, 200));
+            .thenReturn(ResponseEntity.status(200).build());
 
         CourtHouseDto result = courtHouseService.getCourtHouseById(accessToken, "courtId", "courtRoomId");
 
