@@ -102,6 +102,6 @@ services:
     #    maximum-tokens-capacity: ${TMC_RATE_LIMIT_MAXIMUM_TOKENS_CAPACITY:600}
     #    refill-tokens: ${TMC_RATE_LIMIT_REFILL_TOKENS:300}
     #    refill-period-minutes: ${TMC_RATE_LIMIT_REFILL_PERIOD_MINUTES:5}
-    maximum-tokens-capacity: ${TMC_RATE_LIMIT_MAXIMUM_TOKENS_CAPACITY:3}
+    maximum-tokens-capacity: ${TMC_RATE_LIMIT_MAXIMUM_TOKENS_CAPACITY:5}
     refill-tokens: ${TMC_RATE_LIMIT_REFILL_TOKENS:2}
     refill-period-minutes: ${TMC_RATE_LIMIT_REFILL_PERIOD_MINUTES:1}

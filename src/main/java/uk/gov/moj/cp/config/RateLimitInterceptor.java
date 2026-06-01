@@ -56,21 +56,13 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     }
 
     private String resolveRateLimitKey(HttpServletRequest request) {
-        String forwardedHeader = request.getHeader("Forwarded");
-        if (forwardedHeader != null && !forwardedHeader.isBlank()) {
-            log.debug("Rate limiting by Forwarded header [{}]", forwardedHeader);
-            return forwardedHeader;
+        final String sessionId = request.getHeader("X-Session-Id");
+        if (sessionId != null && !sessionId.isBlank()) {
+            log.debug("Rate limiting by X-Session-Id header [{}]", sessionId);
+            return sessionId;
         }
-        String realIpHeader = request.getHeader("X-Real-IP");
-        if (realIpHeader != null && !realIpHeader.isBlank()) {
-            log.debug("Rate limiting by X-Real-IP header [{}]", realIpHeader);
-            return realIpHeader.trim();
-        }
-        String forwardedForHeader = request.getHeader("X-Forwarded-For");
-        if (forwardedForHeader != null && !forwardedForHeader.isBlank()) {
-            log.debug("Rate limiting by X-Forwarded-For header [{}]", forwardedForHeader);
-            return forwardedForHeader.split(",")[0].trim();
-        }
+        log.error("X-Session-Id header not set, please check request on UI");
+
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && !authHeader.isBlank()) {
             log.debug("Rate limiting by Authorization header [{}]", authHeader);
