@@ -20,7 +20,7 @@ springdoc:
 
 logging:
   level:
-    uk.gov.moj.cp: INFO
+    uk.gov.moj.cp: ${TMC_LOGGING_LEVEL:INFO}
 
 tmc:
   aws:
