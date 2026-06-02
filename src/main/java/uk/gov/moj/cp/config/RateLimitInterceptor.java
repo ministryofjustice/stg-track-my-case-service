@@ -33,7 +33,7 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         final String rateLimitKey = resolveRateLimitKey(request);
-        log.info("Rate limit key [{}]", rateLimitKey);
+        log.debug("Rate limit key [{}]", rateLimitKey);
 
         Bucket bucket = userLimitBuckets.computeIfAbsent(rateLimitKey, key -> newBucket());
         ConsumptionProbe consumptionProbe = bucket.tryConsumeAndReturnRemaining(1);
@@ -68,7 +68,8 @@ public class RateLimitInterceptor implements HandlerInterceptor {
             log.debug("Rate limiting by Authorization header [{}]", authHeader);
             return authHeader.split(" ")[1].trim();
         }
-        log.debug("Rate limiting by remoteAddr [{}]", request.getRemoteAddr());
-        return request.getRemoteAddr();
+        final String remoteAddr = request.getRemoteAddr();
+        log.debug("Rate limiting by remoteAddr [{}]", remoteAddr);
+        return remoteAddr;
     }
 }
