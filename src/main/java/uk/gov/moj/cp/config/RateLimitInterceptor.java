@@ -3,7 +3,6 @@ package uk.gov.moj.cp.config;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
-import io.github.bucket4j.Refill;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -11,9 +10,11 @@ import org.apache.http.entity.ContentType;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
 import java.time.Duration;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class RateLimitInterceptor implements HandlerInterceptor {
@@ -22,7 +23,9 @@ public class RateLimitInterceptor implements HandlerInterceptor {
     private final int rateLimitRefillTokens;
     private final int rateLimitRefillPeriodMinutes;
 
-    private final Map<String, Bucket> userLimitBuckets = new ConcurrentHashMap<>();
+    private final Cache<String, Bucket> userLimitBuckets = Caffeine.newBuilder()
+        .expireAfterAccess(1, TimeUnit.HOURS)
+        .build();
 
     public RateLimitInterceptor(int rateLimitMaximumTokensCapacity, int rateLimitRefillTokens, int rateLimitRefillPeriodMinutes) {
         this.rateLimitMaximumTokensCapacity = rateLimitMaximumTokensCapacity;
@@ -35,23 +38,34 @@ public class RateLimitInterceptor implements HandlerInterceptor {
         final String rateLimitKey = resolveRateLimitKey(request);
         log.debug("Rate limit key [{}]", rateLimitKey);
 
-        Bucket bucket = userLimitBuckets.computeIfAbsent(rateLimitKey, key -> newBucket());
-        ConsumptionProbe consumptionProbe = bucket.tryConsumeAndReturnRemaining(1);
-        if (consumptionProbe.isConsumed()) {
-            return true;
+        Bucket bucket = userLimitBuckets.get(rateLimitKey, this::newBucket);
+        ConsumptionProbe consumptionProbe = null;
+        if (bucket != null) {
+            consumptionProbe = bucket.tryConsumeAndReturnRemaining(1);
+            if (consumptionProbe.isConsumed()) {
+                return true;
+            }
         }
 
         response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
         response.setContentType(ContentType.APPLICATION_JSON.getMimeType());
-        long secondsWaitForRefill = consumptionProbe.getNanosToWaitForRefill() / 1_000_000_000;
-        response.addHeader("X-Rate-Limit-Retry-After-Seconds", String.valueOf(secondsWaitForRefill));
-        response.sendError(HttpStatus.TOO_MANY_REQUESTS.value(), "Too many requests - please retry after the Retry-After period");
+        if (consumptionProbe != null) {
+            long secondsWaitForRefill = consumptionProbe.getNanosToWaitForRefill() / 1_000_000_000;
+            response.addHeader("X-Rate-Limit-Retry-After-Seconds", String.valueOf(secondsWaitForRefill));
+        }
+        response.sendError(
+            HttpStatus.TOO_MANY_REQUESTS.value(),
+            "Too many requests - please retry after the Retry-After period"
+        );
         return false;
     }
 
-    private Bucket newBucket() {
-        Refill refill = Refill.greedy(rateLimitRefillTokens, Duration.ofMinutes(rateLimitRefillPeriodMinutes));
-        Bandwidth limit = Bandwidth.classic(rateLimitMaximumTokensCapacity, refill);
+    private Bucket newBucket(String key) {
+        Bandwidth limit = Bandwidth.builder()
+            .capacity(rateLimitMaximumTokensCapacity)
+            .refillGreedy(rateLimitRefillTokens, Duration.ofMinutes(rateLimitRefillPeriodMinutes))
+            .build();
+        log.debug("Rate limiting bucket created for a user [{}]", key);
         return Bucket.builder().addLimit(limit).build();
     }
 

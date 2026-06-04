@@ -222,6 +222,7 @@ dependencies {
 
   // API rate limit
   implementation 'com.bucket4j:bucket4j_jdk17-core:8.19.0'
+  implementation 'com.github.ben-manes.caffeine:caffeine:3.2.4'
 
   // Metrics
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
