@@ -10,8 +10,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.mockito.ArgumentCaptor;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -110,11 +111,13 @@ class RateLimitInterceptorTest {
         limitedInterceptor.preHandle(request, response, handler);
 
         // Then
-        verify(response).addHeader(eq("X-Rate-Limit-Retry-After-Seconds"), anyString());
+        ArgumentCaptor<String> headerValueCaptor = ArgumentCaptor.forClass(String.class);
+        verify(response).addHeader(eq("X-Rate-Limit-Retry-After-Seconds"), headerValueCaptor.capture());
+        assertThat(Long.parseLong(headerValueCaptor.getValue())).isGreaterThanOrEqualTo(0L);
     }
 
     @Test
-    @DisplayName("Should call sendError with 429 when rate limit is exceeded")
+    @DisplayName("Should call sendError with 429 and correct message when rate limit is exceeded")
     void testPreHandle_ExceedingRateLimit_ShouldCallSendError() throws Exception {
         // Given
         RateLimitInterceptor limitedInterceptor = new RateLimitInterceptor(1, 1, 1);
@@ -125,7 +128,7 @@ class RateLimitInterceptorTest {
         limitedInterceptor.preHandle(request, response, handler);
 
         // Then
-        verify(response).sendError(eq(429), anyString());
+        verify(response).sendError(eq(429), eq("Too many requests - please retry after the Retry-After period"));
     }
 
     @Test
