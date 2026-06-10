@@ -229,6 +229,9 @@ dependencies {
   implementation group: 'io.micrometer', name: 'micrometer-registry-prometheus', version: '1.16.5'
   implementation group: 'io.prometheus', name: 'prometheus-metrics-tracer-initializer', version: '1.6.1'
 
+  // UK Gov Notify dependency for e-mail/SMS notifications
+  implementation group: 'uk.gov.service.notify', name: 'notifications-java-client', version: '6.0.0-RELEASE'
+
   testImplementation(platform('org.junit:junit-bom:6.0.3'))
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
   testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: springBootVersion, {

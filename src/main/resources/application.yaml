@@ -107,3 +107,9 @@ services:
     maximum-tokens-capacity: ${TMC_RATE_LIMIT_MAXIMUM_TOKENS_CAPACITY:300}
     refill-tokens: ${TMC_RATE_LIMIT_REFILL_TOKENS:150}
     refill-period-minutes: ${TMC_RATE_LIMIT_REFILL_PERIOD_MINUTES:5}
+
+notifications:
+  gov-notify-api-key: ${GOV_NOTIFY_API_KEY:xxx}
+  user-logged-in-email-template-id: ${TMC_USER_LOGGED_IN_TEMPLATE_ID:xxx}
+  service-url: ${TMC_SERVICE_URL:https://track-my-case-dev.apps.live.cloud-platform.service.justice.gov.uk}
+  target-email: ${TMC_TARGET_EMAIL:target@email}
