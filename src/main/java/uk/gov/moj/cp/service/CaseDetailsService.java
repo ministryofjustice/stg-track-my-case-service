@@ -24,8 +24,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpStatusCodeException;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -72,30 +75,61 @@ public class CaseDetailsService {
         final List<CourtScheduleDto> courtSchedule = courtScheduleService.getCourtScheduleByCaseUrn(courtScheduleAccessToken, caseUrn);
         final ProsecutionCaseDTO prosecutionCaseDto = prosectionCaseService.getCaseStatus(prosecutionCaseAccessToken, caseUrn);
 
-        final List<CaseDetailsCourtScheduleDto> caseDetailsCourtSchedules = courtSchedule.stream()
-            .map(schedule -> {
-                List<CaseDetailsHearingDto> nextHearings = schedule.getHearings().stream()
-                    .map(this::getHearingDetails)
-                    .filter(Objects::nonNull)
-                    .min(getCaseDetailsHearingDtoComparator())
-                    .map(h -> enrichHearingWithCourtDetails(caseUrn, courtHouseAccessToken, h))
-                    .stream()
-                    .toList();
-                return CaseDetailsCourtScheduleDto.builder()
-                    .hearings(nextHearings)
-                    .build();
+        // Court house lookup cache — keyed by "courtHouseId|courtRoomId", scoped to this request
+        final Map<String, CourtHouseDto> courtHouseCache = new HashMap<>();
 
-            })
-            .toList();
+        // Step 1: get the next hearings as a flat list
+        final List<CaseDetailsHearingDto> nextHearings =
+            buildNextHearings(caseUrn, courtHouseAccessToken, courtSchedule, courtHouseCache);
+
+        // Step 2: get the past hearings as a flat list
+        final List<CaseDetailsHearingDto> pastHearings =
+            buildPastHearings(caseUrn, courtHouseAccessToken, courtSchedule, courtHouseCache);
+
+        // Step 3: build List<CaseDetailsCourtScheduleDto> from both
+        final List<CaseDetailsCourtScheduleDto> allSchedules = new ArrayList<>();
+        allSchedules.add(CaseDetailsCourtScheduleDto.builder().hearings(nextHearings).build());
+        if (!pastHearings.isEmpty()) {
+            allSchedules.add(CaseDetailsCourtScheduleDto.builder().timeline(pastHearings).build());
+        }
 
         trackMyCaseMetricsService.incrementCaseDetailsCount(caseUrn);
         return CaseDetailsDto.builder()
             .caseUrn(caseUrn)
             .caseStatus(prosecutionCaseDto.getCaseStatus())
-            .courtSchedules(caseDetailsCourtSchedules)
+            .courtSchedules(allSchedules)
             .build();
     }
 
+
+    private List<CaseDetailsHearingDto> buildNextHearings(
+            final String caseUrn, final String courtHouseAccessToken,
+            final List<CourtScheduleDto> courtSchedule,
+            final Map<String, CourtHouseDto> courtHouseCache) {
+        return courtSchedule.stream()
+            .map(schedule -> schedule.getHearings().stream()
+                .map(this::getHearingDetails)
+                .filter(Objects::nonNull)
+                .min(getCaseDetailsHearingDtoComparator())
+                .map(h -> enrichHearingWithCourtDetails(caseUrn, courtHouseAccessToken, h, courtHouseCache))
+                .orElse(null))
+            .filter(Objects::nonNull)
+            .toList();
+    }
+
+    private List<CaseDetailsHearingDto> buildPastHearings(
+            final String caseUrn, final String courtHouseAccessToken,
+            final List<CourtScheduleDto> courtSchedule,
+            final Map<String, CourtHouseDto> courtHouseCache) {
+        return courtSchedule.stream()
+            .map(schedule -> schedule.getHearings().stream()
+                .map(this::getPastHearingDetails)
+                .filter(Objects::nonNull)
+                .map(h -> enrichHearingWithCourtDetails(caseUrn, courtHouseAccessToken, h, courtHouseCache))
+                .toList())
+            .flatMap(List::stream)
+            .toList();
+    }
 
     private CaseDetailsHearingDto getHearingDetails(final HearingDto hearing) {
         CaseDetailsWeekCommencingDto weekCommencing = null;
@@ -124,6 +158,44 @@ public class CaseDetailsService {
             .listNote(hearing.getListNote())
             .courtSittings(courtSittings)
             .weekCommencing(weekCommencing)
+            .build();
+    }
+
+    /**
+     * Returns a past hearing for inclusion in the timeline, or null if the hearing should be excluded.
+     * Past hearings always carry explicit court sitting dates (sittingStart / sittingEnd) rather than
+     * a week-commencing range, so weekCommencing is not checked here. A hearing is considered past only
+     * when every one of its sittings falls strictly before today; any current or future sitting means
+     * the hearing is still active and belongs to the next-hearing section instead.
+     */
+    private CaseDetailsHearingDto getPastHearingDetails(final HearingDto hearing) {
+        if (isNull(hearing) || !isValidHearingType(hearing.getHearingType())) {
+            return null;
+        }
+
+        final List<CourtSittingDto> sittings = hearing.getCourtSittings();
+        if (isNull(sittings) || sittings.isEmpty()) {
+            return null;
+        }
+
+        boolean hasAnyCurrentOrFutureSitting = sittings.stream()
+            .anyMatch(s -> {
+                try {
+                    return !parse(s.getSittingStart()).toLocalDate().isBefore(LocalDate.now());
+                } catch (Exception e) {
+                    return false;
+                }
+            });
+        if (hasAnyCurrentOrFutureSitting) {
+            return null;
+        }
+
+        return CaseDetailsHearingDto.builder()
+            .hearingId(hearing.getHearingId())
+            .hearingType(hearing.getHearingType())
+            .hearingDescription(hearing.getHearingDescription())
+            .listNote(hearing.getListNote())
+            .courtSittings(sittings.stream().map(this::populateCourtSittings).toList())
             .build();
     }
 
@@ -286,15 +358,17 @@ public class CaseDetailsService {
         return false;
     }
 
-    private CaseDetailsHearingDto enrichHearingWithCourtDetails(final String caseUrn, final String courtHouseAccessToken, CaseDetailsHearingDto hearing) {
+    private CaseDetailsHearingDto enrichHearingWithCourtDetails(final String caseUrn, final String courtHouseAccessToken,
+                                                               CaseDetailsHearingDto hearing, final Map<String, CourtHouseDto> courtHouseCache) {
         CaseDetailsWeekCommencingDto enrichedWeekCommencing = enrichWeekCommencingWithCourtDetails(
             courtHouseAccessToken,
-            hearing.getWeekCommencing()
+            hearing.getWeekCommencing(),
+            courtHouseCache
         );
 
         List<CaseDetailsCourtSittingDto> enrichedCourtSittings =
             (isNull(enrichedWeekCommencing) && nonNull(hearing.getCourtSittings()))
-                ? enrichCourtSittingsWithCourtDetails(courtHouseAccessToken, hearing.getCourtSittings())
+                ? enrichCourtSittingsWithCourtDetails(courtHouseAccessToken, hearing.getCourtSittings(), courtHouseCache)
                 : null;
 
         if (nonNull(enrichedWeekCommencing)) {
@@ -333,15 +407,17 @@ public class CaseDetailsService {
             .build();
     }
 
-    private CaseDetailsWeekCommencingDto enrichWeekCommencingWithCourtDetails(final String accessToken, final CaseDetailsWeekCommencingDto weekCommencing) {
+    private CaseDetailsWeekCommencingDto enrichWeekCommencingWithCourtDetails(final String accessToken,
+                                                                              final CaseDetailsWeekCommencingDto weekCommencing,
+                                                                              final Map<String, CourtHouseDto> courtHouseCache) {
         if (isNull(weekCommencing)) {
             return null;
         }
 
-        final CourtHouseDto courtHouseDto = courtHouseService.getCourtHouseById(
-            accessToken,
-            weekCommencing.getCourtHouse().getCourtHouseId(),
-            null
+        final String courtHouseId = weekCommencing.getCourtHouse().getCourtHouseId();
+        final String cacheKey = courtHouseId + "|";
+        final CourtHouseDto courtHouseDto = courtHouseCache.computeIfAbsent(
+            cacheKey, k -> courtHouseService.getCourtHouseById(accessToken, courtHouseId, null)
         );
 
         return CaseDetailsWeekCommencingDto.builder()
@@ -353,12 +429,15 @@ public class CaseDetailsService {
     }
 
     private List<CaseDetailsCourtSittingDto> enrichCourtSittingsWithCourtDetails(final String accessToken,
-                                                                                 final List<CaseDetailsCourtSittingDto> courtSittings) {
-
+                                                                                 final List<CaseDetailsCourtSittingDto> courtSittings,
+                                                                                 final Map<String, CourtHouseDto> courtHouseCache) {
         CourtHouseDto courtHouse = courtSittings.getFirst().getCourtHouse();
         final String courtHouseId = courtHouse.getCourtHouseId();
         final String courtRoomId = courtHouse.getCourtRoomId();
-        final CourtHouseDto courtHouseDto = courtHouseService.getCourtHouseById(accessToken, courtHouseId, courtRoomId);
+        final String cacheKey = courtHouseId + "|" + (courtRoomId != null ? courtRoomId : "");
+        final CourtHouseDto courtHouseDto = courtHouseCache.computeIfAbsent(
+            cacheKey, k -> courtHouseService.getCourtHouseById(accessToken, courtHouseId, courtRoomId)
+        );
 
         return courtSittings.stream()
             .map(cs ->

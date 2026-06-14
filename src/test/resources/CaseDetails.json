@@ -1,0 +1,82 @@
+{
+  "caseUrn": "20NX9002954",
+  "caseStatus": "ACTIVE",
+  "courtSchedule": [
+    {
+      "hearings": [
+        {
+          "courtSittings": [
+            {
+              "courtHouse": {
+                "address": {
+                  "address1": "181 Marylebone Road",
+                  "address2": "London",
+                  "country": "UK",
+                  "postalCode": "NW1 5BR"
+                },
+                "courtHouseCode": "B01IX00",
+                "courtHouseId": "67aa82ba-67bb-4699-8176-5f572048352b",
+                "courtHouseName": "Westminster Magistrates' Court",
+                "courtHouseType": "magistrate",
+                "courtRoom": [
+                  {
+                    "courtRoomId": 2975,
+                    "courtRoomName": "Courtroom 01"
+                  }
+                ],
+                "courtRoomId": "c5f066ff-0aff-3dde-8bd9-40a587d3c58e"
+              },
+              "judiciaryId": "",
+              "sittingEnd": "2026-06-27T09:20:00",
+              "sittingStart": "2026-06-27T09:00:00"
+            }
+          ],
+          "hearingDescription": "Committal for Sentence",
+          "hearingId": "a4ba0a47-fc64-4b08-8715-ff6c17279595",
+          "hearingType": "Sentence",
+          "listNote": ""
+        }
+      ]
+    },
+    {
+      "timeline": [
+        {
+          "hearings": [
+            {
+              "courtSittings": [
+                {
+                  "courtHouse": {
+                    "address": {
+                      "address1": "181 Marylebone Road",
+                      "address2": "London",
+                      "country": "UK",
+                      "postalCode": "NW1 5BR"
+                    },
+                    "courtHouseCode": "B01IX00",
+                    "courtHouseId": "67aa82ba-67bb-4699-8176-5f572048352b",
+                    "courtHouseName": "Westminster Magistrates' Court",
+                    "courtHouseType": "magistrate",
+                    "courtRoom": [
+                      {
+                        "courtRoomId": 2975,
+                        "courtRoomName": "Courtroom 01"
+                      }
+                    ],
+                    "courtRoomId": "c5f066ff-0aff-3dde-8bd9-40a587d3c58e"
+                  },
+                  "judiciaryId": "",
+                  "sittingEnd": "2026-06-27T09:20:00",
+                  "sittingStart": "2026-06-27T09:00:00"
+                }
+              ],
+              "hearingDescription": "Committal for Sentence",
+              "hearingId": "a4ba0a47-fc64-4b08-8715-ff6c17279595",
+              "hearingType": "Sentence",
+              "listNote": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
