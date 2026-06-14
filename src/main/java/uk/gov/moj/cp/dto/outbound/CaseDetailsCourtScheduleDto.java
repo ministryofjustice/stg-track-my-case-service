@@ -14,6 +14,9 @@ public class CaseDetailsCourtScheduleDto {
 
     @JsonProperty("hearings")
     List<CaseDetailsHearingDto> hearings;
+
+    @JsonProperty("timeline")
+    List<CaseDetailsHearingDto> timeline;
 }
 
 
