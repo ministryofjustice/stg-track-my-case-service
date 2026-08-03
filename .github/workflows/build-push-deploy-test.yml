@@ -27,7 +27,7 @@ jobs:
       new_tag: ${{ steps.set-version-tag-output.outputs.new_tag }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Bump version and push tag
         uses: anothrNick/github-tag-action@1.75.0
@@ -85,7 +85,7 @@ jobs:
     environment: test
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Authenticate to the cluster
         env:
