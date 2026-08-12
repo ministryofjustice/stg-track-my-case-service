@@ -182,7 +182,7 @@ class CaseDetailsServiceTest {
 
 
     @Test
-    @DisplayName("excludes hearings when sittings are in the past")
+    @DisplayName("excludes past hearings from next-hearing section but includes them in timeline")
     void testGetCaseDetailsByCaseUrnWithEmptyHearingScheduleDetailsForPastSittingDate() {
         final List<CourtSittingDto> pastCourtSittings = List.of(createCourtSitting(
             pastSittingStartDate,
@@ -194,21 +194,29 @@ class CaseDetailsServiceTest {
             .hearings(List.of(hearingDto))
             .build();
 
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId))).thenReturn(
+            createCourtHouse(courtRoomDto, addressDto));
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
             scheduleDto));
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
         assertEquals(caseUrn, caseDetails.getCaseUrn());
-        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(2, caseDetails.getCourtSchedules().size());
         assertEquals(0, caseDetails.getCourtSchedules().getFirst().getHearings().size());
+
+        List<CaseDetailsHearingDto> timeline = caseDetails.getCourtSchedules().get(1).getTimeline();
+        assertNotNull(timeline);
+        assertEquals(1, timeline.size());
+        assertEquals(HearingType.SENTENCE.getValue(), timeline.getFirst().getHearingType());
+        assertEquals(HearingType.SENTENCE.getValue(), timeline.getFirst().getHearingDescription());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
 
 
     @Test
-    @DisplayName("includes only hearings that have at least one future sitting")
+    @DisplayName("next hearing is future sitting; past sitting appears in timeline")
     void testGetCaseDetailsByCaseUrnWithValidHearingScheduleFutureAndPastSittingDateCombined() {
         final List<CourtSittingDto> futureCourtSittings = List.of(createCourtSitting(
             futureSittingStartDate,
@@ -231,7 +239,7 @@ class CaseDetailsServiceTest {
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
         assertEquals(caseUrn, caseDetails.getCaseUrn());
-        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(2, caseDetails.getCourtSchedules().size());
         assertEquals(1, caseDetails.getCourtSchedules().getFirst().getHearings().size());
 
         var caseHearingDetails = caseDetails.getCourtSchedules().getFirst().getHearings().getFirst();
@@ -253,6 +261,11 @@ class CaseDetailsServiceTest {
 
         assertEquals(123, schedule.getCourtHouse().getCourtRooms().getFirst().getCourtRoomId());
         assertEquals("CourtRoom 01", schedule.getCourtHouse().getCourtRooms().getFirst().getCourtRoomName());
+
+        List<CaseDetailsHearingDto> timeline = caseDetails.getCourtSchedules().get(1).getTimeline();
+        assertNotNull(timeline);
+        assertEquals(1, timeline.size());
+        assertEquals(HearingType.TRIAL.getValue(), timeline.getFirst().getHearingType());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -431,7 +444,7 @@ class CaseDetailsServiceTest {
     }
 
     @Test
-    @DisplayName("should not includes  hearings that have only past sitting")
+    @DisplayName("all-past hearings produce empty next-hearing section and two timeline entries")
     void testGetCaseDetailsByCaseUrnWithNoHearingScheduleWithMultipleHearingWithPastSittings() {
         final List<CourtSittingDto> pastCourtSittings = List.of(createCourtSitting(
             pastSittingStartDate,
@@ -444,20 +457,28 @@ class CaseDetailsServiceTest {
             .hearings(List.of(hearingDto, hearingDto1))
             .build();
 
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId))).thenReturn(
+            createCourtHouse(courtRoomDto, addressDto));
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
             scheduleDto));
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
         assertEquals(caseUrn, caseDetails.getCaseUrn());
-        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(2, caseDetails.getCourtSchedules().size());
         assertEquals(0, caseDetails.getCourtSchedules().getFirst().getHearings().size());
+
+        List<CaseDetailsHearingDto> timeline = caseDetails.getCourtSchedules().get(1).getTimeline();
+        assertNotNull(timeline);
+        assertEquals(2, timeline.size());
+        assertEquals(HearingType.TRIAL.getValue(), timeline.get(0).getHearingType());
+        assertEquals(HearingType.SENTENCE.getValue(), timeline.get(1).getHearingType());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
 
     @Test
-    @DisplayName("should  includes  hearings that have only future sitting and should not include hearing that has past sitting")
+    @DisplayName("future hearing appears as next hearing; past hearing appears in timeline")
     void testGetCaseDetailsByCaseUrnWithHearingScheduleWithMultipleHearingWithPastAndFutureHearing() {
         final List<CourtSittingDto> pastCourtSittings = List.of(createCourtSitting(
             pastSittingStartDate,
@@ -484,12 +505,17 @@ class CaseDetailsServiceTest {
         CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
         assertEquals(caseUrn, caseDetails.getCaseUrn());
-        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(2, caseDetails.getCourtSchedules().size());
         assertEquals(1, caseDetails.getCourtSchedules().getFirst().getHearings().size());
         assertEquals(
             HearingType.TRIAL_NO_WITNESSES.getValue(),
             caseDetails.getCourtSchedules().getFirst().getHearings().getFirst().getHearingDescription()
         );
+
+        List<CaseDetailsHearingDto> timeline = caseDetails.getCourtSchedules().get(1).getTimeline();
+        assertNotNull(timeline);
+        assertEquals(1, timeline.size());
+        assertEquals(HearingType.TRIAL.getValue(), timeline.getFirst().getHearingType());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -563,7 +589,7 @@ class CaseDetailsServiceTest {
     }
 
     @Test
-    @DisplayName("includes only hearings that multiday hearing with past date sittings")
+    @DisplayName("multi-day past hearing has no next hearing but appears in full in timeline")
     void testGetCaseDetailsByCaseUrnWithNoHearingScheduleWithPastMultiDaySitting() {
         final CourtSittingDto pastSittingDto = createCourtSitting(pastSittingStartDate, pastSittingEndDate);
 
@@ -574,14 +600,22 @@ class CaseDetailsServiceTest {
             .hearings(List.of(hearingDto))
             .build();
 
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId))).thenReturn(
+            createCourtHouse(courtRoomDto, addressDto));
         when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(
             scheduleDto));
 
         final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
 
         assertEquals(caseUrn, caseDetails.getCaseUrn());
-        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(2, caseDetails.getCourtSchedules().size());
         assertEquals(0, caseDetails.getCourtSchedules().getFirst().getHearings().size());
+
+        List<CaseDetailsHearingDto> timeline = caseDetails.getCourtSchedules().get(1).getTimeline();
+        assertNotNull(timeline);
+        assertEquals(1, timeline.size());
+        assertEquals(HearingType.TRIAL.getValue(), timeline.getFirst().getHearingType());
+        assertEquals(2, timeline.getFirst().getCourtSittings().size());
 
         verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
@@ -1380,6 +1414,132 @@ class CaseDetailsServiceTest {
 
         verify(oauthTokenService, times(1)).evictAllTokenCaches();
         verify(courtScheduleService, times(2)).getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn));
+    }
+
+    @Test
+    @DisplayName("new sentence type hearings with past sittings appear in timeline, not next-hearing")
+    void testGetCaseDetailsNewSentenceTypesWithPastSittingsAppearInTimeline() {
+        final List<CourtSittingDto> pastCourtSittings = List.of(createCourtSitting(pastSittingStartDate, pastSittingEndDate));
+
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(
+                createHearing("1", HearingType.COMMITTAL_FOR_SENTENCE.getValue(), pastCourtSittings),
+                createHearing("2", HearingType.COMMITTAL_FOR_SENTENCE_PART_HEARD.getValue(), pastCourtSittings),
+                createHearing("3", HearingType.DEFERRED_SENTENCE.getValue(), pastCourtSittings),
+                createHearing("4", HearingType.DEFERRED_SENTENCE_RESPONDENT_RELEASED.getValue(), pastCourtSittings),
+                createHearing("5", HearingType.DEFERRED_SENTENCE_PROSECUTION_RELEASED.getValue(), pastCourtSittings)
+            ))
+            .build();
+
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId))).thenReturn(createCourtHouse(courtRoomDto, addressDto));
+        when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn))).thenReturn(List.of(scheduleDto));
+
+        final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
+
+        assertEquals(2, caseDetails.getCourtSchedules().size());
+        assertEquals(0, caseDetails.getCourtSchedules().getFirst().getHearings().size());
+
+        List<CaseDetailsHearingDto> timeline = caseDetails.getCourtSchedules().get(1).getTimeline();
+        assertNotNull(timeline);
+        assertEquals(5, timeline.size());
+        timeline.forEach(h ->
+            assertEquals(HearingType.SENTENCE.getValue(), h.getHearingType())
+        );
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
+    }
+
+    @Test
+    @DisplayName("past weekCommencing hearing is excluded entirely — past hearings must have court sittings")
+    void testGetCaseDetailsWithPastWeekCommencingHearingIsExcluded() {
+        // Past hearings are identified by court sitting dates. A weekCommencing hearing that is in
+        // the past has no court sittings, so getPastHearingDetails returns null and it does not
+        // appear in either the next-hearing section or the timeline.
+        final String pastStart = LocalDate.now().minusDays(14).toString();
+        final String pastEnd = LocalDate.now().minusDays(7).toString();
+
+        final HearingDto pastWeekHearing = createHearingWithWeeks("1", HearingType.TRIAL.getValue(), pastStart, pastEnd, 1);
+        final HearingDto futureWeekHearing = createHearingWithWeeks("2", HearingType.SENTENCE.getValue(), datePlus7, datePlus14, 1);
+
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(pastWeekHearing, futureWeekHearing))
+            .build();
+
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), isNull())).thenReturn(createCourtHouse(courtRoomDto, addressDto));
+        when(courtScheduleService.getCourtScheduleByCaseUrn(accessToken, caseUrn)).thenReturn(List.of(scheduleDto));
+
+        final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
+
+        // Only the future weekCommencing hearing (id="2") appears as the next hearing.
+        // The past weekCommencing hearing (id="1") is silently excluded — no court sittings to check.
+        assertEquals(1, caseDetails.getCourtSchedules().size());
+        assertEquals(1, caseDetails.getCourtSchedules().getFirst().getHearings().size());
+        assertEquals("2", caseDetails.getCourtSchedules().getFirst().getHearings().getFirst().getHearingId());
+        assertEquals(HearingType.SENTENCE.getValue(), caseDetails.getCourtSchedules().getFirst().getHearings().getFirst().getHearingType());
+        assertNull(caseDetails.getCourtSchedules().getFirst().getTimeline());
+
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
+    }
+
+    @Test
+    @DisplayName("2 future hearings produce 1 next hearing; 4 past hearings all appear in timeline")
+    void testGetCaseDetails_withTwoFutureAndFourPastHearings() {
+        final String farFutureSittingStart = LocalDateTime.now().plusDays(2).toString();
+        final String farFutureSittingEnd = LocalDateTime.now().plusDays(2).plusHours(2).toString();
+
+        // 2 future hearings — TRIAL tomorrow is selected as next (earlier date + trial priority)
+        final HearingDto futureHearing1 = createHearing("f1", HearingType.TRIAL.getValue(),
+            List.of(createCourtSitting(futureSittingStartDate, futureSittingEndDate)));
+        final HearingDto futureHearing2 = createHearing("f2", HearingType.SENTENCE.getValue(),
+            List.of(createCourtSitting(farFutureSittingStart, farFutureSittingEnd)));
+
+        // 4 past hearings — all sittings are yesterday
+        final HearingDto pastHearing1 = createHearing("p1", HearingType.TRIAL.getValue(),
+            List.of(createCourtSitting(pastSittingStartDate, pastSittingEndDate)));
+        final HearingDto pastHearing2 = createHearing("p2", HearingType.SENTENCE.getValue(),
+            List.of(createCourtSitting(pastSittingStartDate, pastSittingEndDate)));
+        final HearingDto pastHearing3 = createHearing("p3", HearingType.TRIAL_BACKER.getValue(),
+            List.of(createCourtSitting(pastSittingStartDate, pastSittingEndDate)));
+        final HearingDto pastHearing4 = createHearing("p4", HearingType.SENTENCE_OFFICER_TO_ATTEND.getValue(),
+            List.of(createCourtSitting(pastSittingStartDate, pastSittingEndDate)));
+
+        final CourtScheduleDto scheduleDto = CourtScheduleDto.builder()
+            .hearings(List.of(futureHearing1, futureHearing2, pastHearing1, pastHearing2, pastHearing3, pastHearing4))
+            .build();
+
+        when(courtHouseService.getCourtHouseById(eq(accessToken), eq(courtHouseId), eq(courtRoomId)))
+            .thenReturn(createCourtHouse(courtRoomDto, addressDto));
+        when(courtScheduleService.getCourtScheduleByCaseUrn(eq(accessToken), eq(caseUrn)))
+            .thenReturn(List.of(scheduleDto));
+
+        final CaseDetailsDto caseDetails = caseDetailsService.getCaseDetailsByCaseUrn(caseUrn);
+
+        // 1 next-hearing schedule + 1 timeline schedule
+        assertEquals(2, caseDetails.getCourtSchedules().size());
+
+        // Next hearing: earliest future Trial hearing (f1)
+        final List<CaseDetailsHearingDto> hearings = caseDetails.getCourtSchedules().getFirst().getHearings();
+        assertEquals(1, hearings.size());
+        assertEquals("f1", hearings.getFirst().getHearingId());
+        assertEquals(HearingType.TRIAL.getValue(), hearings.getFirst().getHearingType());
+
+        // Timeline: all 4 past hearings in input order, types normalised to Trial or Sentence
+        final List<CaseDetailsHearingDto> timeline = caseDetails.getCourtSchedules().get(1).getTimeline();
+        assertNotNull(timeline);
+        assertEquals(4, timeline.size());
+
+        assertEquals("p1", timeline.get(0).getHearingId());
+        assertEquals(HearingType.TRIAL.getValue(), timeline.get(0).getHearingType());
+
+        assertEquals("p2", timeline.get(1).getHearingId());
+        assertEquals(HearingType.SENTENCE.getValue(), timeline.get(1).getHearingType());
+
+        assertEquals("p3", timeline.get(2).getHearingId());
+        assertEquals(HearingType.TRIAL.getValue(), timeline.get(2).getHearingType());
+
+        assertEquals("p4", timeline.get(3).getHearingId());
+        assertEquals(HearingType.SENTENCE.getValue(), timeline.get(3).getHearingType());
+
+        verify(trackMyCaseMetricsService).incrementCaseDetailsCount(caseUrn);
     }
 
     private CourtSittingDto createCourtSitting(final String sittingStartDate, final String sittingEndDate) {
